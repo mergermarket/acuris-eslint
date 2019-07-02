@@ -3,10 +3,10 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport } = require('../core')
 const common = require('./common')
 
-if (eslintHelpers.hasEslintPluginNode) {
+if (eslintSupport.hasEslintPluginNode) {
   const configs = require('eslint-plugin-node').configs
   const nodeScript = configs['recommended-script']
   const nodeModule = configs['recommended-module']

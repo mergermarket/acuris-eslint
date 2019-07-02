@@ -1,6 +1,6 @@
 'use strict'
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport } = require('../core')
 
 module.exports = {
   parserOptions: {
@@ -365,6 +365,6 @@ module.exports = {
   }
 }
 
-if (eslintHelpers.hasBabelEslintParser) {
+if (eslintSupport.hasBabelEslintParser) {
   module.exports.parser = 'babel-eslint'
 }

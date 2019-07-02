@@ -1,9 +1,9 @@
 'use strict'
 
-const eslintHelpers = require('./eslint-helpers')
+const { addEslintConfigPrettierRules, mergeEslintConfigs } = require('./core')
 
-module.exports = eslintHelpers.addEslintConfigPrettierRules(
-  eslintHelpers.mergeEslintConfigs(
+module.exports = addEslintConfigPrettierRules(
+  mergeEslintConfigs(
     require('eslint/conf/eslint-recommended'),
     require('./configs/import'),
     require('./configs/node'),

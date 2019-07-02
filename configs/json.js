@@ -3,9 +3,9 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport } = require('../core')
 
-if (eslintHelpers.hasEslintPluginJson) {
+if (eslintSupport.hasEslintPluginJson) {
   module.exports = {
     plugins: ['json']
   }

@@ -3,11 +3,11 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport, mergeEslintConfigs } = require('../core')
 
 const common = require('./common')
 
-if (eslintHelpers.hasTypescript) {
+if (eslintSupport.hasTypescript) {
   module.exports = {
     overrides: [
       {
@@ -20,11 +20,11 @@ if (eslintHelpers.hasTypescript) {
 
           ...require('@typescript-eslint/eslint-plugin').configs['eslint-recommended'].overrides[0].rules,
 
-          ...(eslintHelpers.hasEslintPluginNode && {
+          ...(eslintSupport.hasEslintPluginNode && {
             'node/no-unsupported-features/es-syntax': 0
           }),
 
-          ...(eslintHelpers.hasEslintPluginImport && {
+          ...(eslintSupport.hasEslintPluginImport && {
             // TODO: These rules may be useful but they are too slow on big projects. Disable for typescript, typescript should cover enough.
             'import/namespace': 0,
             'import/named': 0,
@@ -86,10 +86,7 @@ if (eslintHelpers.hasTypescript) {
     ]
   }
 
-  if (eslintHelpers.hasEslintPluginImport) {
-    module.exports = eslintHelpers.mergeEslintConfigs(
-      module.exports,
-      require('eslint-plugin-import').configs.typescript
-    )
+  if (eslintSupport.hasEslintPluginImport) {
+    module.exports = mergeEslintConfigs(module.exports, require('eslint-plugin-import').configs.typescript)
   }
 }

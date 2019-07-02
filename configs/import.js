@@ -2,12 +2,12 @@
 
 /* eslint-disable global-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport, mergeEslintConfigs } = require('../core')
 
-if (eslintHelpers.hasEslintPluginImport) {
+if (eslintSupport.hasEslintPluginImport) {
   const eslintPluginImport = require('eslint-plugin-import')
 
-  module.exports = eslintHelpers.mergeEslintConfigs(
+  module.exports = mergeEslintConfigs(
     eslintPluginImport.configs.recommended,
     eslintPluginImport.configs.errors,
     eslintPluginImport.configs.warnings,

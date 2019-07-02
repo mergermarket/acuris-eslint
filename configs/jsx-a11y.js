@@ -3,10 +3,10 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport, mergeEslintConfigs } = require('../core')
 
-if (eslintHelpers.hasEslintPluginJsxA11y) {
-  module.exports = eslintHelpers.mergeEslintConfigs(require('eslint-plugin-jsx-a11y').configs.recommended, {
+if (eslintSupport.hasEslintPluginJsxA11y) {
+  module.exports = mergeEslintConfigs(require('eslint-plugin-jsx-a11y').configs.recommended, {
     rules: {
       'jsx-a11y/anchor-has-content': ['error', { components: [] }],
       'jsx-a11y/aria-role': ['error', { ignoreNonDom: false }],

@@ -3,10 +3,10 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const eslintHelpers = require('../eslint-helpers')
+const { eslintSupport, mergeEslintConfigs } = require('../core')
 
-if (eslintHelpers.hasEslintPluginReact) {
-  module.exports = eslintHelpers.mergeEslintConfigs(require('eslint-plugin-react').configs.recommended, {
+if (eslintSupport.hasEslintPluginReact) {
+  module.exports = mergeEslintConfigs(require('eslint-plugin-react').configs.recommended, {
     env: {
       es6: true,
       browser: true
@@ -16,7 +16,7 @@ if (eslintHelpers.hasEslintPluginReact) {
     },
     settings: {
       react: {
-        version: eslintHelpers.reactVersion
+        version: eslintSupport.reactVersion
       }
     }
   })
