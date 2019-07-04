@@ -160,6 +160,12 @@ function getResolvePathsSet() {
     addNodeRequirePathRecursive(__dirname)
     addNodeRequirePathRecursive(path.join(exports.baseFolder, 'package.json'))
     addNodeRequirePath(path.dirname(path.dirname(__dirname)))
+
+    try {
+      const eslintPath = require.resolve('eslint/package.json')
+      addNodeRequirePath(path.resolve(path.dirname(eslintPath), 'node_modules'))
+      addNodeRequirePath(path.resolve(path.dirname(path.dirname(eslintPath))))
+    } catch (_error) {}
   }
   return _resolvePaths
 }

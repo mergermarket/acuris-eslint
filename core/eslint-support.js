@@ -9,9 +9,13 @@ const path = require('path')
 const { baseFolder, hasLocalPackage, hasPackage } = require('./node-modules')
 
 const defaultReactVersion = '16.8.6'
+const extensions = []
 
-module.exports = {
+const eslintSupport = {
   baseFolder,
+
+  /** Is running in a continous integration server? */
+  isCI: 'CI' in process.env,
 
   /** @type {string} The react version supported by the project */
   reactVersion: getReactVersion(),
@@ -42,7 +46,19 @@ module.exports = {
 
   hasEslintPluginPromise: hasLocalPackage('eslint-plugin-promise'),
 
-  hasEslintPluginJson: hasLocalPackage('eslint-plugin-json')
+  hasEslintPluginJson: hasLocalPackage('eslint-plugin-json'),
+
+  extensions
+}
+
+module.exports = eslintSupport
+
+extensions.push('.js', '.jsx', '.mjs', '.cjs')
+if (eslintSupport.hasTypescript) {
+  extensions.push('.ts', '.tsx')
+}
+if (eslintSupport.hasEslintPluginJson) {
+  extensions.push('.json')
 }
 
 function getReactVersion() {

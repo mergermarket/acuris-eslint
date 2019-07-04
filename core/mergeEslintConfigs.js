@@ -1,3 +1,5 @@
+'use strict'
+
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
 

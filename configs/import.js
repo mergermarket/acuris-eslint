@@ -17,7 +17,7 @@ if (eslintSupport.hasEslintPluginImport) {
   )
 
   const extensions = new Set(module.exports.settings['import/extensions'])
-  for (const ext of ['.ts', '.tsx', '.d.ts', '.js', '.jsx', '.mjs']) {
+  for (const ext of ['.ts', '.tsx', '.d.ts', '.cjs', '.js', '.jsx', '.mjs']) {
     extensions.add(ext)
   }
 

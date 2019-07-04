@@ -1,3 +1,7 @@
+'use strict'
+
+require('./checkNodeVersion')
+
 const {
   hasPackage,
   hasLocalPackage,
