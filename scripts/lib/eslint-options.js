@@ -88,7 +88,7 @@ try {
     }
 
     const parsed = oldParse.call(this, input, parseOptions)
-    if (!parsed._ || !parsed._.length) {
+    if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help)) {
       parsed._ = ['.']
     }
 
