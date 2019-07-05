@@ -28,6 +28,18 @@ try {
   return
 }
 
+let appTitleTimeEndStarted
+
+function appTitleTimeEnd() {
+  if (appTitleTimeEndStarted) {
+    return
+  }
+  appTitleTimeEndStarted = true
+  setTimeout(() => {
+    console.timeEnd(appTitle)
+  }, 1)
+}
+
 if (options.help) {
   console.info(acurisEslintOptions.generateHelp())
 } else if (!options.command) {
@@ -38,7 +50,7 @@ if (options.help) {
     require('eslint/bin/eslint')
   } finally {
     if (options.canLog) {
-      console.timeEnd(appTitle)
+      appTitleTimeEnd()
     }
   }
 } else {
@@ -58,13 +70,9 @@ if (options.help) {
   try {
     const commandResult = options.command(options)
     if (commandResult && typeof commandResult.then === 'function' && typeof commandResult.catch === 'function') {
-      commandResult
-        .then(() => {
-          console.timeEnd(appTitle)
-        })
-        .catch(handleCommandError)
+      commandResult.then(appTitleTimeEnd).catch(handleCommandError)
     } else {
-      console.timeEnd(appTitle)
+      appTitleTimeEnd()
     }
   } catch (error) {
     handleCommandError(error)

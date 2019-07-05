@@ -11,11 +11,11 @@ module.exports = options => {
     pathsToDelete.add(path.resolve(options.cacheFile))
   }
   console.log(chalk.yellow(`\ndeleting eslint cache:\n${[...pathsToDelete].map(p => `  - ${p}\n`).join('')}`))
-  const deletedFilesCount = deleteFileOrDir(options.cacheFile)
+  const deletedFilesResult = deleteFileOrDir(pathsToDelete)
   console.log(
-    deletedFilesCount > 0
-      ? chalk.yellowBright(`${deletedFilesCount} files and folders deleted.\n`)
-      : chalk.green('Nothing found.\n')
+    deletedFilesResult.count > 0
+      ? chalk.yellowBright(`${deletedFilesResult.toString()}.\n`)
+      : chalk.green(`${deletedFilesResult.toString()}\n`)
   )
 }
 
