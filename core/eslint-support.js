@@ -20,6 +20,8 @@ const eslintSupport = {
   /** @type {string} The react version supported by the project */
   reactVersion: getReactVersion(),
 
+  hasEslint: hasPackage('eslint'),
+
   hasTypescript:
     hasLocalPackage('@typescript-eslint/parser') &&
     hasLocalPackage('@typescript-eslint/eslint-plugin') &&

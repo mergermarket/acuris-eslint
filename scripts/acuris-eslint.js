@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 'use strict'
 
-require('../core/checkNodeVersion')
-
 const path = require('path')
 const chalk = require('chalk').default
 const { version: packageVersion } = require('../package.json')
@@ -20,11 +18,19 @@ const argv = process.argv
 let options
 try {
   options = acurisEslintOptions.parse(argv)
-} catch (_error) {
-  options = { canLog: true }
+} catch (error) {
+  if (error && error.message && error.name === 'Error') {
+    console.error(`\n${chalk.redBright(`Error: ${error.message}`)}\n`)
+    console.error(`${chalk.yellowBright(`  run ${chalk.bold(`${programName} --help`)} for additional options`)}\n`)
+  } else {
+    throw error
+  }
+  return
 }
 
-if (!options.command) {
+if (options.help) {
+  console.info(acurisEslintOptions.generateHelp())
+} else if (!options.command) {
   try {
     if (options.canLog) {
       console.info(appTitle)

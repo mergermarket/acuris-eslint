@@ -43,19 +43,21 @@ function getCommandNames() {
   return result
 }
 
-function getCommandsHelp(prefix = '') {
-  let result = ''
+function getCommandsHelp(programName = 'acuris-eslint') {
+  let usage = ''
   for (const name of getCommandNames()) {
     const cmd = getCommand(name)
     if (typeof cmd === 'function') {
-      result += `${chalk.whiteBright.bold(`${prefix} ${name}`)}\n`
+      usage += `${chalk.whiteBright(`${programName} ${name}`)}\n`
       if (typeof cmd.description === 'string') {
-        result += `  ${cmd.description}\n`
+        usage += `  ${chalk.cyan(cmd.description)}\n`
       }
-      result += '\n'
+      usage += '\n'
     }
   }
-  return result
+  usage += `${chalk.whiteBright(programName)} [options] [file.js] [dir]\n`
+  usage += `  ${chalk.cyan('lints the current folder or the given files')}\n\n`
+  return usage
 }
 
 exports.getCommand = getCommand

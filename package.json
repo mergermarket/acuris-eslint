@@ -28,12 +28,15 @@
     "eslint-plugin-quick-prettier": ">=0.0.9",
     "prettier": ">=1.18.2"
   },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "optionator": "^0.8.2"
+  },
   "devDependencies": {
     "@types/node": "^12.0.10",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
     "babel-eslint": "^10.0.2",
-    "chalk": "^2.4.2",
     "eslint": "^6.0.1",
     "eslint-plugin-chai-expect": "^2.0.1",
     "eslint-plugin-css-modules": "^2.11.0",
