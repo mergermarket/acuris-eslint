@@ -2,7 +2,33 @@
 'use strict'
 
 const path = require('path')
+
+// This must execute before everything else.
+initCwd()
+
+function initCwd() {
+  const indexOfCwdOption = process.argv.indexOf('--cwd')
+  if (indexOfCwdOption > 1) {
+    process.chdir(process.argv[indexOfCwdOption + 1])
+  }
+  let argIndex = 0
+  for (const arg of process.argv) {
+    if (arg.startsWith('--cwd=')) {
+      process.chdir(arg.slice('--cwd='.length))
+      console.log(process.cwd())
+    } else if (arg === '--cwd') {
+      process.chdir(process.argv[argIndex + 1])
+      console.log(process.cwd())
+    }
+    ++argIndex
+  }
+}
+
 const chalk = require('chalk').default
+if (chalk.enabled && chalk.supportsColor.hasBasic) {
+  require('util').inspect.defaultOptions.colors = true
+}
+
 const { version: packageVersion } = require('../package.json')
 
 const programName = path.basename(__filename, '.js')

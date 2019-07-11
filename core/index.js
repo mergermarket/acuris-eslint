@@ -8,13 +8,11 @@ const {
   addNodeRequirePathRecursive
 } = require('./node-modules')
 
+const { getPrettierConfig, tryGetPrettier, getPrettier } = require('./prettier')
+
 const eslintSupport = require('./eslint-support')
 
-const {
-  addEslintConfigPrettierRules,
-  getPrettierConfig,
-  getPrettier
-} = require('eslint-plugin-quick-prettier/eslint-helpers')
+const { addEslintConfigPrettierRules } = require('eslint-plugin-quick-prettier/eslint-helpers')
 
 const mergeEslintConfigs = require('./mergeEslintConfigs')
 
@@ -27,6 +25,8 @@ exports.mergeEslintConfigs = mergeEslintConfigs
 exports.addEslintConfigPrettierRules = addEslintConfigPrettierRules
 
 exports.getPrettierConfig = getPrettierConfig
+
+exports.tryGetPrettier = tryGetPrettier
 
 exports.getPrettier = getPrettier
 

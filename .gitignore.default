@@ -1,3 +1,5 @@
+# @acuris/eslint-config
+
 # excluded files for security
 .npmrc
 .env

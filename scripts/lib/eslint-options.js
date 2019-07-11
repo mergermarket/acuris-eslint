@@ -26,6 +26,14 @@ function acurisEslintOptions(libOptions) {
 
   libOptions.prepend = ''
 
+  if (!optionsMap.has('cwd')) {
+    libOptions.options.splice(1, 0, {
+      option: 'cwd',
+      type: 'path::String',
+      description: 'The base folder for the project (cwd)'
+    })
+  }
+
   const extOption = optionsMap.get('ext')
   if (extOption) {
     optionsMap.get('ext').default = eslintSupport.extensions.join(',')

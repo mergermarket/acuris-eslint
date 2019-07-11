@@ -1,3 +1,5 @@
+'use strict'
+
 const path = require('path')
 const fs = require('fs')
 const chalk = require('chalk').default
@@ -8,39 +10,55 @@ function getCommandsFolder() {
   return path.resolve(__dirname, '..', 'commands')
 }
 
-function getCommand(command) {
-  if (typeof command !== 'string' || command.length === 0 || isInvalidCommandRegex.test(command)) {
+function getCommand(commandName) {
+  if (typeof commandName !== 'string' || commandName.length === 0 || isInvalidCommandRegex.test(commandName)) {
     return null
   }
   try {
-    const result = require(path.resolve(getCommandsFolder(), command))
-    return typeof result === 'function' ? result : null
+    const result = require(path.resolve(getCommandsFolder(), commandName))
+    if (typeof result === 'function') {
+      result.commandName = commandName
+      Object.defineProperty(result, 'name', { value: commandName, configurable: true })
+      return result
+    }
+    return null
   } catch (error) {
-    if (error && error.code === 'MODULE_NOT_FOUND' && error.message && error.message.indexOf(command) > 0) {
+    if (error && error.code === 'MODULE_NOT_FOUND' && error.message && error.message.indexOf(commandName) > 0) {
       return null
     }
     throw error
   }
 }
 
+function getCommands() {
+  return Array.from(getCommandNames()).map(getCommand)
+}
+
+/** @type {string[]} */
+let _commandNames
+
 function getCommandNames() {
-  const result = new Set()
+  if (_commandNames) {
+    return _commandNames
+  }
+  const set = new Set()
   const commandsFolder = getCommandsFolder()
   for (const dirent of fs.readdirSync(commandsFolder, { withFileTypes: true })) {
     const name = dirent.name
     if (!name.startsWith('_')) {
       if (dirent.isFile()) {
         if (name.endsWith('.js') && name !== 'index.js') {
-          result.add(name.slice(0, name.length - 3))
+          set.add(name.slice(0, name.length - 3))
         }
       } else if (dirent.isDirectory() && name !== 'lib') {
         if (fs.existsSync(path.resolve(commandsFolder, name, 'index.js'))) {
-          result.add(name)
+          set.add(name)
         }
       }
     }
   }
-  return result
+  _commandNames = Array.from(set).sort()
+  return _commandNames
 }
 
 function getCommandsHelp(programName = 'acuris-eslint') {
@@ -61,6 +79,8 @@ function getCommandsHelp(programName = 'acuris-eslint') {
 }
 
 exports.getCommand = getCommand
+
+exports.getCommands = getCommands
 
 exports.getCommandNames = getCommandNames
 

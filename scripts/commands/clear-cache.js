@@ -1,3 +1,5 @@
+'use strict'
+
 const chalk = require('chalk').default
 const path = require('path')
 const { deleteFileOrDir } = require('../lib/fs-utils')
