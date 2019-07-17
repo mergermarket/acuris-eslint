@@ -1,14 +1,14 @@
 'use strict'
 
+require('../../core/node-modules')
+
 const path = require('path')
 const fs = require('fs')
 const chalk = require('chalk').default
 const util = require('util')
-const hjson = require('hjson')
-const { tryPrettify } = require('../../core/prettier')
+const { jsonEqual, jsoncParse, jsoncStringify } = require('../../core/mergeEslintConfigs')
+const mkdirp = require('mkdirp')
 
-const { isArray } = Array
-const { keys: objectKeys } = Object
 const readFileAsync = util.promisify(fs.readFile)
 const writeFileAsync = util.promisify(fs.writeFile)
 
@@ -47,6 +47,8 @@ async function readTextFile(filePath, ignoreErrors = []) {
   }
 }
 
+exports.readTextFile = readTextFile
+
 async function updateTextFile({
   filePath,
   content,
@@ -79,13 +81,7 @@ async function updateTextFile({
     content = await content(previousContent, filePath)
   }
 
-  if (content === undefined) {
-    content = previousContent
-  } else if (Buffer.isBuffer(content)) {
-    content = content.toString('utf8')
-  }
-
-  if (jsonEqual(previousContent, content)) {
+  if (content === undefined /*|| jsonEqual(previousContent, content)*/) {
     console.log(` ${chalk.gray('-')} ${path.relative(basePath, filePath)} ${chalk.grey('already up to date')}.`)
     return false
   }
@@ -95,6 +91,8 @@ async function updateTextFile({
   }
 
   try {
+    await mkdirpAsync(path.dirname(filePath))
+
     await writeFileAsync(filePath, isJSON ? jsoncStringify(content) : content, { encoding: 'utf8' })
 
     if (previousContent === undefined) {
@@ -115,22 +113,7 @@ async function updateTextFile({
   return true
 }
 
-exports.readTextFile = readTextFile
-
 exports.updateTextFile = updateTextFile
-
-async function readJsonFile(filePath, ignoreErrors = []) {
-  try {
-    return jsoncParse(await readFileAsync(filePath, 'utf8'))
-  } catch (error) {
-    if (isErrorIgnored(error, ignoreErrors)) {
-      return null
-    }
-    throw error
-  }
-}
-
-exports.readJsonFile = readJsonFile
 
 class DeleteFileOrDirResult {
   constructor() {
@@ -193,49 +176,14 @@ function deleteFileOrDir(pathToDelete) {
 
 exports.deleteFileOrDir = deleteFileOrDir
 
-function jsonEqual(a, b) {
-  if (!(a !== b)) {
-    return true
-  }
-  if (typeof a === 'object' && typeof b === 'object') {
-    if (a === null || b === null) {
-      return false
-    }
-    if (isArray(a)) {
-      const aLen = a.length
-      if (!isArray(b) || aLen !== b.length) {
-        return false
+function mkdirpAsync(dir, opts) {
+  return new Promise((resolve, reject) => {
+    mkdirp(dir, opts, (err, made) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(made)
       }
-      for (let i = 0; i !== aLen; ++i) {
-        if (!jsonEqual(a[i], b[i])) {
-          return false
-        }
-      }
-      return true
-    }
-    for (const key of objectKeys(a)) {
-      if (!jsonEqual(a[key], b[key])) {
-        return false
-      }
-    }
-    return true
-  }
-  return false
-}
-
-function jsoncParse(text) {
-  return hjson.parse(Buffer.isBuffer(text) ? text.toString('utf8') : text, { keepWsc: true })
-}
-
-function jsoncStringify(obj) {
-  return tryPrettify(
-    hjson.stringify(obj, {
-      emitRootBraces: true,
-      separator: true,
-      quotes: 'all',
-      space: 2,
-      eol: '\n',
-      keepWsc: true
     })
-  )
+  })
 }

@@ -17,6 +17,5 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "eslint.autoFixOnSave": true,
-  "editor.codeLens": false,
   "files.eol": "\n"
 }

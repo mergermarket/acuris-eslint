@@ -198,6 +198,7 @@ function createEslintOptions() {
       throw error
     }
   }
+
   return extendOptions(baseOptions || getBasicOptions())
 }
 

@@ -1,17 +1,33 @@
 'use strict'
 
-const { resolveAcurisEslintFile, resolveProjectFile, readTextFile, updateTextFile } = require('../lib/fs-utils')
-const GitIgnore = require('../lib/GitIgnore')
+const { readJsonFile } = require('../lib/json-utils')
+const { resolveAcurisEslintFile, resolveProjectFile, updateTextFile } = require('../lib/fs-utils')
 
 module.exports = async () => {
   await updateTextFile({
-    filePath: resolveProjectFile('.vscode/settings.json'),
-    async content(previousContent) {
-      const targetGitIgnore = new GitIgnore(previousContent)
-      targetGitIgnore.merge(new GitIgnore(await readTextFile(resolveAcurisEslintFile('.gitignore.default'))))
-      return targetGitIgnore.changed && targetGitIgnore.toString()
+    isJSON: true,
+    filePath: resolveProjectFile('xvscode/settings.json'),
+    async content(content = {}) {
+      const defaultSettings = await readJsonFile(resolveAcurisEslintFile('.vscode/settings.json'))
+
+      for (const key of Object.keys(defaultSettings)) {
+        if (!(key in content)) {
+          content[key] = defaultSettings[key]
+        }
+      }
+
+      return Object.assign(content, defaultSettings)
+    }
+  })
+
+  await updateTextFile({
+    isJSON: true,
+    filePath: resolveProjectFile('xvscode/extensions.json'),
+    async content(content) {
+      const defaultSettings = await readJsonFile(resolveAcurisEslintFile('.vscode/extensions.json'))
+      return Object.assign(content || {}, defaultSettings)
     }
   })
 }
 
-module.exports.description = 'initializes or updates .gitignore'
+module.exports.description = 'initializes common Visual Studio Code settings'

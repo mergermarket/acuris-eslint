@@ -9,7 +9,10 @@ module.exports = async () => {
     async content(previousContent) {
       const targetGitIgnore = new GitIgnore(previousContent)
       targetGitIgnore.merge(new GitIgnore(await readTextFile(resolveAcurisEslintFile('.gitignore.default'))))
-      return targetGitIgnore.changed && targetGitIgnore.toString()
+      if (!targetGitIgnore.changed) {
+        return undefined
+      }
+      return targetGitIgnore.toString()
     }
   })
 }

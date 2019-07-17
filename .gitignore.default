@@ -1,4 +1,5 @@
 # @acuris/eslint-config
+# You can disable patterns by prepending # without any space. For example #.npmrc
 
 # excluded files for security
 .npmrc
@@ -20,6 +21,9 @@ bower_components
 build/Release
 *.tgz
 
+# some projects still requires yarn-packages-cache to be published
+!yarn-packages-cache/*.tgz
+
 # logs
 logs
 *.log
@@ -29,6 +33,8 @@ yarn-error.log*
 lerna-debug.log*
 
 # Cache and lockfiles
+.cache
+.fuse_hidden*
 .fusebox/
 .dynamodb/
 *.tsbuildinfo
@@ -58,6 +64,7 @@ coverage
 .Spotlight-V100
 .TemporaryItems
 .Trashes
+.Trash-*
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 .AppleDouble
@@ -75,3 +82,6 @@ ehthumbs_vista.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *.lnk
+
+# Thumbnails
+._*

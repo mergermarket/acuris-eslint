@@ -17,15 +17,15 @@ module.exports = function mergeEslintConfigs(...sources) {
       if (typeof source !== 'object') {
         throw new TypeError(`eslint configuration ${i} must be an object but is a ${typeof source}`)
       }
-      result = isArray(source) ? mergeEslintConfigs(result, ...source) : deepmerge(result, source, true)
+      result = isArray(source) ? mergeEslintConfigs(result, ...source) : eslintConfigsDeepMerge(result, source, true)
     }
   }
   return result
 }
 
-function deepmerge(target, src, combine, isRule) {
+function eslintConfigsDeepMerge(target, src, combine, isRule) {
   /*
-   * This code is inspired from deepmerge and eslint
+   * This code is inspired by deepmerge and eslint
    * (https://github.com/KyleAMathews/deepmerge)
    */
   const array = isArray(src) || isArray(target)
@@ -50,7 +50,7 @@ function deepmerge(target, src, combine, isRule) {
         if (isRule) {
           dst[i] = e
         } else {
-          dst[i] = deepmerge(resolvedTarget[i], e, combine, isRule)
+          dst[i] = eslintConfigsDeepMerge(resolvedTarget[i], e, combine, isRule)
         }
       } else if (!combine) {
         dst[i] = e
@@ -71,11 +71,11 @@ function deepmerge(target, src, combine, isRule) {
           dst[key] = overrides
         }
       } else if (isArray(src[key]) || isArray(target[key])) {
-        dst[key] = deepmerge(target[key], src[key], key === 'plugins' || key === 'extends', isRule)
+        dst[key] = eslintConfigsDeepMerge(target[key], src[key], key === 'plugins' || key === 'extends', isRule)
       } else if (typeof src[key] !== 'object' || !src[key] || key === 'exported' || key === 'astGlobals') {
         dst[key] = src[key]
       } else {
-        dst[key] = deepmerge(target[key] || {}, src[key], combine, key === 'rules')
+        dst[key] = eslintConfigsDeepMerge(target[key] || {}, src[key], combine, key === 'rules')
       }
     }
   }

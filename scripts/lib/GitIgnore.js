@@ -3,6 +3,10 @@
 class GitIgnore {
   constructor(content) {
     /** @type {Set<string>} */
+    const ignoredPatterns = new Set()
+    this.ignoredPatterns = ignoredPatterns
+
+    /** @type {Set<string>} */
     const patterns = new Set()
     this.patterns = patterns
 
@@ -17,13 +21,21 @@ class GitIgnore {
     this.acurisEslintMarkerPosition = -1
     if (content) {
       let previousLineIsComment = false
+      let previousLineIsEmpty = false
       for (let line of content.split('\n')) {
         line = line.trim()
         if (line === GitIgnore.acurisEslintMarker) {
           this.addAcurisEslintMarker()
           previousLineIsComment = false
-        } else if (line.startsWith('#') || (line.length === 0 && previousLineIsComment)) {
-          if (section.body.length !== 0 && sections[sections.length - 1] !== section) {
+        } else if (
+          (line.length === 0 && previousLineIsComment) ||
+          (line.startsWith('#') && (line.length === 1 || section.header.length === 0 || line.indexOf(' ') > 0))
+        ) {
+          if (
+            sections[sections.length - 1] !== section &&
+            (section.body.length !== 0 ||
+              (!previousLineIsComment && previousLineIsEmpty && line && section.header.length !== 0))
+          ) {
             sections.push(section)
             section = { header: [], body: [] }
           }
@@ -32,18 +44,33 @@ class GitIgnore {
           }
           previousLineIsComment = true
         } else if (line.length !== 0) {
-          if (!patterns.has(line)) {
-            patterns.add(line)
+          if (this.addPattern(line)) {
             section.body.push(line)
           }
           previousLineIsComment = false
         }
+        previousLineIsEmpty = line.length === 0
       }
 
       if (section.body.length !== 0 && sections[sections.length - 1] !== section) {
         sections.push(section)
       }
     }
+  }
+
+  addPattern(pattern) {
+    if (pattern.startsWith('#')) {
+      const ignoredPattern = pattern.slice(1).trim()
+      if (!this.ignoredPatterns.has(ignoredPattern) && !this.patterns.has(ignoredPattern)) {
+        this.ignoredPatterns.add(ignoredPattern)
+        return true
+      }
+    } else if (!this.patterns.has(pattern)) {
+      this.patterns.add(pattern)
+      this.ignoredPatterns.delete(pattern)
+      return true
+    }
+    return false
   }
 
   addAcurisEslintMarker() {
@@ -57,12 +84,16 @@ class GitIgnore {
   merge(gitignore) {
     const sectionsToAdd = []
     for (const section of gitignore.sections) {
-      const body = section.body.filter(x => !this.patterns.has(x))
+      const body = []
+      for (const pattern of section.body) {
+        if (!this.ignoredPatterns.has(pattern) && this.addPattern(pattern)) {
+          body.push(pattern)
+        }
+      }
       if (body.length !== 0) {
         sectionsToAdd.push({ header: [...section.header], body })
       }
     }
-
     if (sectionsToAdd.length !== 0) {
       this.sections.splice(this.addAcurisEslintMarker() + 1, 0, ...sectionsToAdd)
       this.changed = true

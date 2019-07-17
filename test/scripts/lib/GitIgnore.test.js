@@ -14,6 +14,7 @@ const simpleGitIgnore = [
   '',
   '',
   'hello world',
+  '#commented-pattern',
   'hello world 1',
   'hello world',
   ''
@@ -32,7 +33,8 @@ const gitIgnoreToMerge = [
   'hello',
   'xxx4',
   '# after marker3',
-  'hello world'
+  'hello world',
+  'commented-pattern'
 ].join('\n')
 
 const cleanedUpGitIgnoreArray = [
@@ -47,6 +49,7 @@ const cleanedUpGitIgnoreArray = [
   '#section B continued',
   '',
   'hello world',
+  '#commented-pattern',
   'hello world 1'
 ]
 
@@ -63,7 +66,8 @@ const cleanedUpGitIgnoreToMergeArray = [
   'xxx4',
   '',
   '# after marker3',
-  'hello world'
+  'hello world',
+  'commented-pattern'
 ]
 
 describe('GitIgnore', () => {
@@ -83,7 +87,7 @@ describe('GitIgnore', () => {
         { header: ['#section A'], body: ['hello'] },
         {
           header: ['#section B', '#section B continued', ''],
-          body: ['hello world', 'hello world 1']
+          body: ['hello world', '#commented-pattern', 'hello world 1']
         }
       ])
       expect(parsed.changed).to.equal(false)
@@ -92,12 +96,20 @@ describe('GitIgnore', () => {
     it('parses correctly a source .gitignore', () => {
       const parsed = new GitIgnore(gitIgnoreToMerge)
       expect(parsed.acurisEslintMarkerPosition).to.equal(0)
-      expect(Array.from(parsed.patterns).sort()).to.deep.equal(['hello', 'hello world', 'xxx1', 'xxx2', 'xxx3', 'xxx4'])
+      expect(Array.from(parsed.patterns).sort()).to.deep.equal([
+        'commented-pattern',
+        'hello',
+        'hello world',
+        'xxx1',
+        'xxx2',
+        'xxx3',
+        'xxx4'
+      ])
       expect(parsed.sections).to.deep.equal([
         { header: ['# @acuris/eslint-config'], body: [] },
         { header: ['# after marker1'], body: ['xxx1', 'hello', 'xxx2'] },
         { header: ['# after marker2'], body: ['xxx3', 'xxx4'] },
-        { header: ['# after marker3'], body: ['hello world'] }
+        { header: ['# after marker3'], body: ['hello world', 'commented-pattern'] }
       ])
       expect(parsed.changed).to.equal(false)
     })
@@ -138,12 +150,13 @@ describe('GitIgnore', () => {
         { header: ['#section A'], body: ['hello'] },
         {
           header: ['#section B', '#section B continued', ''],
-          body: ['hello world', 'hello world 1']
+          body: ['hello world', '#commented-pattern', 'hello world 1']
         },
         { header: ['# @acuris/eslint-config'], body: [] },
         { header: ['# after marker1'], body: ['xxx1', 'xxx2'] },
         { header: ['# after marker2'], body: ['xxx3', 'xxx4'] }
       ])
+      expect(target.patterns.has('commented-pattern')).to.equal(false)
     })
   })
 })
