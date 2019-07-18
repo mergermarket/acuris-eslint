@@ -20,6 +20,7 @@ bower_components
 .serverless/
 build/Release
 *.tgz
+ipch
 
 # some projects still requires yarn-packages-cache to be published
 !yarn-packages-cache/*.tgz
@@ -84,4 +85,3 @@ $RECYCLE.BIN/
 *.lnk
 
 # Thumbnails
-._*

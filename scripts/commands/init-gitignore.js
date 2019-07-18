@@ -1,14 +1,15 @@
 'use strict'
 
-const { resolveAcurisEslintFile, resolveProjectFile, readTextFile, updateTextFile } = require('../lib/fs-utils')
+const { resolveAcurisEslintFile, resolveProjectFile } = require('../lib/fs-utils')
+const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const GitIgnore = require('../lib/GitIgnore')
 
 module.exports = async () => {
-  await updateTextFile({
+  await updateTextFileAsync({
     filePath: resolveProjectFile('.gitignore'),
     async content(previousContent) {
       const targetGitIgnore = new GitIgnore(previousContent)
-      targetGitIgnore.merge(new GitIgnore(await readTextFile(resolveAcurisEslintFile('.gitignore.default'))))
+      targetGitIgnore.merge(new GitIgnore(readTextFile(resolveAcurisEslintFile('.gitignore.default'))))
       if (!targetGitIgnore.changed) {
         return undefined
       }
