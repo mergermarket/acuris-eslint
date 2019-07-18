@@ -30,7 +30,26 @@ async function initPrettierIgnore() {
 }
 
 async function initPrettierrc() {
-  const prettierConfig = sortObjectKeys(prettierInterface.tryGetPrettierConfig())
+  const defaultPrettierConfig = prettierInterface.loadDefaultPrettierConfig()
+  let prettierConfig = { ...prettierInterface.tryGetPrettierConfig() }
+
+  if (prettierConfig.printWidth < defaultPrettierConfig.printWidth) {
+    prettierConfig.printWidth = defaultPrettierConfig.printWidth
+  }
+  if (defaultPrettierConfig.endOfLine) {
+    prettierConfig.endOfLine = defaultPrettierConfig.endOfLine
+  }
+  if (defaultPrettierConfig.semi !== undefined) {
+    prettierConfig.semi = defaultPrettierConfig.semi
+  }
+  if (defaultPrettierConfig.singleQuote !== undefined) {
+    prettierConfig.singleQuote = defaultPrettierConfig.singleQuote
+  }
+  if (defaultPrettierConfig.tabWidth) {
+    prettierConfig.tabWidth = defaultPrettierConfig.tabWidth
+  }
+
+  prettierConfig = sortObjectKeys(prettierConfig)
 
   const forbiddenFiles = [
     '.prettierrc.yaml',
@@ -71,7 +90,7 @@ async function initPrettierrc() {
   await updateTextFileAsync({
     filePath: ['.prettierrc', '.prettierrc.json'],
     content() {
-      return JSON.stringify(prettierConfig, null, 2)
+      return `${JSON.stringify(prettierConfig, null, 2)}\n`
     }
   })
 

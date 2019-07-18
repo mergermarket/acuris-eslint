@@ -33,7 +33,7 @@
     "hjson": "^3.1.2",
     "mkdirp": "^0.5.1",
     "optionator": "^0.8.2",
-    "eslint-plugin-quick-prettier": "^0.0.12"
+    "eslint-plugin-quick-prettier": "^0.0.13"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
@@ -45,7 +45,7 @@
     "eslint-plugin-chai-expect": "^2.0.1",
     "eslint-plugin-css-modules": "^2.11.0",
     "eslint-plugin-import": "^2.18.0",
-    "eslint-plugin-jest": "^22.10.0",
+    "eslint-plugin-jest": "^22.11.0",
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-mocha": "^6.0.0",
