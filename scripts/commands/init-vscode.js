@@ -1,15 +1,20 @@
 'use strict'
 
-const chalk = require('chalk').default
+const fs = require('fs')
 const { resolveAcurisEslintFile, resolveProjectFile } = require('../lib/fs-utils')
 const { readJsonFile } = require('../lib/json-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
+const { notes } = require('../lib/notes')
 
 module.exports = async () => {
+  if (fs.existsSync(resolveProjectFile('.idea'))) {
+    notes.hasIdea = true
+  }
+
   if (
     await updateTextFileAsync({
       isJSON: true,
-      filePath: resolveProjectFile('xvscode/settings.json'),
+      filePath: resolveProjectFile('vscode/settings.json'),
       async content(settings) {
         const defaultSettings = readJsonFile(resolveAcurisEslintFile('.vscode/settings.json'))
 
@@ -26,17 +31,13 @@ module.exports = async () => {
       }
     })
   ) {
-    console.log(
-      `\n${chalk.blueBright('[NOTE]')} ${chalk.cyanBright(
-        '.vscode/settings.json was updated. You may need to restart Visual Studio Code.'
-      )}\n`
-    )
+    notes.shouldRestartVsCode = true
   }
 
   if (
     await updateTextFileAsync({
       isJSON: true,
-      filePath: resolveProjectFile('xvscode/extensions.json'),
+      filePath: resolveProjectFile('vscode/extensions.json'),
       async content(extensions) {
         const defaultExtensions = readJsonFile(resolveAcurisEslintFile('.vscode/extensions.json'))
 
@@ -63,13 +64,7 @@ module.exports = async () => {
       }
     })
   ) {
-    console.log(
-      `\n${chalk.blueBright('[NOTE]')} ${chalk.cyanBright(
-        '.vscode/extensions.json was updated.\n  When you restart Visual Studio Code you may be asked to install some recommended plugins.\n  If so, is recommended to install the recommended plugins.'
-      )} \n  ${chalk.blue(
-        'https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions\n'
-      )}`
-    )
+    notes.shouldInstallVsCodePlugins = true
   }
 }
 
@@ -117,4 +112,4 @@ function mergeEslintValidate(target, source) {
   return target
 }
 
-module.exports.description = 'initializes common Visual Studio Code settings'
+module.exports.description = 'writes Visual Studio Code workspace settings'

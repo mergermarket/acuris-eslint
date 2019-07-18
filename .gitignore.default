@@ -16,7 +16,7 @@ bower_components
 **/bower_components/
 **/jspm_packages/
 
-# build outputs
+# Build outputs
 .serverless/
 build/Release
 *.tgz
@@ -51,7 +51,7 @@ pids
 *.seed
 *.pid.lock
 
-# test coverage
+# Test coverage
 lib-cov
 coverage
 .nyc_output

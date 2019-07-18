@@ -4,4 +4,4 @@ module.exports = options => {
   console.log(options)
 }
 
-module.exports.description = 'interactive initialisation of a project'
+module.exports.description = 'initialises or updates a project'

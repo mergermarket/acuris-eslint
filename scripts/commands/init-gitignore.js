@@ -18,4 +18,4 @@ module.exports = async () => {
   })
 }
 
-module.exports.description = 'initializes or updates .gitignore'
+module.exports.description = 'writes .gitignore'

@@ -21,23 +21,35 @@ exports.readTextFile = readTextFile
 async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = process.cwd(), isJSON = false }) {
   let previousContent
 
-  filePath = resolveProjectFile(filePath)
-  if (content !== false) {
-    try {
-      previousContent = fs.readFileSync(filePath, 'utf8')
-    } catch (error) {
-      const code = error && error.code
-      if (code !== 'ENOENT' && code !== 'EISDIR') {
-        if (error && !error.path) {
-          error.path = filePath
+  const filePaths = Array.isArray(filePath) ? filePath : [filePath]
+  if (filePaths.length === 0) {
+    return false
+  }
+
+  let targetPath
+  for (let f of filePaths) {
+    f = resolveProjectFile(f)
+    if (content !== false) {
+      try {
+        previousContent = fs.readFileSync(f, 'utf8')
+        break
+      } catch (error) {
+        const code = error && error.code
+        if (code !== 'ENOENT' && code !== 'EISDIR') {
+          if (error && !error.path) {
+            error.path = f
+          }
+          throw error
         }
-        throw error
       }
     }
   }
+  if (!targetPath) {
+    targetPath = resolveProjectFile(filePaths[0])
+  }
 
   if (typeof content === 'function') {
-    content = await content(isJSON ? jsoncParse(previousContent) : previousContent, filePath)
+    content = await content(isJSON ? jsoncParse(previousContent) : previousContent, targetPath)
   }
 
   if (isJSON) {
@@ -56,26 +68,26 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
 
   if (shouldUpdate) {
     try {
-      mkdirp(path.dirname(filePath))
+      mkdirp(path.dirname(targetPath))
 
-      fs.writeFileSync(filePath, isJSON ? jsoncStringify(content) : content, { encoding: 'utf8' })
+      fs.writeFileSync(targetPath, isJSON ? jsoncStringify(content) : content, { encoding: 'utf8' })
 
       if (previousContent === undefined) {
-        console.log(` ${chalk.green('+')} ${path.relative(basePath, filePath)} ${chalk.greenBright('created')}.`)
+        console.log(` ${chalk.green('+')} ${path.relative(basePath, targetPath)} ${chalk.greenBright('created')}.`)
       } else {
-        console.log(` ${chalk.yellow('+')} ${path.relative(basePath, filePath)} ${chalk.yellowBright('updated')}.`)
+        console.log(` ${chalk.yellow('+')} ${path.relative(basePath, targetPath)} ${chalk.yellowBright('updated')}.`)
       }
     } catch (error) {
       if (error && !error.path) {
-        error.path = filePath
+        error.path = targetPath
       }
       throw error
     }
   } else if (isJSON && previousContent !== undefined) {
-    if (prettifyJsoncFile(filePath)) {
-      console.log(` ${chalk.gray('-')} ${path.relative(basePath, filePath)} ${chalk.yellow('prettified')}.`)
+    if (prettifyJsoncFile(targetPath)) {
+      console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
     } else {
-      console.log(` ${chalk.gray('-')} ${path.relative(basePath, filePath)} ${chalk.grey('already up to date')}.`)
+      console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.grey('already up to date')}.`)
     }
   }
 

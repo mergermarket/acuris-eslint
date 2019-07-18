@@ -91,12 +91,20 @@ if (options.help) {
       process.exitCode = 1
     }
     console.error(error)
+    try {
+      require('./lib/notes').flushNotes()
+    } catch (_error) {}
   }
 
   try {
     const commandResult = options.command(options)
     if (commandResult && typeof commandResult.then === 'function' && typeof commandResult.catch === 'function') {
-      commandResult.then(appTitleTimeEnd).catch(handleCommandError)
+      commandResult
+        .then(() => {
+          require('./lib/notes').flushNotes()
+          appTitleTimeEnd()
+        })
+        .catch(handleCommandError)
     } else {
       appTitleTimeEnd()
     }
