@@ -2,8 +2,8 @@
 
 const chalk = require('chalk').default
 const fs = require('fs')
-const { resolveProjectFile } = require('../lib/fs-utils')
-const { readTextFile, updateTextFileAsync, resolveAcurisEslintFile } = require('../lib/text-utils')
+const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
+const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { notes } = require('../lib/notes')
 const GitIgnore = require('../lib/GitIgnore')
 

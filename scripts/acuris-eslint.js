@@ -54,19 +54,8 @@ try {
   return
 }
 
-let appTitleTimeEndStarted
-
-function appTitleTimeEnd() {
-  if (appTitleTimeEndStarted) {
-    return
-  }
-  appTitleTimeEndStarted = true
-  setTimeout(() => {
-    console.timeEnd(appTitle)
-  }, 1)
-}
-
 if (options.help) {
+  console.info(appTitle)
   console.info(acurisEslintOptions.generateHelp())
 } else if (!options.command) {
   try {
@@ -76,11 +65,13 @@ if (options.help) {
     require('eslint/bin/eslint')
   } finally {
     if (options.canLog) {
-      appTitleTimeEnd()
+      setTimeout(() => {
+        console.timeEnd(appTitle)
+      }, 0)
     }
   }
 } else {
-  console.info(`${appTitle}${chalk.yellowBright(options.commandName)}`)
+  console.info(`\n${appTitle}${chalk.yellowBright(options.commandName)}\n`)
 
   if (!options.command.name || options.command.name === 'exports') {
     Object.defineProperty(options.command, 'name', { value: options.commandName, configurable: true })
@@ -90,6 +81,7 @@ if (options.help) {
     if (!process.exitCode) {
       process.exitCode = 1
     }
+    console.log()
     console.error(error)
     try {
       require('./lib/notes').flushNotes()
@@ -102,11 +94,9 @@ if (options.help) {
       commandResult
         .then(() => {
           require('./lib/notes').flushNotes()
-          appTitleTimeEnd()
+          console.log()
         })
         .catch(handleCommandError)
-    } else {
-      appTitleTimeEnd()
     }
   } catch (error) {
     handleCommandError(error)

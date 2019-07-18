@@ -96,3 +96,20 @@ function prettifyJsoncFile(jsonFilePath) {
 }
 
 exports.prettifyJsoncFile = prettifyJsoncFile
+
+function sortObjectKeys(object) {
+  if (typeof object !== 'object' || object === null) {
+    return object
+  }
+  if (Array.isArray(object)) {
+    return object.slice().sort()
+  }
+  const result = {}
+  for (const key of Object.keys(object).sort()) {
+    const value = object[key]
+    result[key] = Array.isArray(value) ? value.slice() : sortObjectKeys(value)
+  }
+  return result
+}
+
+exports.sortObjectKeys = sortObjectKeys

@@ -83,12 +83,10 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
       }
       throw error
     }
-  } else if (isJSON && previousContent !== undefined) {
-    if (prettifyJsoncFile(targetPath)) {
-      console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
-    } else {
-      console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.grey('already up to date')}.`)
-    }
+  } else if (isJSON && previousContent !== undefined && prettifyJsoncFile(targetPath)) {
+    console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
+  } else {
+    console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.grey('already up to date')}.`)
   }
 
   return shouldUpdate
