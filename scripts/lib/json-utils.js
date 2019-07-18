@@ -76,8 +76,20 @@ function jsoncStringify(obj) {
 
 exports.jsoncStringify = jsoncStringify
 
-function readJsonFile(filePath) {
+function readJsoncFile(filePath) {
   return jsoncParse(fs.readFileSync(filePath, 'utf8'))
+}
+
+exports.readJsoncFile = readJsoncFile
+
+function stripBOM(content) {
+  content = content.toString()
+  return content.charCodeAt(0) === 0xfeff ? content.slice(1) : content
+}
+
+function readJsonFile(filePath) {
+  const result = stripBOM(fs.readFileSync(filePath, 'utf8'))
+  return result.length === 0 ? undefined : JSON.parse(result)
 }
 
 exports.readJsonFile = readJsonFile

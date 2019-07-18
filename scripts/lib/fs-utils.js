@@ -87,3 +87,23 @@ function fileExists(filePath) {
 }
 
 exports.fileExists = fileExists
+
+function findRootPackageJson(baseFolder = process.cwd()) {
+  let result
+  baseFolder = path.resolve(baseFolder)
+  let p = baseFolder
+  for (;;) {
+    const packageJsonPath = path.resolve(p, 'package.json')
+    if (fileExists(packageJsonPath)) {
+      result = packageJsonPath
+    }
+    const parent = path.dirname(p) || ''
+    if (parent.length === p.length) {
+      break
+    }
+    p = parent
+  }
+  return result
+}
+
+exports.findRootPackageJson = findRootPackageJson

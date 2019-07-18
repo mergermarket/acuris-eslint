@@ -2,7 +2,7 @@
 
 const fs = require('fs')
 const { resolveAcurisEslintFile, resolveProjectFile } = require('../lib/fs-utils')
-const { readJsonFile } = require('../lib/json-utils')
+const { readJsoncFile } = require('../lib/json-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const { notes } = require('../lib/notes')
 
@@ -16,7 +16,7 @@ module.exports = async () => {
       isJSON: true,
       filePath: resolveProjectFile('vscode/settings.json'),
       async content(settings) {
-        const defaultSettings = readJsonFile(resolveAcurisEslintFile('.vscode/settings.json'))
+        const defaultSettings = readJsoncFile(resolveAcurisEslintFile('.vscode/settings.json'))
 
         if (typeof settings !== 'object' || settings === null) {
           settings = {}
@@ -39,7 +39,7 @@ module.exports = async () => {
       isJSON: true,
       filePath: resolveProjectFile('vscode/extensions.json'),
       async content(extensions) {
-        const defaultExtensions = readJsonFile(resolveAcurisEslintFile('.vscode/extensions.json'))
+        const defaultExtensions = readJsoncFile(resolveAcurisEslintFile('.vscode/extensions.json'))
 
         if (typeof extensions !== 'object' || extensions === null) {
           extensions = {}
