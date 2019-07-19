@@ -7,6 +7,7 @@ const util = require('util')
 const { resolveProjectFile, resolveAcurisEslintFile, fileExists } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { sortObjectKeys } = require('../lib/json-utils')
+const { warning } = require('../lib/notes')
 const GitIgnore = require('../lib/GitIgnore')
 const prettierInterface = require('../../core/prettier-interface')
 
@@ -67,8 +68,7 @@ async function initPrettierrc() {
   }
 
   if (filesToDelete.length !== 0) {
-    console.log(
-      chalk.yellowBright('[WARNING]'),
+    warning(
       chalk.yellow(
         `.prettierrc configuration should be a .prettierrc json file and not ${chalk.redBright(
           filesToDelete.join(', ')
@@ -100,12 +100,7 @@ async function initPrettierrc() {
       console.log(` ${chalk.redBright('-')} ${fileToDelete} ${chalk.redBright('deleted')}!`)
     } catch (error) {
       if (!error || error.code !== 'ENOENT') {
-        console.log(
-          chalk.yellowBright('[WARNING]'),
-          chalk.yellow('could not delete file'),
-          chalk.red(fileToDelete),
-          chalk.gray(error || error.message)
-        )
+        warning(chalk.yellow('could not delete file'), chalk.red(fileToDelete), chalk.gray(error || error.message))
       }
     }
   }

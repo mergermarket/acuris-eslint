@@ -5,7 +5,7 @@ const fs = require('fs')
 const chalk = require('chalk')
 const mkdirp = require('mkdirp')
 const { resolveProjectFile } = require('./fs-utils')
-const { jsoncParse, jsonEqual, jsoncStringify, prettifyJsoncFile } = require('./json-utils')
+const { jsoncParse, jsonEqual, jsonStringify, jsoncStringify, prettifyJsonFile } = require('./json-utils')
 
 function stripBOM(content) {
   content = content.toString()
@@ -18,7 +18,7 @@ function readTextFile(filePath) {
 
 exports.readTextFile = readTextFile
 
-async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = process.cwd(), isJSON = false }) {
+async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = process.cwd(), language = 'text' }) {
   let previousContent
 
   const filePaths = Array.isArray(filePath) ? filePath : [filePath]
@@ -26,12 +26,15 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
     return false
   }
 
+  let exists = false
+
   let targetPath
   for (let f of filePaths) {
     f = resolveProjectFile(f)
     if (content !== false) {
       try {
-        previousContent = fs.readFileSync(f, 'utf8')
+        previousContent = readTextFile(f)
+        exists = true
         break
       } catch (error) {
         const code = error && error.code
@@ -48,13 +51,33 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
     targetPath = resolveProjectFile(filePaths[0])
   }
 
-  if (typeof content === 'function') {
-    content = await content(isJSON ? jsoncParse(previousContent) : previousContent, targetPath)
+  const parse = text => {
+    switch (language) {
+      case 'jsonc':
+        return jsoncParse(text)
+      case 'json':
+        return text !== undefined && text !== '' ? JSON.parse(text) : undefined
+      default:
+        return text
+    }
   }
 
-  if (isJSON) {
-    previousContent = jsoncParse(previousContent)
+  const strintify = data => {
+    switch (language) {
+      case 'jsonc':
+        return jsoncStringify(data)
+      case 'json':
+        return jsonStringify(data)
+      default:
+        return data
+    }
   }
+
+  if (typeof content === 'function') {
+    content = await content(parse(previousContent), targetPath, path.relative(basePath, targetPath))
+  }
+
+  previousContent = parse(previousContent)
 
   let shouldUpdate = true
 
@@ -70,9 +93,9 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
     try {
       mkdirp(path.dirname(targetPath))
 
-      fs.writeFileSync(targetPath, isJSON ? jsoncStringify(content) : content, { encoding: 'utf8' })
+      fs.writeFileSync(targetPath, strintify(content), { encoding: 'utf8' })
 
-      if (previousContent === undefined) {
+      if (!exists) {
         console.log(` ${chalk.green('+')} ${path.relative(basePath, targetPath)} ${chalk.greenBright('created')}.`)
       } else {
         console.log(` ${chalk.yellow('+')} ${path.relative(basePath, targetPath)} ${chalk.yellowBright('updated')}.`)
@@ -83,13 +106,25 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
       }
       throw error
     }
-  } else if (isJSON && previousContent !== undefined && prettifyJsoncFile(targetPath)) {
+  } else if (
+    (language === 'jsonc' || language === 'json') &&
+    previousContent !== undefined &&
+    prettifyJsonFile(targetPath)
+  ) {
     console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
   } else {
     console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.grey('already up to date')}.`)
   }
 
-  return shouldUpdate
+  if (!exists) {
+    return 'created'
+  }
+
+  if (shouldUpdate) {
+    return 'updated'
+  }
+
+  return false
 }
 
 exports.updateTextFileAsync = updateTextFileAsync

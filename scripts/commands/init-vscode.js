@@ -13,8 +13,8 @@ module.exports = async () => {
 
   if (
     await updateTextFileAsync({
-      isJSON: true,
-      filePath: resolveProjectFile('vscode/settings.json'),
+      language: 'jsonc',
+      filePath: resolveProjectFile('.vscode/settings.json'),
       async content(settings) {
         const defaultSettings = readJsoncFile(resolveAcurisEslintFile('.vscode/settings.json'))
 
@@ -36,8 +36,8 @@ module.exports = async () => {
 
   if (
     await updateTextFileAsync({
-      isJSON: true,
-      filePath: resolveProjectFile('vscode/extensions.json'),
+      language: 'jsonc',
+      filePath: resolveProjectFile('.vscode/extensions.json'),
       async content(extensions) {
         const defaultExtensions = readJsoncFile(resolveAcurisEslintFile('.vscode/extensions.json'))
 
@@ -78,7 +78,6 @@ function mergeConfigs(target, source) {
     }
   }
   if (target === undefined) {
-    console.log(target, source)
     return source
   }
   return target === undefined ? source : target

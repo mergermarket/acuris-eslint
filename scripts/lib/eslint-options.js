@@ -190,7 +190,7 @@ function createEslintOptions() {
   } catch (error) {
     if (error && error.code === 'MODULE_NOT_FOUND') {
       console.warn(
-        chalk.yellowBright('[warning]'),
+        chalk.yellowBright('[WARNING]'),
         chalk.yellow(`${error.message}`.split('\n')[0]),
         chalk.gray('- try to run `npm install` or `yarn`')
       )

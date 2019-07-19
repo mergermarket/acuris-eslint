@@ -5,15 +5,16 @@ const path = require('path')
 const { spawn } = require('child_process')
 const util = require('util')
 const spawnAsync = util.promisify(spawn)
+const { notes } = require('../lib/notes')
 
-const { resolveProjectFile, findRootPackageJson } = require('../lib/fs-utils')
-const { readJsonFile } = require('../lib/json-utils')
+const { resolveProjectFile, fileExists, findFileUp, findDirectoryUp } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
+const { sanitisePackageJson } = require('../lib/package-utils')
 
 module.exports = async () => {
-  let packageJsonPath = resolveProjectFile('package.json')
+  const packageJsonPath = resolveProjectFile('package.json')
 
-  if (packageJsonPath && packageJsonPath !== findRootPackageJson(path.dirname(packageJsonPath))) {
+  if (packageJsonPath && packageJsonPath !== findFileUp('package.json', path.dirname(packageJsonPath))) {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${packageJsonPath}.`
     )
@@ -22,14 +23,21 @@ module.exports = async () => {
   if (!packageJsonPath) {
     console.log(chalk.yellow('package.json not found. Creating one...\n'))
     await spawnAsync('npm', ['init'], { stdio: 'inherit' })
-    packageJsonPath = findRootPackageJson()
+  }
+
+  if (!findDirectoryUp(resolveProjectFile('.git'))) {
+    notes.gitFolderNotFound = true
+  }
+
+  if (!fileExists(packageJsonPath)) {
+    throw new Error('Could not find package.json')
   }
 
   await updateTextFileAsync({
-    isJSON: true,
+    language: 'json',
     filePath: packageJsonPath,
     async content(manifest) {
-      sanitiseManifest(manifest)
+      manifest = sanitisePackageJson(manifest)
 
       console.log(manifest)
       return manifest
@@ -38,30 +46,3 @@ module.exports = async () => {
 }
 
 module.exports.description = 'creates or updates packages'
-
-function sanitiseManifest(manifest) {
-  if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
-    throw new Error('package.json must be an object')
-  }
-  if (typeof manifest.name !== 'string' || manifest.name.trim().length === 0) {
-    throw new Error('package.json must contain a valid "name" property')
-  }
-  if (typeof manifest.version !== 'string' || manifest.version.trim().length === 0) {
-    throw new Error('package.json must contain a valid "version" property')
-  }
-  if (!manifest.description) {
-    manifest.description = manifest.name
-  }
-  if (!manifest.keywords) {
-    manifest.keywords = [manifest.name]
-  }
-  if (!manifest.license) {
-    manifest.license = 'UNLICENSED'
-  }
-  if (!manifest.engines) {
-    manifest.engines = {}
-  }
-  if (typeof manifest.engines === 'object' && !manifest.engines.node) {
-    manifest.engines.node = '>=8.10.0'
-  }
-}

@@ -88,12 +88,22 @@ function fileExists(filePath) {
 
 exports.fileExists = fileExists
 
-function findRootPackageJson(baseFolder = process.cwd()) {
+function directoryExists(filePath) {
+  try {
+    return fs.statSync(filePath).isDirectory()
+  } catch (_error) {
+    return false
+  }
+}
+
+exports.directoryExists = directoryExists
+
+function findFileUp(filename, baseFolder = process.cwd()) {
   let result
   baseFolder = path.resolve(baseFolder)
   let p = baseFolder
   for (;;) {
-    const packageJsonPath = path.resolve(p, 'package.json')
+    const packageJsonPath = path.resolve(p, filename)
     if (fileExists(packageJsonPath)) {
       result = packageJsonPath
     }
@@ -106,4 +116,24 @@ function findRootPackageJson(baseFolder = process.cwd()) {
   return result
 }
 
-exports.findRootPackageJson = findRootPackageJson
+exports.findFileUp = findFileUp
+
+function findDirectoryUp(directory, baseFolder = process.cwd()) {
+  let result
+  baseFolder = path.resolve(baseFolder)
+  let p = baseFolder
+  for (;;) {
+    const packageJsonPath = path.resolve(p, directory)
+    if (directoryExists(packageJsonPath)) {
+      result = packageJsonPath
+    }
+    const parent = path.dirname(p) || ''
+    if (parent.length === p.length) {
+      break
+    }
+    p = parent
+  }
+  return result
+}
+
+exports.findDirectoryUp = findDirectoryUp
