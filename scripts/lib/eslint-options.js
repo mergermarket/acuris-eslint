@@ -173,7 +173,6 @@ function getBasicOptions() {
 function createEslintOptions() {
   let baseOptions
   try {
-    require.resolve('eslint')
     const eslintOptionsPath = require.resolve('eslint/lib/options')
     const eslintOptionatorPath = require.resolve('optionator', {
       paths: nodeModules.nodeModulePaths(require.resolve('eslint/package.json'))

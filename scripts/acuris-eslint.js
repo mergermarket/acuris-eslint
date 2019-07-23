@@ -3,43 +3,52 @@
 
 const path = require('path')
 
-// This must execute before everything else.
-initCwd()
+const argv = process.argv
 
-function initCwd() {
+// This must execute before everything else.
+preinit()
+
+function preinit() {
+  require('../core/node-modules')
+
+  // To use V8's code cache to speed up instantiation time.
+  // eslint-disable-next-line node/no-extraneous-require
+  require('v8-compile-cache')
+
   const indexOfCwdOption = process.argv.indexOf('--cwd')
   if (indexOfCwdOption > 1) {
     process.chdir(process.argv[indexOfCwdOption + 1])
   }
-  let argIndex = 0
-  for (const arg of process.argv) {
-    if (arg.startsWith('--cwd=')) {
-      process.chdir(arg.slice('--cwd='.length))
-      console.log(process.cwd())
-    } else if (arg === '--cwd') {
-      process.chdir(process.argv[argIndex + 1])
-      console.log(process.cwd())
-    }
-    ++argIndex
-  }
-}
+  let cwdDir = null
 
-const chalk = require('chalk').default
-if (chalk.enabled && chalk.supportsColor.hasBasic) {
-  require('util').inspect.defaultOptions.colors = true
+  for (let i = 0, len = argv.length; i !== len; ++i) {
+    const arg = argv[i]
+    if (arg.startsWith('--cwd=')) {
+      cwdDir = arg.slice('--cwd='.length).trim()
+    } else if (arg === '--cwd') {
+      cwdDir = (process.argv[i + 1] || '').trim()
+    }
+  }
+
+  if (cwdDir) {
+    process.chdir(cwdDir)
+  }
 }
 
 const { version: packageVersion } = require('../package.json')
 
 const programName = path.basename(__filename, '.js')
 
+const chalk = require('chalk').default
+if (chalk.enabled && chalk.supportsColor.hasBasic) {
+  require('util').inspect.defaultOptions.colors = true
+}
+
 const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${chalk.blueBright(`v${packageVersion}`)} `
 
 console.time(appTitle)
 
 const acurisEslintOptions = require('./lib/eslint-options')
-
-const argv = process.argv
 
 let options
 try {
