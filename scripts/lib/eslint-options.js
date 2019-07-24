@@ -34,6 +34,14 @@ function acurisEslintOptions(libOptions) {
     })
   }
 
+  if (!optionsMap.has('commands')) {
+    libOptions.options.push({
+      option: 'commands',
+      type: 'Boolean',
+      description: 'Show commands help'
+    })
+  }
+
   const extOption = optionsMap.get('ext')
   if (extOption) {
     optionsMap.get('ext').default = eslintSupport.extensions.join(',')
@@ -85,13 +93,42 @@ function extendOptions(instance) {
       }
 
       if (input.length === 3) {
-        if (input[2] === 'help' || input[2] === 'init' || input[2] === 'delete-cache') {
+        if (input[2] === 'help' || input[2] === 'init') {
           input = [input[0], input[1], `--${input[2]}`]
         }
       }
     }
 
-    const parsed = oldParse.call(this, input, parseOptions)
+    let parsed
+
+    try {
+      parsed = oldParse.call(this, input, parseOptions)
+    } catch (error) {
+      if (!command && error && typeof error.message === 'string' && error.message.startsWith('Invalid option')) {
+        try {
+          const commandNamesSet = new Set(eslintCommands.getCommandNames())
+          for (let i = 2; i < input.length; ++i) {
+            let arg = input[i]
+            if (typeof arg === 'string' && arg.startsWith('--')) {
+              arg = arg.slice(2)
+              if (commandNamesSet.has(arg)) {
+                command = eslintCommands.getCommand(arg)
+                if (command) {
+                  commandName = arg
+                  input = [input[0], input[1], ...input.slice(2, i), ...input.slice(i + 1)]
+                }
+              }
+            }
+          }
+          parsed = oldParse.call(this, input, parseOptions)
+        } catch (_error) {
+          throw error
+        }
+      } else {
+        throw error
+      }
+    }
+
     if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help)) {
       parsed._ = ['.']
     }
@@ -103,6 +140,10 @@ function extendOptions(instance) {
       if (command) {
         commandName = 'init'
       }
+    }
+
+    if (commandName === 'init') {
+      parsed.init = true
     }
 
     parsed.commandName = commandName
@@ -122,9 +163,13 @@ function extendOptions(instance) {
   }
 
   instance.generateHelp = function generateHelp(helpOptions) {
-    let usage = `\n${chalk.yellowBright('Usage')}:\n\n`
+    let usage = `\n${chalk.yellowBright('Commands')}:\n\n`
 
     usage += eslintCommands.getCommandsHelp(programName)
+
+    if (helpOptions && helpOptions.showCommandsOnly) {
+      return usage
+    }
 
     const additionalHelp = []
     additionalHelp.push('', '')
@@ -165,7 +210,8 @@ function getBasicOptions() {
         description: 'Run config initialization wizard'
       },
       { option: 'debug', type: 'Boolean', default: false, description: 'Output debugging information' },
-      { option: 'help', alias: 'h', type: 'Boolean', description: 'Show help' }
+      { option: 'help', alias: 'h', type: 'Boolean', description: 'Show help' },
+      { option: 'commands', type: 'Boolean', description: 'Show commands help' }
     ]
   }
 }

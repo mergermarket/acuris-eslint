@@ -12,8 +12,11 @@
     "prettier"
   ],
   "scripts": {
-    "acuris-eslint": "scripts/acuris-eslint.js",
-    "test": "mocha \"test/**/*.test.js\""
+    "lint": "node scripts/acuris-eslint.js",
+    "help": "node scripts/acuris-eslint.js --help",
+    "acuris-eslint": "node scripts/acuris-eslint.js",
+    "test": "mocha \"test/**/*.test.js\"",
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "bin": {
     "acuris-eslint": "scripts/acuris-eslint.js"

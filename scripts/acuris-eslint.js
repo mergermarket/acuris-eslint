@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 'use strict'
 
 const path = require('path')
@@ -63,9 +64,13 @@ try {
   return
 }
 
-if (options.help) {
+if (options.help || options.commands || options.init) {
+  require('./lib/logo').printLogo()
+}
+
+if (options.help || options.commands) {
   console.info(appTitle)
-  console.info(acurisEslintOptions.generateHelp())
+  console.info(acurisEslintOptions.generateHelp({ showCommandsOnly: options.commands }))
 } else if (!options.command) {
   try {
     if (options.canLog) {
