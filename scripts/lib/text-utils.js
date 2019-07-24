@@ -231,11 +231,20 @@ function prettifyFile(filename, format = '', source = null) {
     if (formatted.charCodeAt(0) === 0xfeff) {
       formatted = formatted.slice(1)
     }
+
     if (!format || format === 'text') {
       format = getTextFileFormat(filename)
     }
 
-    formatted = stringify(parse(source, format, filename), format, filename)
+    if (format === 'json') {
+      const prettier = prettierInterface.tryGetPrettier()
+      if (prettier) {
+        formatted = prettierInterface.format(formatted, { ignoreErrors: true, parser: format })
+      }
+    } else {
+      formatted = stringify(parse(source, format, filename), format, filename)
+    }
+
     if (source !== formatted) {
       fs.writeFileSync(filename, formatted, { encoding: 'utf8' })
       return true

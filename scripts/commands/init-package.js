@@ -44,4 +44,4 @@ module.exports = async () => {
   })
 }
 
-module.exports.description = 'creates or updates packages'
+module.exports.description = 'updates package.json'
