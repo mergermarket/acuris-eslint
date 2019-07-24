@@ -1,20 +1,19 @@
 'use strict'
 
 const chalk = require('chalk').default
-const path = require('path')
 const { spawn } = require('child_process')
 const util = require('util')
 const spawnAsync = util.promisify(spawn)
 const { notes } = require('../lib/notes')
 
-const { resolveProjectFile, fileExists, findFileUp, findDirectoryUp } = require('../lib/fs-utils')
+const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const { sanitisePackageJson } = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
 
-  if (packageJsonPath && packageJsonPath !== findFileUp('package.json', path.dirname(packageJsonPath))) {
+  if (packageJsonPath && packageJsonPath !== findUp('package.json', { directories: false, files: false })) {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${packageJsonPath}.`
     )
@@ -25,7 +24,7 @@ module.exports = async () => {
     await spawnAsync('npm', ['init'], { stdio: 'inherit' })
   }
 
-  if (!findDirectoryUp(resolveProjectFile('.git'))) {
+  if (!findUp(resolveProjectFile('.git', { directories: true, files: false }))) {
     notes.gitFolderNotFound = true
   }
 

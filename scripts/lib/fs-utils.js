@@ -98,14 +98,23 @@ function directoryExists(filePath) {
 
 exports.directoryExists = directoryExists
 
-function findFileUp(filename, cwd = process.cwd()) {
+function findUp(filename, { directories = true, files = true, cwd = process.cwd() }) {
   let result
   cwd = path.resolve(cwd)
   let p = cwd
   for (;;) {
-    const packageJsonPath = path.resolve(p, filename)
-    if (fileExists(packageJsonPath)) {
-      result = packageJsonPath
+    const resolvedPath = path.resolve(p, filename)
+
+    if (files && !directories) {
+      if (fileExists(resolvedPath)) {
+        result = resolvedPath
+      }
+    } else if (directories && !files) {
+      if (directoryExists(resolvedPath)) {
+        result = resolvedPath
+      }
+    } else if (fs.existsSync(resolvedPath)) {
+      result = resolvedPath
     }
     const parent = path.dirname(p) || ''
     if (parent.length === p.length) {
@@ -116,24 +125,4 @@ function findFileUp(filename, cwd = process.cwd()) {
   return result
 }
 
-exports.findFileUp = findFileUp
-
-function findDirectoryUp(directory, cwd = process.cwd()) {
-  let result
-  cwd = path.resolve(cwd)
-  let p = cwd
-  for (;;) {
-    const packageJsonPath = path.resolve(p, directory)
-    if (directoryExists(packageJsonPath)) {
-      result = packageJsonPath
-    }
-    const parent = path.dirname(p) || ''
-    if (parent.length === p.length) {
-      break
-    }
-    p = parent
-  }
-  return result
-}
-
-exports.findDirectoryUp = findDirectoryUp
+exports.findUp = findUp
