@@ -5,16 +5,13 @@ const path = require('path')
 
 const argv = process.argv
 
-// This must execute before everything else.
-preinit()
+const { eslintRequire } = require('../core/node-modules')
+
+// To use V8's code cache to speed up instantiation time.
+// eslint-disable-next-line node/no-extraneous-require
+eslintRequire('v8-compile-cache')
 
 function preinit() {
-  require('../core/node-modules')
-
-  // To use V8's code cache to speed up instantiation time.
-  // eslint-disable-next-line node/no-extraneous-require
-  require('v8-compile-cache')
-
   const indexOfCwdOption = process.argv.indexOf('--cwd')
   if (indexOfCwdOption > 1) {
     process.chdir(process.argv[indexOfCwdOption + 1])
@@ -34,6 +31,9 @@ function preinit() {
     process.chdir(cwdDir)
   }
 }
+
+// This must execute before everything else.
+preinit()
 
 const { version: packageVersion } = require('../package.json')
 
@@ -71,7 +71,7 @@ if (options.help) {
     if (options.canLog) {
       console.info(appTitle)
     }
-    require('eslint/bin/eslint')
+    eslintRequire('./bin/eslint')
   } finally {
     if (options.canLog) {
       setTimeout(() => {

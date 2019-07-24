@@ -1,7 +1,7 @@
 'use strict'
 
 const path = require('path')
-const nodeModules = require('../../core/node-modules')
+const { eslintRequire } = require('../../core/node-modules')
 const eslintSupport = require('../../core/eslint-support')
 const eslintCommands = require('./eslint-commands')
 const chalk = require('chalk').default
@@ -173,16 +173,14 @@ function getBasicOptions() {
 function createEslintOptions() {
   let baseOptions
   try {
-    const eslintOptionsPath = require.resolve('eslint/lib/options')
-    const eslintOptionatorPath = require.resolve('optionator', {
-      paths: nodeModules.nodeModulePaths(require.resolve('eslint/package.json'))
-    })
+    const eslintOptionsPath = eslintRequire.resolve('./lib/options')
+    const eslintOptionatorPath = eslintRequire.resolve('optionator')
     if (eslintOptionsPath in require.cache) {
       delete require.cache[eslintOptionsPath]
     }
     require.cache[eslintOptionatorPath].exports = acurisEslintOptions
     try {
-      baseOptions = require(eslintOptionsPath)
+      baseOptions = eslintRequire(eslintOptionsPath)
     } finally {
       require.cache[eslintOptionatorPath].exports = optionator
     }

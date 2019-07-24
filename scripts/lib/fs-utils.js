@@ -98,10 +98,10 @@ function directoryExists(filePath) {
 
 exports.directoryExists = directoryExists
 
-function findFileUp(filename, baseFolder = process.cwd()) {
+function findFileUp(filename, cwd = process.cwd()) {
   let result
-  baseFolder = path.resolve(baseFolder)
-  let p = baseFolder
+  cwd = path.resolve(cwd)
+  let p = cwd
   for (;;) {
     const packageJsonPath = path.resolve(p, filename)
     if (fileExists(packageJsonPath)) {
@@ -118,10 +118,10 @@ function findFileUp(filename, baseFolder = process.cwd()) {
 
 exports.findFileUp = findFileUp
 
-function findDirectoryUp(directory, baseFolder = process.cwd()) {
+function findDirectoryUp(directory, cwd = process.cwd()) {
   let result
-  baseFolder = path.resolve(baseFolder)
-  let p = baseFolder
+  cwd = path.resolve(cwd)
+  let p = cwd
   for (;;) {
     const packageJsonPath = path.resolve(p, directory)
     if (directoryExists(packageJsonPath)) {

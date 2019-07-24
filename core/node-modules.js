@@ -1,5 +1,7 @@
 'use strict'
 
+/* eslint-disable global-require */
+
 if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 8) {
   throw new Error(`Node 8.10.0 or greater is required. Current version is ${process && process.version}`)
 }
@@ -21,17 +23,21 @@ let _resolvePaths = null
 /** @type {Map<string, 0|1|2>} */
 const _hasLocalPackageCache = new Map()
 
-/** @type {string[]} */
-const _globalPathsArray = Module.globalPaths || []
-
 const _homeDirNodeModules = path.resolve(os.homedir() || '/', 'node_modules')
 
 /** @type {Set<string>} */
-const _nonLocalPathsSet = new Set(_globalPathsArray)
-_nonLocalPathsSet.add(os.homedir())
-_nonLocalPathsSet.add(_homeDirNodeModules)
-_nonLocalPathsSet.add(pathResolve('/node_modules'))
-_nonLocalPathsSet.add(pathResolve('/'))
+let _nonLocalPathsSet
+
+function getNonLocalPathsSet() {
+  if (!_nonLocalPathsSet) {
+    _nonLocalPathsSet = new Set(Module.globalPaths)
+    _nonLocalPathsSet.add(os.homedir())
+    _nonLocalPathsSet.add(_homeDirNodeModules)
+    _nonLocalPathsSet.add(pathResolve('/node_modules'))
+    _nonLocalPathsSet.add(pathResolve('/'))
+  }
+  return _nonLocalPathsSet
+}
 
 if (typeof _defaultNodeModulePaths !== 'function') {
   throw new Error(
@@ -41,20 +47,18 @@ if (typeof _defaultNodeModulePaths !== 'function') {
   )
 }
 
-exports.baseFolder = process.cwd()
-
 exports.addNodeRequirePath = addNodeRequirePath
 
-exports.addNodeRequirePathRecursive = addNodeRequirePathRecursive
-
 /**
- * Checks wether the given module exists and is installed.
- * @param {string} id The module to resolve.
- * @returns {boolean} True if the module is present and installed, false if not.
+ * Returns 1 if a package is installed locally, 2 if a package is installed globally, 0 if not found.
+ * @param {string} id The package name
  */
-exports.hasPackage = function hasPackage(id) {
+function getPackageLocalState(id) {
+  if (typeof id !== 'string' || id.length === 0) {
+    return 0
+  }
   if (id.startsWith('.')) {
-    id = path.resolve(exports.baseFolder, id)
+    id = path.resolve(process.cwd(), id)
   } else if (id.startsWith(path.sep) || id.startsWith('/')) {
     id = path.resolve(id)
   }
@@ -66,7 +70,16 @@ exports.hasPackage = function hasPackage(id) {
     } catch (_error) {}
     _hasLocalPackageCache.set(id, result)
   }
-  return !!result
+  return result
+}
+
+/**
+ * Checks wether the given module exists and is installed.
+ * @param {string} id The module to resolve.
+ * @returns {boolean} True if the module is present and installed, false if not.
+ */
+exports.hasPackage = function hasPackage(id) {
+  return getPackageLocalState(id) !== 0
 }
 
 /**
@@ -75,20 +88,7 @@ exports.hasPackage = function hasPackage(id) {
  * @returns {boolean} True if the module is present and installed locally, false if not.
  */
 exports.hasLocalPackage = function hasLocalPackage(id) {
-  if (id.startsWith('.')) {
-    id = path.resolve(exports.baseFolder, id)
-  } else if (id.startsWith(path.sep) || id.startsWith('/')) {
-    id = path.resolve(id)
-  }
-  let result = _hasLocalPackageCache.get(id)
-  if (result === undefined) {
-    result = 0
-    try {
-      result = isGlobalPath(require.resolve(id)) ? 2 : 1
-    } catch (_error) {}
-    _hasLocalPackageCache.set(id, result)
-  }
-  return result === 1
+  return getPackageLocalState(id) === 1
 }
 
 /**
@@ -100,18 +100,18 @@ function isGlobalPath(filepath) {
   if (typeof filepath !== 'string' || filepath.length === 0) {
     return false
   }
-  if (filepath.startsWith(exports.baseFolder)) {
+  if (filepath.startsWith(process.cwd())) {
     return false
   }
-  if (_nonLocalPathsSet.has(filepath)) {
+  if (getNonLocalPathsSet().has(filepath)) {
     return true
   }
-  if (exports.isInstalledGlobally) {
-    return false
-  }
-  for (let i = 0; i < _globalPathsArray.length; ++i) {
-    if (filepath.startsWith(_globalPathsArray[i])) {
-      return true
+  const globalPathsArray = Module.globalPaths
+  if (Array.isArray(globalPathsArray)) {
+    for (let i = 0; i < globalPathsArray.length; ++i) {
+      if (filepath.startsWith(globalPathsArray[i])) {
+        return true
+      }
     }
   }
   return false
@@ -134,13 +134,21 @@ function addNodeRequirePath(directory) {
   if (_resolvePaths.has(directory)) {
     return
   }
-  if (isGlobalPath(directory)) {
+  if (!exports.isInstalledGlobally && isGlobalPath(directory)) {
     return
   }
   if (!existsSync(directory)) {
     return
   }
   _resolvePaths.add(directory)
+}
+
+function addNodeModulesRequirePath(directory) {
+  directory = path.resolve(directory)
+  if (!directory.endsWith('node_modules')) {
+    directory = path.join(directory, 'node_modules')
+  }
+  addNodeRequirePath(directory)
 }
 
 /**
@@ -158,18 +166,74 @@ function addNodeRequirePathRecursive(from) {
   }
 }
 
+let _eslintPath
+
+/**
+ * Gets the path of the eslint module.
+ * Returns null if not found.
+ * @returns {string|null} The path of eslint module or null if not found.
+ */
+function getEslintPath() {
+  if (_eslintPath === undefined) {
+    try {
+      _eslintPath = path.dirname(require.resolve('eslint/package.json'))
+    } catch (_error) {
+      _eslintPath = null
+    }
+  }
+  return _eslintPath
+}
+
+exports.getEslintPath = getEslintPath
+
+function eslintResolve(id) {
+  const eslintPath = getEslintPath()
+  if (eslintPath) {
+    try {
+      if (id.startsWith('.')) {
+        return require.resolve(path.resolve(eslintPath, id), { paths: nodeModulePaths(eslintPath) })
+      }
+      return require.resolve(id, { paths: nodeModulePaths(eslintPath) })
+    } catch (error) {
+      if (!error || error.code !== 'MODULE_NOT_FOUND') {
+        throw error
+      }
+    }
+  }
+  return require.resolve(id)
+}
+
+/**
+ * Requires a module from the point of view of eslint.
+ * @param {string} id The module to require.
+ */
+function eslintRequire(id) {
+  return require(eslintResolve(id))
+}
+
+eslintRequire.resolve = eslintResolve
+
+exports.eslintRequire = eslintRequire
+
 function getResolvePathsSet() {
   if (!_resolvePaths) {
     _resolvePaths = new Set()
-    addNodeRequirePathRecursive(__dirname)
-    addNodeRequirePathRecursive(path.join(exports.baseFolder, 'package.json'))
     addNodeRequirePath(path.dirname(path.dirname(__dirname)))
+    addNodeModulesRequirePath(path.dirname(__dirname))
+    addNodeModulesRequirePath(path.resolve(process.cwd(), 'package.json'))
 
-    try {
-      const eslintPath = require.resolve('eslint/package.json')
-      addNodeRequirePath(path.resolve(path.dirname(eslintPath), 'node_modules'))
-      addNodeRequirePath(path.resolve(path.dirname(path.dirname(eslintPath))))
-    } catch (_error) {}
+    const eslintPath = getEslintPath()
+
+    if (eslintPath) {
+      if (!exports.isInstalledGlobally && isGlobalPath(eslintPath)) {
+        addNodeRequirePathRecursive(__dirname)
+        addNodeModulesRequirePath(path.dirname(eslintPath))
+      } else {
+        addNodeRequirePathRecursive(path.join(eslintPath, 'package.json'))
+      }
+    } else {
+      addNodeRequirePathRecursive(__dirname)
+    }
   }
   return _resolvePaths
 }
@@ -179,13 +243,13 @@ function getResolvePathsSet() {
  * @param {string} from The initial path.
  * @returns {string[]} The node module paths to use.
  */
-function nodeModulePaths(from = exports.baseFolder) {
+function nodeModulePaths(from = process.cwd()) {
   const set = new Set()
   let customAdded = false
   const defaults = _defaultNodeModulePaths.call(Module, from)
   for (let i = 0, defaultsLen = defaults.length; i !== defaultsLen; ++i) {
     const value = defaults[i]
-    if (!customAdded && _nonLocalPathsSet.has(value)) {
+    if (!customAdded && getNonLocalPathsSet().has(value)) {
       customAdded = true
       for (const p of getResolvePathsSet()) {
         set.add(p)
