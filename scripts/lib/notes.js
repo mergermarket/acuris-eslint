@@ -5,6 +5,7 @@ const _defaultNotes = {
   shouldRestartVsCode: false,
   shouldRestartIde: false,
   shouldInstallVsCodePlugins: false,
+  packageJsonIsNotPrivateWarning: false,
   eslintConfigUpdated: null,
   hasIdea: false
 }
@@ -16,7 +17,7 @@ exports.reset = function reset() {
 }
 
 function emitWarning(...args) {
-  console.warn(`\n${chalk.yellow('[WARNING]')}`, ...args)
+  console.warn(`\n${chalk.yellowBright('[WARNING]')}`, ...args)
 }
 
 exports.emitWarning = emitWarning
@@ -65,6 +66,20 @@ function flushNotes() {
       )} \n  ${chalk.blue(
         'https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions\n'
       )}`
+    )
+  }
+
+  if (exports.notes.packageJsonIsNotPrivateWarning) {
+    emitWarning(
+      chalk.yellow(
+        `Package is not private but ${chalk.yellowBright(
+          '.npmignore'
+        )} file was not found. Please, add ${chalk.yellowBright(
+          'private: true | false'
+        )} in package.json to prevent accidental publication or create a ${chalk.yellowBright(
+          '.npmignore'
+        )} file.\n  ${chalk.blue('https://docs.npmjs.com/files/package.json#private')}`
+      )
     )
   }
 

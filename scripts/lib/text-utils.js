@@ -180,6 +180,9 @@ function stringify(obj, format, filename = null) {
     }
 
     if (format === 'json-stringify') {
+      if (filename && path.basename(filename) === 'package.json') {
+        obj = sortPackageJson(obj)
+      }
       result = JSON.stringify(obj, null, 2)
     } else if (format === 'json') {
       result = hjson.stringify(obj, {
@@ -198,20 +201,24 @@ function stringify(obj, format, filename = null) {
       result = prettierInterface.format(result, { ignoreErrors: true, parser: format })
     }
 
-    if (result.charCodeAt(0) === 0xfeff) {
-      result = result.slice(1)
-    }
-    result = result.replace(/[\r\n]/gm, '\n')
-    if (result.length !== 0 && !result.endsWith('\n')) {
-      result += '\n'
-    }
-    return result
+    return cleanupText(result)
   } catch (error) {
     if (filename && error && !error.path) {
       error.path = filename
     }
     throw error
   }
+}
+
+function cleanupText(text) {
+  if (text.charCodeAt(0) === 0xfeff) {
+    text = text.slice(1)
+  }
+  text = text.replace(/[\r\n]/gm, '\n')
+  if (text.length !== 0 && !text.endsWith('\n')) {
+    text += '\n'
+  }
+  return text
 }
 
 exports.stringify = stringify
@@ -248,11 +255,9 @@ function prettifyFile(filename, format = '', source = null) {
       format = getTextFileFormat(filename)
     }
 
-    if (format === 'json') {
-      const prettier = prettierInterface.tryGetPrettier()
-      if (prettier) {
-        formatted = prettierInterface.format(formatted, { ignoreErrors: true, parser: format })
-      }
+    const prettier = prettierInterface.tryGetPrettier()
+    if (prettier && format !== 'text' && path.basename(filename) !== 'package.json') {
+      formatted = cleanupText(prettierInterface.format(formatted, { ignoreErrors: true, parser: format }))
     } else {
       formatted = stringify(parse(source, format, filename), format, filename)
     }
@@ -356,3 +361,114 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
 }
 
 exports.updateTextFileAsync = updateTextFileAsync
+
+function sortPackageJson(manifest) {
+  if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
+    return manifest
+  }
+  const map = new Map()
+  const packageJsonSortOrder = getPackageJsonSortOrder()
+  for (const key of packageJsonSortOrder) {
+    if (manifest[key] !== undefined) {
+      map.set(key, manifest[key])
+    }
+  }
+  for (const key of Object.keys(manifest)) {
+    if (manifest[key] !== undefined) {
+      map.set(key, manifest[key])
+    }
+  }
+
+  const result = {}
+  for (const [key, value] of map) {
+    result[key] = value
+  }
+  for (const key of getPackageJsonSortableFields()) {
+    if (typeof result[key] === 'object' && result[key] !== null) {
+      result[key] = sortObjectKeys(result[key])
+    }
+  }
+  return result
+}
+
+exports.sortPackageJson = sortPackageJson
+
+function getPackageJsonSortableFields() {
+  return [
+    'engines',
+    'engineStrict',
+    'peerDependencies',
+    'dependencies',
+    'devDependencies',
+    'bundledDependencies',
+    'bundleDependencies',
+    'optionalDependencies'
+  ]
+}
+
+function getPackageJsonSortOrder() {
+  return new Set([
+    'name',
+    'version',
+    'private',
+    'description',
+    'keywords',
+    'homepage',
+    'bugs',
+    'repository',
+    'license',
+    'author',
+    'contributors',
+    'os',
+    'cpu',
+    'engines',
+    'engineStrict',
+    'sideEffects',
+    'main',
+    'umd:main',
+    'type',
+    'types',
+    'typings',
+    'bin',
+    'browser',
+    'files',
+    'directories',
+    'unpkg',
+    'module',
+    'source',
+    'jsnext:main',
+    'style',
+    'example',
+    'examplestyle',
+    'assets',
+    'man',
+    'workspaces',
+    'scripts',
+    'betterScripts',
+    'husky',
+    'pre-commit',
+    'commitlint',
+    'lint-staged',
+    'config',
+    'nodemonConfig',
+    'browserify',
+    'babel',
+    'browserslist',
+    'xo',
+    'prettier',
+    'eslintConfig',
+    'eslintIgnore',
+    'stylelint',
+    'jest',
+    'flat',
+    'resolutions',
+    'preferGlobal',
+    'publishConfig',
+    'peerDependencies',
+    'dependencies',
+    'devDependencies',
+    'bundledDependencies',
+    'bundleDependencies',
+    'optionalDependencies'
+  ])
+}
