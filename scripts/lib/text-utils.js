@@ -396,7 +396,20 @@ function sortPackageJson(manifest) {
   }
   for (const key of getPackageJsonSortableFields()) {
     if (typeof result[key] === 'object' && result[key] !== null) {
-      result[key] = sortObjectKeys(result[key])
+      if (Array.isArray(result[key])) {
+        if (result[key].length === 0) {
+          delete result[key]
+        } else {
+          Array.sort(result[key])
+        }
+      } else {
+        const sorted = sortObjectKeys(result[key])
+        if (Object.keys(sorted).length === 0) {
+          delete result[key]
+        } else {
+          result[key] = sorted
+        }
+      }
     }
   }
   return result

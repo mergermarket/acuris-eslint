@@ -6,9 +6,11 @@ const util = require('util')
 const spawnAsync = util.promisify(spawn)
 const { notes, emitWarning } = require('../lib/notes')
 
+const sourcePackageJson = require('../../package.json')
+
 const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
-const { sanitisePackageJson } = require('../lib/package-utils')
+const { sanitisePackageJson, addDevDependencies } = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -35,13 +37,22 @@ module.exports = async () => {
       if (manifest === undefined) {
         throw new Error('Could not find package.json')
       }
-      manifest = sanitisePackageJson(manifest)
+
+      const devDependenciesToAdd = {
+        ...sourcePackageJson.peerDependencies
+      }
+
+      if (manifest.name !== sourcePackageJson.name) {
+        devDependenciesToAdd[manifest.name] = `>=${manifest.version}`
+      }
+
+      addDevDependencies(manifest, devDependenciesToAdd)
 
       if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
         notes.packageJsonIsNotPrivateWarning = true
       }
 
-      console.log(manifest)
+      manifest = sanitisePackageJson(manifest)
       return manifest
     }
   })

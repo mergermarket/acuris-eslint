@@ -36,7 +36,8 @@
     "eslint-plugin-quick-prettier": "^0.0.13",
     "hjson": "^3.1.2",
     "mkdirp": "^0.5.1",
-    "optionator": "^0.8.2"
+    "optionator": "^0.8.2",
+    "semver": "^6.3.0"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
