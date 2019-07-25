@@ -24,7 +24,7 @@ module.exports = async () => {
     await spawnAsync('npm', ['init'], { stdio: 'inherit' })
   }
 
-  if (!findUp(resolveProjectFile('.git', { directories: true, files: false }))) {
+  if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
     notes.gitFolderNotFound = true
   }
 
@@ -33,7 +33,7 @@ module.exports = async () => {
   }
 
   await updateTextFileAsync({
-    language: 'json',
+    format: 'json-stringify',
     filePath: packageJsonPath,
     async content(manifest) {
       manifest = sanitisePackageJson(manifest)

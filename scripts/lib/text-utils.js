@@ -83,13 +83,13 @@ function parse(source, format, filename) {
       if (source.length === 0) {
         return undefined
       }
-      source = prettierInterface.format(source, { ignoreErrors: true, parser: format || 'json' })
+      source = prettierInterface.format(source, { ignoreErrors: false, parser: format || 'json' })
       if (format === 'json-stringify') {
         try {
           return JSON.parse(source)
         } catch (error) {
           try {
-            return hjson.parse(source, { keepWsc: true })
+            return hjson.parse(source, { keepWsc: false })
           } catch (_error) {
             throw error
           }
@@ -102,10 +102,16 @@ function parse(source, format, filename) {
     if (format && format !== 'text') {
       return prettierInterface.format(source, { ignoreErrors: true, parser: format })
     }
+
     return source
   } catch (error) {
-    if (filename && error && !error.path) {
-      error.path = filename
+    if (error) {
+      if (filename && !error.path) {
+        error.path = filename
+      }
+      if (!error.format) {
+        error.format = format
+      }
     }
     throw error
   }
@@ -154,8 +160,14 @@ function stringify(obj, format, filename = null) {
   try {
     let result
 
-    if (!format || format === 'text') {
-      if (Array.isArray(result)) {
+    if (!format) {
+      format = getTextFileFormat(filename) || 'text'
+    }
+
+    if (format === 'text') {
+      if (Buffer.isBuffer(format)) {
+        format = format.toString('utf8')
+      } else if (Array.isArray(result)) {
         result = result.join('\n')
       } else {
         result = obj.toString()
