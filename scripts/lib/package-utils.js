@@ -1,4 +1,6 @@
+const nodeModules = require('../../core/node-modules')
 const referencePackageJson = require('../../package.json')
+const { fileExists, resolveProjectFile } = require('./fs-utils')
 const semver = require('semver')
 
 function sanitisePackageJson(manifest) {
@@ -61,9 +63,7 @@ function semverToVersion(version) {
     semver.parse(version, { loose: true }) ||
     semver.coerce(version)
 
-  if (parsed) {
-    return parsed.version
-  }
+  return parsed && parsed.version
 }
 
 exports.semverToVersion = semverToVersion
@@ -82,7 +82,13 @@ function getMaxSemver(version, range) {
   try {
     if (!semver.gtr(version, range, true)) {
       const v = semverToVersion(range)
-      return v ? `^${v}` : range
+      return v ? (/^\d/.test(v) ? `^${v}` : v) : range
+    }
+  } catch (_error) {}
+  try {
+    if (!semver.gtr(semver.coerce(version), semver.coerce(range), true)) {
+      const v = semverToVersion(range)
+      return v ? (/^\d/.test(v) ? `^${v}` : v) : range
     }
   } catch (_error) {}
   return version
@@ -90,7 +96,8 @@ function getMaxSemver(version, range) {
 
 exports.getMaxSemver = getMaxSemver
 
-function addDevDependencies(target, dependenciesToAdd, changedDependencies = new Set()) {
+function addDevDependencies(target, dependenciesToAdd) {
+  let result = false
   const deps = dependenciesToMap(target.dependencies)
   const devDeps = dependenciesToMap(target.devDependencies)
   const sourceDeps = dependenciesToMap(dependenciesToAdd)
@@ -103,10 +110,10 @@ function addDevDependencies(target, dependenciesToAdd, changedDependencies = new
       v = getMaxSemver(v, dep)
       v = getMaxSemver(v, devDep)
       if (dep !== undefined && dep !== v) {
-        changedDependencies.add(name)
+        result = true
         target.dependencies[name] = v
       } else if (devDep !== v) {
-        changedDependencies.add(name)
+        result = true
         if (!target.devDependencies) {
           target.devDependencies = {}
         }
@@ -114,10 +121,10 @@ function addDevDependencies(target, dependenciesToAdd, changedDependencies = new
       }
     }
   }
-  return target
+  return result
 }
 
-module.exports.addDevDependencies = addDevDependencies
+exports.addDevDependencies = addDevDependencies
 
 function dependenciesToMap(dependencies, result = new Map()) {
   if (typeof dependencies === 'object' && dependencies !== null && !Array.isArray(dependencies)) {
@@ -129,3 +136,56 @@ function dependenciesToMap(dependencies, result = new Map()) {
   }
   return result
 }
+
+function hasPackagesToInstall(manifest) {
+  const allDeps = dependenciesToMap(manifest.devDependencies)
+  dependenciesToMap(manifest.dependencies, allDeps)
+
+  for (const [name, version] of allDeps) {
+    if (!isPackageInstalled(name, version)) {
+      return true
+    }
+  }
+  return false
+}
+
+function isPackageInstalled(name, version) {
+  if (typeof name !== 'string' || typeof version !== 'string') {
+    return false
+  }
+  name = name.trim()
+  version = version.trim()
+
+  if (name.length === 0 || version.length === 0) {
+    return false
+  }
+
+  const pkgName = `${name}/package.json`
+  if (!nodeModules.hasLocalPackage(pkgName)) {
+    return false
+  }
+  let pkg
+  try {
+    pkg = require(pkgName)
+  } catch (_error) {}
+
+  if (!pkg || !pkg.version) {
+    return false
+  }
+
+  if (version.startsWith('file:')) {
+    return true // Skip this check, is a complicated case.
+  }
+
+  try {
+    if (semver.ltr(pkg.version, version)) {
+      return false
+    }
+  } catch (_error) {
+    return false
+  }
+
+  return true
+}
+
+exports.hasPackagesToInstall = hasPackagesToInstall

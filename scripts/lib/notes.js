@@ -7,7 +7,8 @@ const _defaultNotes = {
   shouldInstallVsCodePlugins: false,
   packageJsonIsNotPrivateWarning: false,
   eslintConfigUpdated: null,
-  hasIdea: false
+  hasIdea: false,
+  needsNpmInstall: false
 }
 
 exports.notes = { ..._defaultNotes }
@@ -33,6 +34,24 @@ function emitNote(...args) {
 }
 
 exports.emitNote = emitNote
+
+function emitImportant(...args) {
+  console.log(`\n${chalk.redBright('[IMPORTANT]')}`, ...args)
+}
+
+exports.emitImportant = emitImportant
+
+function emitSubCommand(name) {
+  console.log(`\n${chalk.blueBright(name)}\n`)
+}
+
+exports.emitSubCommand = emitSubCommand
+
+function emitInitComplete() {
+  console.log(chalk.greenBright('\n> Initialization completed <'))
+}
+
+exports.emitInitComplete = emitInitComplete
 
 function flushNotes() {
   if (exports.notes.gitFolderNotFound) {
@@ -80,6 +99,17 @@ function flushNotes() {
           '.npmignore'
         )} file.\n  ${chalk.blue('https://docs.npmjs.com/files/package.json#private')}`
       )
+    )
+  }
+
+  if (exports.notes.needsNpmInstall) {
+    emitImportant(
+      chalk.yellowBright(`You need to install packages before continuing.\n`) +
+        chalk.yellow(
+          `  Run ${['npm install', 'yarn', 'lerna bootstrap']
+            .map(x => chalk.greenBright(x))
+            .join(' or ')} (depending on your project setup).`
+        )
     )
   }
 

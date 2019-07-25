@@ -182,7 +182,7 @@ async function removeEslintConfigFromPackageJson({ removeEslintConfig, removeEsl
         }
 
         emitWarning(
-          `Fields ${fieldsToRemove.map(chalk.yellowBright).join(',')} removed from  ${chalk.yellowBright(
+          `Fields ${fieldsToRemove.map(x => chalk.yellowBright(x)).join(',')} removed from  ${chalk.yellowBright(
             'package.json'
           )}. All content was copied in ${chalk.whiteBright('.eslintrc')} and/or ${chalk.whiteBright('.eslintignore')}.`
         )

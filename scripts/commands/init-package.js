@@ -8,9 +8,9 @@ const { notes, emitWarning } = require('../lib/notes')
 
 const sourcePackageJson = require('../../package.json')
 
-const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
-const { updateTextFileAsync } = require('../lib/text-utils')
-const { sanitisePackageJson, addDevDependencies } = require('../lib/package-utils')
+const { resolveProjectFile, fileExists, directoryExists, findUp } = require('../lib/fs-utils')
+const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
+const { sanitisePackageJson, addDevDependencies, hasPackagesToInstall } = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -38,6 +38,13 @@ module.exports = async () => {
         throw new Error('Could not find package.json')
       }
 
+      if (!manifest.scripts) {
+        manifest.scripts = {}
+      }
+      if (manifest.scripts['acuris-eslint'] === undefined) {
+        manifest.scripts['acuris-eslint'] = 'acuris-eslint'
+      }
+
       const devDependenciesToAdd = {
         ...sourcePackageJson.peerDependencies
       }
@@ -46,7 +53,9 @@ module.exports = async () => {
         devDependenciesToAdd[manifest.name] = `>=${manifest.version}`
       }
 
-      addDevDependencies(manifest, devDependenciesToAdd)
+      if (addDevDependencies(manifest, devDependenciesToAdd)) {
+        notes.needsNpmInstall = true
+      }
 
       if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
         notes.packageJsonIsNotPrivateWarning = true
@@ -56,6 +65,14 @@ module.exports = async () => {
       return manifest
     }
   })
+
+  if (!notes.needsNpmInstall && !directoryExists(resolveProjectFile('node_modules'))) {
+    notes.needsNpmInstall = true
+  }
+
+  if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
+    notes.needsNpmInstall = true
+  }
 }
 
 module.exports.description = 'updates package.json'
