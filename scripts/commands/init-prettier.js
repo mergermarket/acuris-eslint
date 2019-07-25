@@ -17,6 +17,7 @@ module.exports = async () => {
 
 async function initPrettierIgnore() {
   await updateTextFileAsync({
+    format: 'text',
     filePath: resolveProjectFile('.prettierignore'),
     async content(previousContent) {
       const target = new GitIgnore(previousContent)
@@ -27,27 +28,22 @@ async function initPrettierIgnore() {
       return target.toString()
     }
   })
+
+  await updateTextFileAsync({
+    format: 'text',
+    filePath: resolveProjectFile('.editorconfig'),
+    async content(previousContent) {
+      if (!previousContent) {
+        return readTextFile(resolveAcurisEslintFile('.editorconfig'), 'text')
+      }
+      return previousContent
+    }
+  })
 }
 
 async function initPrettierrc() {
   const defaultPrettierConfig = prettierInterface.loadDefaultPrettierConfig()
-  let prettierConfig = { ...prettierInterface.tryGetPrettierConfig() }
-
-  if (prettierConfig.printWidth < defaultPrettierConfig.printWidth) {
-    prettierConfig.printWidth = defaultPrettierConfig.printWidth
-  }
-  if (defaultPrettierConfig.endOfLine) {
-    prettierConfig.endOfLine = defaultPrettierConfig.endOfLine
-  }
-  if (defaultPrettierConfig.semi !== undefined) {
-    prettierConfig.semi = defaultPrettierConfig.semi
-  }
-  if (defaultPrettierConfig.singleQuote !== undefined) {
-    prettierConfig.singleQuote = defaultPrettierConfig.singleQuote
-  }
-  if (defaultPrettierConfig.tabWidth) {
-    prettierConfig.tabWidth = defaultPrettierConfig.tabWidth
-  }
+  let prettierConfig = { ...defaultPrettierConfig, ...prettierInterface.tryGetPrettierConfig() }
 
   prettierConfig = sortObjectKeys(prettierConfig)
 

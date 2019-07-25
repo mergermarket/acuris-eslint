@@ -12,7 +12,6 @@ function resolveAcurisEslintFile(...parts) {
 exports.resolveAcurisEslintFile = resolveAcurisEslintFile
 
 function resolveProjectFile(...parts) {
-  console.log()
   return path.resolve(process.cwd(), ...parts)
 }
 

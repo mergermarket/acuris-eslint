@@ -20,6 +20,9 @@ class GitIgnore {
 
     this.acurisEslintMarkerPosition = -1
     if (content) {
+      if (Array.isArray(content)) {
+        content = content.join('\n')
+      }
       let previousLineIsComment = false
       let previousLineIsEmpty = false
       for (let line of content.split('\n')) {
@@ -81,7 +84,7 @@ class GitIgnore {
     return this.acurisEslintMarkerPosition
   }
 
-  merge(gitignore) {
+  merge(gitignore, addAcurisEslintMarker = true) {
     const sectionsToAdd = []
     for (const section of gitignore.sections) {
       const body = []
@@ -95,7 +98,11 @@ class GitIgnore {
       }
     }
     if (sectionsToAdd.length !== 0) {
-      this.sections.splice(this.addAcurisEslintMarker() + 1, 0, ...sectionsToAdd)
+      if (addAcurisEslintMarker) {
+        this.sections.splice(this.addAcurisEslintMarker() + 1, 0, ...sectionsToAdd)
+      } else {
+        this.sections.push(...sectionsToAdd)
+      }
       this.changed = true
     }
   }

@@ -6,31 +6,52 @@ const fs = require('fs')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { notes, emitWarning, emitNote } = require('../lib/notes')
+const mergeEslintConfigs = require('../../core/mergeEslintConfigs')
 const GitIgnore = require('../lib/GitIgnore')
 
 module.exports = async () => {
-  await initEslintIgnore()
-
-  const packageJsonConfig = await getPackageJsonEslintConfig()
-  const initEslintRcResult = await initEslintrc(packageJsonConfig)
-  if (initEslintRcResult !== null && packageJsonConfig) {
-    await removeEslintConfigFromPackageJson()
-  }
+  const packageJsonEslintConfig = await getEslintConfigFromPackageJson()
+  await initEslintIgnore(packageJsonEslintConfig)
+  const initEslintRcResult = await initEslintrc(packageJsonEslintConfig)
+  await removeEslintConfigFromPackageJson({
+    removeEslintConfig: initEslintRcResult !== null,
+    removeEslintIgnore: true
+  })
 }
 
-async function getPackageJsonEslintConfig() {
+async function getEslintConfigFromPackageJson() {
   let manifest
   try {
     manifest = readTextFile(resolveProjectFile('package.json'), 'json-stringify')
   } catch (_error) {}
-  return (manifest && typeof manifest.eslintConfig === 'object' && manifest.eslintConfig) || undefined
+  const result = {}
+
+  if (typeof manifest === 'object' && manifest !== null && !Array.isArray(manifest)) {
+    if (Array.isArray(manifest.eslintIgnore)) {
+      result.eslintIgnore = manifest.eslintIgnore
+    }
+    const eslintConfig = manifest.eslintConfig
+    if (
+      typeof eslintConfig === 'object' &&
+      eslintConfig !== null &&
+      !Array.isArray(eslintConfig) &&
+      Object.keys.length(eslintConfig) !== 0
+    ) {
+      result.eslintConfig = eslintConfig
+    }
+  }
+
+  return typeof manifest !== 'object' || Array.isArray(manifest) || manifest === null ? {} : manifest
 }
 
-async function initEslintIgnore() {
+async function initEslintIgnore(packageJsonEslintConfig) {
   await updateTextFileAsync({
     filePath: resolveProjectFile('.eslintignore'),
     async content(previousContent) {
       const target = new GitIgnore(previousContent)
+      if (packageJsonEslintConfig.eslintIgnore) {
+        target.merge(new GitIgnore(packageJsonEslintConfig.eslintIgnore), false)
+      }
       target.merge(new GitIgnore(readTextFile(resolveAcurisEslintFile('.eslintignore'))))
       if (!target.changed) {
         return undefined
@@ -40,7 +61,7 @@ async function initEslintIgnore() {
   })
 }
 
-async function initEslintrc(packageJsonConfig) {
+async function initEslintrc(packageJsonEslintConfig) {
   const forbiddenFiles = ['.eslintrc.js', '.eslintrc.yaml', '.eslintrc.yml']
 
   for (const forbiddenFile of forbiddenFiles) {
@@ -69,7 +90,10 @@ async function initEslintrc(packageJsonConfig) {
     filePath: ['.eslintrc', '.eslintrc.json'],
     async content(content, targetPath) {
       if (typeof content !== 'object' || content === null) {
-        content = packageJsonConfig || {}
+        content = {}
+      }
+      if (packageJsonEslintConfig.eslintConfig) {
+        content = mergeEslintConfigs(packageJsonEslintConfig.eslintConfig, content)
       }
       if (!content.extends) {
         content.extends = []
@@ -137,29 +161,35 @@ async function initEslintrc(packageJsonConfig) {
   return eslintConfigUpdateResult
 }
 
-async function removeEslintConfigFromPackageJson() {
+async function removeEslintConfigFromPackageJson({ removeEslintConfig, removeEslintIgnore }) {
   await updateTextFileAsync({
     format: 'json-stringify',
     filePath: 'package.json',
     async content(content) {
-      if (content && content.eslintConfig) {
-        emitWarning(
-          `File ${chalk.yellowBright('package.json')} contains an ${chalk.yellowBright(
-            'eslintConfig'
-          )} field.\n  This is discouraged, you should use a ${chalk.whiteBright('.eslintrc')} file instead`
-        )
-        const answer = await inquirer.prompt({
-          name: 'confirm',
-          type: 'confirm',
-          message: `Can I remove eslintConfig field from package.json?`
-        })
-        if (answer.confirm) {
-          delete content.eslintConfig
+      const fieldsToRemove = []
+      if (content) {
+        if (removeEslintConfig && content.eslintConfig !== undefined) {
+          fieldsToRemove.push('eslintConfig')
         }
+        if (removeEslintIgnore && content.eslintIgnore !== undefined) {
+          fieldsToRemove.push('eslintIgnore')
+        }
+      }
+
+      if (fieldsToRemove.length !== 0) {
+        for (const field of fieldsToRemove) {
+          delete content[field]
+        }
+
+        emitWarning(
+          `Fields ${fieldsToRemove.map(chalk.yellowBright).join(',')} removed from  ${chalk.yellowBright(
+            'package.json'
+          )}. All content was copied in ${chalk.whiteBright('.eslintrc')} and/or ${chalk.whiteBright('.eslintignore')}.`
+        )
       }
       return content
     }
   })
 }
 
-module.exports.description = 'updates .eslintrc and .eslintignore configuration'
+module.exports.description = 'updates .eslintrc and .eslintignore'

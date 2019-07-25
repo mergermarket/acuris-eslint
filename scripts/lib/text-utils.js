@@ -277,7 +277,14 @@ function prettifyFile(filename, format = '', source = null) {
 
 exports.prettifyFile = prettifyFile
 
-async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = process.cwd(), format = '' }) {
+async function updateTextFileAsync({
+  filePath,
+  content,
+  beforeWrite,
+  basePath = process.cwd(),
+  format = '',
+  throwIfNotFound = false
+}) {
   let source
 
   const filePaths = Array.isArray(filePath) ? filePath : [filePath]
@@ -308,6 +315,10 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
   }
   if (!targetPath) {
     targetPath = path.resolve(basePath, filePaths[0])
+
+    if (throwIfNotFound) {
+      fs.statSync(targetPath)
+    }
   }
 
   const previousContent = parse(source, format)
@@ -344,7 +355,7 @@ async function updateTextFileAsync({ filePath, content, beforeWrite, basePath = 
       throw error
     }
   } else if (previousContent !== undefined && prettifyFile(targetPath, format, source)) {
-    console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
+    console.log(` ${chalk.yellow('-')} ${path.relative(basePath, targetPath)} ${chalk.yellow('prettified')}.`)
   } else {
     console.log(` ${chalk.gray('-')} ${path.relative(basePath, targetPath)} ${chalk.grey('already up to date')}.`)
   }
@@ -395,6 +406,7 @@ exports.sortPackageJson = sortPackageJson
 
 function getPackageJsonSortableFields() {
   return [
+    'prettier',
     'engines',
     'engineStrict',
     'peerDependencies',
@@ -455,7 +467,6 @@ function getPackageJsonSortOrder() {
     'babel',
     'browserslist',
     'xo',
-    'prettier',
     'eslintConfig',
     'eslintIgnore',
     'stylelint',
@@ -469,6 +480,7 @@ function getPackageJsonSortOrder() {
     'devDependencies',
     'bundledDependencies',
     'bundleDependencies',
-    'optionalDependencies'
+    'optionalDependencies',
+    'prettier'
   ])
 }
