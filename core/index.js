@@ -1,41 +1,15 @@
 'use strict'
 
-require('./checkNodeVersion')
+require('./node-modules')
 
-const {
-  hasPackage,
-  hasLocalPackage,
-  isInstalledGlobally,
-  addNodeRequirePath,
-  addNodeRequirePathRecursive
-} = require('./node-modules')
+require('./prettier-interface')
 
 const eslintSupport = require('./eslint-support')
 
-const {
-  addEslintConfigPrettierRules,
-  getPrettierConfig,
-  getPrettier
-} = require('eslint-plugin-quick-prettier/eslint-helpers')
+const { addEslintConfigPrettierRules } = require('eslint-plugin-quick-prettier/eslint-helpers')
 
-const mergeEslintConfigs = require('./mergeEslintConfigs')
-
-exports.isInstalledGlobally = isInstalledGlobally
+exports.mergeEslintConfigs = require('./mergeEslintConfigs')
 
 exports.eslintSupport = eslintSupport
 
-exports.mergeEslintConfigs = mergeEslintConfigs
-
 exports.addEslintConfigPrettierRules = addEslintConfigPrettierRules
-
-exports.getPrettierConfig = getPrettierConfig
-
-exports.getPrettier = getPrettier
-
-exports.hasPackage = hasPackage
-
-exports.hasLocalPackage = hasLocalPackage
-
-exports.addNodeRequirePath = addNodeRequirePath
-
-exports.addNodeRequirePathRecursive = addNodeRequirePathRecursive

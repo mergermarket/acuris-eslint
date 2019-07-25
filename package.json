@@ -1,52 +1,65 @@
 {
   "name": "@acuris/eslint-config",
   "version": "0.0.1",
-  "description": "Acuris eslint shareable configuration",
-  "main": "index.js",
   "private": true,
-  "scripts": {
-    "acuris-eslint": "scripts/acuris-eslint.js"
-  },
+  "description": "Acuris eslint shareable configuration",
   "keywords": [
     "acuris",
     "eslint",
     "prettier"
   ],
-  "bin": {
-    "acuris-eslint": "scripts/acuris-eslint.js"
-  },
-  "author": "Acuris, Salvatore Previti",
   "license": "MIT",
+  "author": "Acuris, Salvatore Previti",
   "engines": {
     "node": ">=8.10.0"
   },
+  "main": "index.js",
+  "bin": {
+    "acuris-eslint": "scripts/acuris-eslint.js"
+  },
+  "scripts": {
+    "lint": "node scripts/acuris-eslint.js",
+    "help": "node scripts/acuris-eslint.js --help",
+    "acuris-eslint": "node scripts/acuris-eslint.js",
+    "test": "mocha \"test/**/*.test.js\"",
+    "postinstall": "node ./scripts/postinstall.js"
+  },
   "peerDependencies": {
-    "eslint": ">=5.16.0",
-    "eslint-plugin-import": ">=2.18.0",
+    "eslint": ">=6.1.0",
+    "eslint-plugin-import": ">=2.18.2",
     "eslint-plugin-node": ">=9.1.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "eslint-plugin-quick-prettier": ">=0.0.9",
     "prettier": ">=1.18.2"
   },
-  "devDependencies": {
-    "@types/node": "^12.0.10",
-    "@typescript-eslint/eslint-plugin": "^1.11.0",
-    "@typescript-eslint/parser": "^1.11.0",
-    "babel-eslint": "^10.0.2",
+  "dependencies": {
     "chalk": "^2.4.2",
-    "eslint": "^6.0.1",
+    "eslint-plugin-quick-prettier": "^0.0.13",
+    "hjson": "^3.1.2",
+    "mkdirp": "^0.5.1",
+    "optionator": "^0.8.2",
+    "semver": "^6.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.6.8",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "babel-eslint": "^10.0.2",
+    "chai": "^4.2.0",
+    "eslint": "^6.1.0",
     "eslint-plugin-chai-expect": "^2.0.1",
     "eslint-plugin-css-modules": "^2.11.0",
-    "eslint-plugin-import": "^2.18.0",
-    "eslint-plugin-jest": "^22.7.1",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest": "^22.13.6",
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-mocha": "^5.3.0",
+    "eslint-plugin-mocha": "^6.0.0",
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-quick-prettier": "^0.0.9",
-    "eslint-plugin-react": "^7.14.2",
+    "eslint-plugin-react": "^7.14.3",
+    "inquirer": "^6.5.0",
+    "mocha": "^6.2.0",
+    "mock-fs": "^4.10.1",
     "prettier": "^1.18.2",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   }
 }

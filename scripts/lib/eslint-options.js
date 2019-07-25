@@ -1,25 +1,14 @@
 'use strict'
 
 const path = require('path')
-const nodeModules = require('../../core/node-modules')
+const { eslintRequire } = require('../../core/node-modules')
 const eslintSupport = require('../../core/eslint-support')
 const eslintCommands = require('./eslint-commands')
 const chalk = require('chalk').default
 
 const programName = path.basename(process.argv[1], '.js')
 
-const eslintOptionsPath = require.resolve('eslint/lib/options')
-
-// eslint-disable-next-line node/no-extraneous-require
-const optionatorPath = require.resolve('optionator', {
-  paths: nodeModules.nodeModulePaths(eslintOptionsPath)
-})
-
-if (eslintOptionsPath in require.cache) {
-  delete require.cache[eslintOptionsPath]
-}
-
-const optionator = require(optionatorPath)
+const optionator = require('optionator')
 
 function getOptionatorOptionsMap(libOptions) {
   const options = new Map()
@@ -32,14 +21,36 @@ function getOptionatorOptionsMap(libOptions) {
   return options
 }
 
-function acurisEslintOptionator(libOptions) {
+function acurisEslintOptions(libOptions) {
   const optionsMap = getOptionatorOptionsMap(libOptions)
 
   libOptions.prepend = ''
 
-  optionsMap.get('ext').default = eslintSupport.extensions.join(',')
+  if (!optionsMap.has('cwd')) {
+    libOptions.options.splice(1, 0, {
+      option: 'cwd',
+      type: 'path::String',
+      description: 'The base folder for the project (cwd)'
+    })
+  }
 
-  optionsMap.get('cache-location').default = 'node_modules/.eslintcache'
+  if (!optionsMap.has('commands')) {
+    libOptions.options.push({
+      option: 'commands',
+      type: 'Boolean',
+      description: 'Show commands help'
+    })
+  }
+
+  const extOption = optionsMap.get('ext')
+  if (extOption) {
+    optionsMap.get('ext').default = eslintSupport.extensions.join(',')
+  }
+
+  const cacheLocationOption = optionsMap.get('cache-location')
+  if (cacheLocationOption) {
+    optionsMap.get('cache-location').default = 'node_modules/.eslintcache'
+  }
 
   const cacheFileOption = optionsMap.get('cache-file')
   if (cacheFileOption) {
@@ -48,19 +59,20 @@ function acurisEslintOptionator(libOptions) {
 
   if (!eslintSupport.isCI) {
     const cacheOption = optionsMap.get('cache')
-    cacheOption.default = 'true'
-    cacheOption.description = 'Only check changed files. Enabled by default, disable with --no-cache'
+    if (cacheOption) {
+      cacheOption.default = 'true'
+      cacheOption.description = 'Only check changed files. Enabled by default, disable with --no-cache'
+    }
   }
 
   return optionator(libOptions)
 }
 
-require.cache[optionatorPath].exports = acurisEslintOptionator
-try {
-  const acurisEslintOptions = require(eslintOptionsPath)
+function extendOptions(instance) {
+  const oldParse = instance.parse
+  const oldGenerateHelp = instance.generateHelp
 
-  const oldParse = acurisEslintOptions.parse
-  acurisEslintOptions.parse = function parse(input, parseOptions) {
+  instance.parse = function parse(input, parseOptions) {
     let commandName
     let command = null
 
@@ -81,13 +93,42 @@ try {
       }
 
       if (input.length === 3) {
-        if (input[2] === 'help' || input[2] === 'init' || input[2] === 'delete-cache') {
+        if (input[2] === 'help' || input[2] === 'init') {
           input = [input[0], input[1], `--${input[2]}`]
         }
       }
     }
 
-    const parsed = oldParse.call(this, input, parseOptions)
+    let parsed
+
+    try {
+      parsed = oldParse.call(this, input, parseOptions)
+    } catch (error) {
+      if (!command && error && typeof error.message === 'string' && error.message.startsWith('Invalid option')) {
+        try {
+          const commandNamesSet = new Set(eslintCommands.getCommandNames())
+          for (let i = 2; i < input.length; ++i) {
+            let arg = input[i]
+            if (typeof arg === 'string' && arg.startsWith('--')) {
+              arg = arg.slice(2)
+              if (commandNamesSet.has(arg)) {
+                command = eslintCommands.getCommand(arg)
+                if (command) {
+                  commandName = arg
+                  input = [input[0], input[1], ...input.slice(2, i), ...input.slice(i + 1)]
+                }
+              }
+            }
+          }
+          parsed = oldParse.call(this, input, parseOptions)
+        } catch (_error) {
+          throw error
+        }
+      } else {
+        throw error
+      }
+    }
+
     if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help)) {
       parsed._ = ['.']
     }
@@ -99,6 +140,10 @@ try {
       if (command) {
         commandName = 'init'
       }
+    }
+
+    if (commandName === 'init') {
+      parsed.init = true
     }
 
     parsed.commandName = commandName
@@ -117,12 +162,14 @@ try {
     return parsed
   }
 
-  const oldGenerateHelp = acurisEslintOptions.generateHelp
-  acurisEslintOptions.generateHelp = function generateHelp(helpOptions) {
-    let usage = '\nUsage:\n\n'
+  instance.generateHelp = function generateHelp(helpOptions) {
+    let usage = `\n${chalk.yellowBright('Commands')}:\n\n`
 
-    usage += `${chalk.whiteBright.bold(programName)} [options] [file.js] [dir]\n`
-    usage += `  ${chalk.cyan('lints the current folder or the given files\n\n')}`
+    usage += eslintCommands.getCommandsHelp(programName)
+
+    if (helpOptions && helpOptions.showCommandsOnly) {
+      return usage
+    }
 
     const additionalHelp = []
     additionalHelp.push('', '')
@@ -136,12 +183,66 @@ try {
     additionalHelp.push(`  supported extensions: ${eslintSupport.extensions.join(' ')}`)
     additionalHelp.push('}')
 
-    const help = oldGenerateHelp.call(this, helpOptions)
+    let help = oldGenerateHelp.call(this, helpOptions)
 
-    return `${usage}${help}${chalk.rgb(150, 150, 150)(additionalHelp.join('\n'))}`
+    help = help.replace(/(^([A-Za-z\s])+):/gm, `${chalk.yellow('$1')}:`)
+
+    return `${usage}${help}${chalk.gray(additionalHelp.join('\n'))}`
   }
 
-  module.exports = acurisEslintOptions
-} finally {
-  require.cache[optionatorPath].exports = optionator
+  return instance
 }
+
+function getBasicOptions() {
+  return {
+    options: [
+      { option: 'color', type: 'Boolean', alias: 'no-color', description: 'Force enabling/disabling of color' },
+      {
+        option: 'cache-file',
+        type: 'path::String',
+        description: 'Path to the cache file. Deprecated: use --cache-location'
+      },
+      { option: 'cache-location', type: 'path::String', description: 'Path to the cache file or directory' },
+      {
+        option: 'init',
+        type: 'Boolean',
+        default: 'false',
+        description: 'Run config initialization wizard'
+      },
+      { option: 'debug', type: 'Boolean', default: false, description: 'Output debugging information' },
+      { option: 'help', alias: 'h', type: 'Boolean', description: 'Show help' },
+      { option: 'commands', type: 'Boolean', description: 'Show commands help' }
+    ]
+  }
+}
+
+function createEslintOptions() {
+  let baseOptions
+  try {
+    const eslintOptionsPath = eslintRequire.resolve('./lib/options')
+    const eslintOptionatorPath = eslintRequire.resolve('optionator')
+    if (eslintOptionsPath in require.cache) {
+      delete require.cache[eslintOptionsPath]
+    }
+    require.cache[eslintOptionatorPath].exports = acurisEslintOptions
+    try {
+      baseOptions = eslintRequire(eslintOptionsPath)
+    } finally {
+      require.cache[eslintOptionatorPath].exports = optionator
+    }
+  } catch (error) {
+    if (error && error.code === 'MODULE_NOT_FOUND') {
+      console.warn(
+        chalk.yellowBright('[WARNING]'),
+        chalk.yellow(`${error.message}`.split('\n')[0]),
+        chalk.gray('- try to run `npm install` or `yarn`')
+      )
+    } else {
+      throw error
+    }
+  }
+
+  return extendOptions(baseOptions || getBasicOptions())
+}
+
+module.exports = createEslintOptions()
