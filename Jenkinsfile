@@ -24,7 +24,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node npm install test
+                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node npm install ; npm test
                     """
                 }
             }
