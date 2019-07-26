@@ -24,7 +24,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node npm install \&\& npm test
+                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node "npm install && npm test"
                     """
                 }
             }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node npm publish --access public
+                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node "npm publish --access public"
                     """
                 }
             }
