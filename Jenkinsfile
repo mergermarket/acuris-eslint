@@ -24,8 +24,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    chmod +x CI/test.sh
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node ls
+                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh /usr/src/app/CI/test.sh
                     """
                 }
             }
@@ -35,8 +34,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    chmod +x CI/deploy.sh
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node sh /usr/src/app/CI/deploy.sh
+                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh /usr/src/app/CI/deploy.sh
                     """
                 }
             }
