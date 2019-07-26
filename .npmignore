@@ -1,4 +1,5 @@
-# @acuris/eslint-config
+.gitignore
+Jenkinfile
 
 # excluded files for security
 .npmrc
@@ -20,9 +21,6 @@ bower_components
 build/Release
 *.tgz
 ipch
-
-# some projects still requires yarn-packages-cache to be published
-!yarn-packages-cache/*.tgz
 
 # logs
 logs
