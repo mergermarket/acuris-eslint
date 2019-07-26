@@ -1,5 +1,6 @@
 CI/
-Jenkinfile
+Jenkinsfile
+test/
 .gitignore
 
 # excluded files for security
