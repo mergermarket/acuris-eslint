@@ -24,17 +24,17 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh /usr/src/app/CI/test.sh
+                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/test.sh
                     """
                 }
             }
         }
         stage ("Deploy") {
-            when { branch 'master '}
+            when { branch 'master' }
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh /usr/src/app/CI/deploy.sh
+                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/deploy.sh
                     """
                 }
             }
