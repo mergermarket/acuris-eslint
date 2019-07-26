@@ -8,6 +8,10 @@ const initGitignore = require('../../../scripts/commands/init-gitignore')
 describe('commands/init-gitignore', () => {
   let originalCwd
 
+  it('FAILS', () => {
+    expect(true).to.equal(false)
+  })
+
   const gitignoreDefaultContent = fs.readFileSync(fsUtils.resolveAcurisEslintFile('.gitignore.default'), 'utf8')
 
   beforeEach(() => {
