@@ -1,5 +1,6 @@
-.gitignore
+CI/
 Jenkinfile
+.gitignore
 
 # excluded files for security
 .npmrc
