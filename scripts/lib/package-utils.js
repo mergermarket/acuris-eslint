@@ -1,6 +1,5 @@
 const nodeModules = require('../../core/node-modules')
 const referencePackageJson = require('../../package.json')
-const { fileExists, resolveProjectFile } = require('./fs-utils')
 const semver = require('semver')
 
 function sanitisePackageJson(manifest) {
@@ -105,6 +104,22 @@ function addDevDependencies(target, dependenciesToAdd) {
     const version = semverToVersion(value)
     if (version) {
       let v = version
+
+      v = getMaxSemver(v, referencePackageJson.dependencies && referencePackageJson.dependencies[name]) || v
+      v = getMaxSemver(v, referencePackageJson.devDependencies && referencePackageJson.devDependencies[name]) || v
+      v = getMaxSemver(v, referencePackageJson.peerDependencies && referencePackageJson.peerDependencies[name]) || v
+
+      if (!v.startsWith('file:')) {
+        const pkgName = `${name}/package.json`
+        let pkg
+        try {
+          pkg = require(pkgName)
+        } catch (_error) {}
+        if (pkg && pkg.version) {
+          v = getMaxSemver(v, pkg.version) || v
+        }
+      }
+
       const dep = deps.get(name)
       const devDep = devDeps.get(name)
       v = getMaxSemver(v, dep)
@@ -125,6 +140,28 @@ function addDevDependencies(target, dependenciesToAdd) {
 }
 
 exports.addDevDependencies = addDevDependencies
+
+function getAllDependencyNames(manifest) {
+  const result = new Set()
+
+  const addKeys = obj => {
+    if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+      for (const key of Object.keys(obj)) {
+        result.add(key)
+      }
+    }
+  }
+
+  addKeys(manifest.dependencies)
+  addKeys(manifest.devDependencies)
+  addKeys(manifest.bundledDependencies)
+  addKeys(manifest.bundleDependencies)
+  addKeys(manifest.optionalDependencies)
+  addKeys(manifest.peerDependencies)
+  return result
+}
+
+exports.getAllDependencyNames = getAllDependencyNames
 
 function dependenciesToMap(dependencies, result = new Map()) {
   if (typeof dependencies === 'object' && dependencies !== null && !Array.isArray(dependencies)) {
@@ -153,7 +190,6 @@ function isPackageInstalled(name, version) {
   if (typeof name !== 'string' || typeof version !== 'string') {
     return false
   }
-  name = name.trim()
   version = version.trim()
 
   if (name.length === 0 || version.length === 0) {

@@ -5,12 +5,18 @@ const { spawn } = require('child_process')
 const util = require('util')
 const spawnAsync = util.promisify(spawn)
 const { notes, emitWarning } = require('../lib/notes')
+const nodeModules = require('../../core/node-modules')
 
-const sourcePackageJson = require('../../package.json')
+const referencePackageJson = require('../../package.json')
 
-const { resolveProjectFile, fileExists, directoryExists, findUp } = require('../lib/fs-utils')
+const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
 const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
-const { sanitisePackageJson, addDevDependencies, hasPackagesToInstall } = require('../lib/package-utils')
+const {
+  sanitisePackageJson,
+  addDevDependencies,
+  hasPackagesToInstall,
+  getAllDependencyNames
+} = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -30,12 +36,15 @@ module.exports = async () => {
     notes.gitFolderNotFound = true
   }
 
+  const hasTypescript = false
+
   await updateTextFileAsync({
     format: 'json-stringify',
     filePath: packageJsonPath,
+    throwIfNotFound: true,
     async content(manifest) {
-      if (manifest === undefined) {
-        throw new Error('Could not find package.json')
+      if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
+        throw new TypeError('Invalid package.json')
       }
 
       if (!manifest.scripts) {
@@ -46,16 +55,41 @@ module.exports = async () => {
       }
 
       const devDependenciesToAdd = {
-        ...sourcePackageJson.peerDependencies
+        ...referencePackageJson.peerDependencies
       }
 
-      if (manifest.name !== sourcePackageJson.name) {
+      if (manifest.name !== referencePackageJson.name) {
         devDependenciesToAdd[manifest.name] = `>=${manifest.version}`
+      }
+
+      /*
+      const manifestAllDependencies = getAllDependencyNames(manifest)
+      hasTypescript = getHasTypescript(manifestAllDependencies)
+      if (hasTypescript) {
+        addTypescriptDependencies(devDependenciesToAdd)
+      }
+
+      if (nodeModules.hasLocalPackage('jest')) {
+        addDependencies(devDependenciesToAdd, 'jest')
+      }
+
+      if (nodeModules.hasLocalPackage('mocha')) {
+        addDependencies(devDependenciesToAdd, 'mocha')
+      }
+
+      if (nodeModules.hasLocalPackage('mocha') || nodeModules.hasLocalPackage('chai')) {
+        addDependencies(devDependenciesToAdd, ['eslint-plugin-chai-expect'])
+      }
+
+      if (nodeModules.hasLocalPackage('react') || nodeModules.hasLocalPackage('webpack')) {
+        addDependencies(devDependenciesToAdd, 'react')
+        addDependencies(devDependenciesToAdd, 'jsx-a11y')
+        addDependencies(devDependenciesToAdd, 'css-modules')
       }
 
       if (addDevDependencies(manifest, devDependenciesToAdd)) {
         notes.needsNpmInstall = true
-      }
+      }*/
 
       if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
         notes.packageJsonIsNotPrivateWarning = true
@@ -66,13 +100,43 @@ module.exports = async () => {
     }
   })
 
-  if (!notes.needsNpmInstall && !directoryExists(resolveProjectFile('node_modules'))) {
-    notes.needsNpmInstall = true
-  }
-
   if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
     notes.needsNpmInstall = true
   }
+}
+
+function addTypescriptDependencies(target) {
+  for (const obj of [referencePackageJson.dependencies, referencePackageJson.devDependencies]) {
+    if (obj) {
+      for (const dep of Object.keys(obj)) {
+        if (dep.includes('typescript') || dep.includes('@types/')) {
+          if (!target[dep]) {
+            target[dep] = obj[dep]
+          }
+        }
+      }
+    }
+  }
+}
+
+function getHasTypescript(manifestAllDependencies) {
+  if (
+    manifestAllDependencies.has('tslint') ||
+    manifestAllDependencies.has('typescript') ||
+    manifestAllDependencies.has('acuris-shared-component-tools') ||
+    fileExists(resolveProjectFile('tsconfig.json')) ||
+    fileExists(resolveProjectFile('tslint.json'))
+  ) {
+    return true
+  }
+
+  for (const name of manifestAllDependencies) {
+    if (name.includes('typescript')) {
+      return true
+    }
+  }
+
+  return false
 }
 
 module.exports.description = 'updates package.json'

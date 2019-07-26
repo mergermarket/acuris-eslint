@@ -222,6 +222,13 @@ function getResolvePathsSet() {
     addNodeModulesRequirePath(path.dirname(__dirname))
     addNodeModulesRequirePath(path.resolve(process.cwd(), 'package.json'))
 
+    try {
+      if (getPackageLocalState('acuris-shared-component-tools') === 1) {
+        // eslint-disable-next-line node/no-missing-require
+        addNodeRequirePathRecursive(require.resolve('acuris-shared-component-tools/package.json'))
+      }
+    } catch (_error) {}
+
     const eslintPath = getEslintPath()
 
     if (eslintPath) {
