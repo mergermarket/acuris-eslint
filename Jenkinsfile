@@ -16,7 +16,6 @@ pipeline {
     }
     environment {
         NPM_LOGIN = credentials('npm-access')
-        NPM_USER = "${env.NPM_LOGIN_USR}"
         NPM_TOKEN = "${env.NPM_LOGIN_PSW}"
     }
     stages {
@@ -34,7 +33,7 @@ pipeline {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/deploy.sh
+                    docker run -e NPM_TOKEN -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/deploy.sh
                     """
                 }
             }
