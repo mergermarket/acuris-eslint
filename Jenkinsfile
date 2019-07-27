@@ -15,26 +15,24 @@ pipeline {
         }
     }
     environment {
-        NPM_LOGIN = credentials('npm-access')
-        NPM_USER = "${env.NPM_LOGIN_USR}"
-        NPM_TOKEN = "${env.NPM_LOGIN_PSW}"
+        NPM_TOKEN = credentials('npm-access-token')
     }
     stages {
         stage ("Test") {
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node "npm install && npm test"
+                    docker run -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/test.sh
                     """
                 }
             }
         }
         stage ("Deploy") {
-            when { branch 'master '}
+            when { branch 'master' }
             steps {
                 container('cdflow') {
                     sh """
-                    docker run -v ${PWD}:/usr/src/app -w /usr/src/app node "npm publish --access public"
+                    docker run -e NPM_TOKEN -e BUILD_NUMBER -v ${env.WORKSPACE}:/usr/src/app -w /usr/src/app node sh CI/deploy.sh
                     """
                 }
             }

@@ -1,5 +1,7 @@
+CI/
+Jenkinsfile
+test/
 .gitignore
-Jenkinfile
 
 # excluded files for security
 .npmrc
