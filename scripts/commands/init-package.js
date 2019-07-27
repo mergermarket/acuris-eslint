@@ -38,6 +38,10 @@ module.exports = async () => {
         throw new Error('Could not find package.json')
       }
 
+      if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
+        notes.packageJsonIsNotPrivateWarning = true
+      }
+
       if (!manifest.scripts) {
         manifest.scripts = {}
       }
@@ -55,10 +59,6 @@ module.exports = async () => {
 
       if (addDevDependencies(manifest, devDependenciesToAdd)) {
         notes.needsNpmInstall = true
-      }
-
-      if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
-        notes.packageJsonIsNotPrivateWarning = true
       }
 
       manifest = sanitisePackageJson(manifest)

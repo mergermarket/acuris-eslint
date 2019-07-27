@@ -1,6 +1,5 @@
 const nodeModules = require('../../core/node-modules')
 const referencePackageJson = require('../../package.json')
-const { fileExists, resolveProjectFile } = require('./fs-utils')
 const semver = require('semver')
 
 function sanitisePackageJson(manifest) {

@@ -1,7 +1,6 @@
 'use strict'
 
 const chalk = require('chalk').default
-const inquirer = require('inquirer')
 const fs = require('fs')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
