@@ -1,6 +1,6 @@
 'use strict'
 
-const prettierInterface = require('../../core/prettier-interface')
+const { prettierInterface } = require('../../core/node-modules')
 const { notes, emitSubCommand, emitInitComplete } = require('../lib/notes')
 
 module.exports = async options => {

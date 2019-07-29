@@ -3,7 +3,7 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const { eslintSupport } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 const common = require('./common')
 
 if (eslintSupport.hasEslintPluginNode) {

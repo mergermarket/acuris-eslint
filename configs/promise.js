@@ -3,12 +3,12 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const { eslintSupport, mergeEslintConfigs } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 
 if (eslintSupport.hasEslintPluginPromise) {
   const eslintPluginPromiseConfig = require('eslint-plugin-promise').configs
 
-  module.exports = mergeEslintConfigs(eslintPluginPromiseConfig.recommended, {
+  module.exports = eslintSupport.mergeEslintConfigs(eslintPluginPromiseConfig.recommended, {
     rules: {
       'promise/always-return': 0,
       'promise/no-return-wrap': 1,

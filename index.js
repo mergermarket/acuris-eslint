@@ -1,9 +1,10 @@
 'use strict'
 
-const { addEslintConfigPrettierRules, mergeEslintConfigs } = require('./core')
+const eslintSupport = require('./core/eslint-support')
+const { addEslintConfigPrettierRules } = require('eslint-plugin-quick-prettier/eslint-helpers')
 
 module.exports = addEslintConfigPrettierRules(
-  mergeEslintConfigs(
+  eslintSupport.mergeEslintConfigs(
     require('eslint/conf/eslint-recommended'),
     require('./configs/import'),
     require('./configs/node'),

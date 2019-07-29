@@ -5,18 +5,12 @@ const { spawn } = require('child_process')
 const util = require('util')
 const spawnAsync = util.promisify(spawn)
 const { notes, emitWarning } = require('../lib/notes')
-const nodeModules = require('../../core/node-modules')
 
 const referencePackageJson = require('../../package.json')
 
 const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
 const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
-const {
-  sanitisePackageJson,
-  addDevDependencies,
-  hasPackagesToInstall,
-  getAllDependencyNames
-} = require('../lib/package-utils')
+const { sanitisePackageJson, addDevDependencies, hasPackagesToInstall } = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -35,8 +29,6 @@ module.exports = async () => {
   if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
     notes.gitFolderNotFound = true
   }
-
-  const hasTypescript = false
 
   await updateTextFileAsync({
     format: 'json-stringify',
@@ -58,13 +50,13 @@ module.exports = async () => {
         manifest.scripts['acuris-eslint'] = 'acuris-eslint'
       }
 
-      const devDependenciesToAdd = {
-        ...referencePackageJson.peerDependencies
-      }
+      const devDependenciesToAdd = new Set(Object.keys(referencePackageJson.peerDependencies))
 
       if (manifest.name !== referencePackageJson.name) {
-        devDependenciesToAdd[manifest.name] = `>=${manifest.version}`
+        devDependenciesToAdd.add(manifest.name)
       }
+
+      //addDevDependencies(manifest, devDependenciesToAdd)
 
       /*
       const manifestAllDependencies = getAllDependencyNames(manifest)
@@ -105,16 +97,10 @@ module.exports = async () => {
   }
 }
 
-function addTypescriptDependencies(target) {
-  for (const obj of [referencePackageJson.dependencies, referencePackageJson.devDependencies]) {
-    if (obj) {
-      for (const dep of Object.keys(obj)) {
-        if (dep.includes('typescript') || dep.includes('@types/')) {
-          if (!target[dep]) {
-            target[dep] = obj[dep]
-          }
-        }
-      }
+function addTypescriptDependencies(devDependenciesToAdd) {
+  for (const dep of Object.keys(referencePackageJson.devDependencies)) {
+    if (dep.includes('typescript') || dep.includes('@types/')) {
+      devDependenciesToAdd.add(dep)
     }
   }
 }

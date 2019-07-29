@@ -3,7 +3,7 @@
 /* eslint-disable global-require */
 /* eslint-disable node/no-unpublished-require */
 
-const { eslintSupport, mergeEslintConfigs } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 
 const common = require('./common')
 
@@ -87,6 +87,9 @@ if (eslintSupport.hasTypescript) {
   }
 
   if (eslintSupport.hasEslintPluginImport) {
-    module.exports = mergeEslintConfigs(module.exports, require('eslint-plugin-import').configs.typescript)
+    module.exports = eslintSupport.mergeEslintConfigs(
+      module.exports,
+      require('eslint-plugin-import').configs.typescript
+    )
   }
 }

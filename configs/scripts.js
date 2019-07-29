@@ -1,6 +1,6 @@
 'use strict'
 
-const { eslintSupport } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 
 module.exports = {
   overrides: [

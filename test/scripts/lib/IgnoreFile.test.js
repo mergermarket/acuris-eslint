@@ -1,6 +1,6 @@
 require('chai/register-expect')
 
-const GitIgnore = require('../../../scripts/lib/GitIgnore')
+const IgnoreFile = require('../../../scripts/lib/IgnoreFile')
 
 const simpleGitIgnore = [
   '#hello world',
@@ -21,7 +21,7 @@ const simpleGitIgnore = [
 ].join('\n')
 
 const gitIgnoreToMerge = [
-  GitIgnore.acurisEslintMarker,
+  IgnoreFile.acurisEslintMarker,
   '',
   '# after marker1',
   'xxx1',
@@ -70,10 +70,10 @@ const cleanedUpGitIgnoreToMergeArray = [
   'commented-pattern'
 ]
 
-describe('GitIgnore', () => {
+describe('IgnoreFile', () => {
   describe('constructor', () => {
     it('parses correctly a simple .gitignore file', () => {
-      const parsed = new GitIgnore(simpleGitIgnore)
+      const parsed = new IgnoreFile(simpleGitIgnore)
       expect(parsed.acurisEslintMarkerPosition).to.equal(-1)
       expect(Array.from(parsed.patterns).sort()).to.deep.equal([
         'a.txt',
@@ -94,7 +94,7 @@ describe('GitIgnore', () => {
     })
 
     it('parses correctly a source .gitignore', () => {
-      const parsed = new GitIgnore(gitIgnoreToMerge)
+      const parsed = new IgnoreFile(gitIgnoreToMerge)
       expect(parsed.acurisEslintMarkerPosition).to.equal(0)
       expect(Array.from(parsed.patterns).sort()).to.deep.equal([
         'commented-pattern',
@@ -117,32 +117,32 @@ describe('GitIgnore', () => {
 
   describe('toStringArray', () => {
     it('generates a valid output for a simple .gitignore', () => {
-      const parsed = new GitIgnore(simpleGitIgnore)
+      const parsed = new IgnoreFile(simpleGitIgnore)
       expect(parsed.toStringArray()).to.deep.equal(cleanedUpGitIgnoreArray)
     })
 
     it('generates a valid output for a source .gitignore', () => {
-      const parsed = new GitIgnore(gitIgnoreToMerge)
+      const parsed = new IgnoreFile(gitIgnoreToMerge)
       expect(parsed.toStringArray()).to.deep.equal(cleanedUpGitIgnoreToMergeArray)
     })
   })
 
   describe('toString', () => {
     it('generates a valid output for a simple .gitignore', () => {
-      const parsed = new GitIgnore(simpleGitIgnore)
+      const parsed = new IgnoreFile(simpleGitIgnore)
       expect(parsed.toString()).to.deep.equal(`${cleanedUpGitIgnoreArray.join('\n')}\n`)
     })
 
     it('generates a valid output for a source .gitignore', () => {
-      const parsed = new GitIgnore(gitIgnoreToMerge)
+      const parsed = new IgnoreFile(gitIgnoreToMerge)
       expect(parsed.toString()).to.deep.equal(`${cleanedUpGitIgnoreToMergeArray.join('\n')}\n`)
     })
   })
 
   describe('merge', () => {
     it('merges simple .gitignore with source .gitignore', () => {
-      const target = new GitIgnore(simpleGitIgnore)
-      const source = new GitIgnore(gitIgnoreToMerge)
+      const target = new IgnoreFile(simpleGitIgnore)
+      const source = new IgnoreFile(gitIgnoreToMerge)
       target.merge(source)
       expect(target.changed).to.equal(true)
       expect(target.sections).to.deep.equal([
