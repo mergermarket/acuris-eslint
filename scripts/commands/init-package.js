@@ -43,7 +43,7 @@ module.exports = async () => {
         notes.packageJsonIsNotPrivateWarning = true
       }
 
-      const neededDependencies = getNeededDependencies()
+      const neededDependencies = getNeededDependencies(manifest)
       if (addDevDependencies(manifest, neededDependencies)) {
         notes.needsNpmInstall = true
       }

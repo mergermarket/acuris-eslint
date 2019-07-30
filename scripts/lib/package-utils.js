@@ -71,6 +71,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-css-modules')
     }
   }
+  return result
 }
 
 exports.getNeededDependencies = getNeededDependencies
