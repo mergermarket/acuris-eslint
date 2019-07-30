@@ -2,6 +2,7 @@
 
 require('../../core/node-modules')
 
+const { spawn } = require('child_process')
 const path = require('path')
 const fs = require('fs')
 
@@ -161,3 +162,23 @@ function getRepositoryFromGitConfig(cwd = process.cwd()) {
 }
 
 exports.getRepositoryFromGitConfig = getRepositoryFromGitConfig
+
+function runAsync(command, args, options = { stdio: 'inherit' }) {
+  if (!Array.isArray(args)) {
+    args = typeof args === 'string' ? [args] : []
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, options)
+    child
+      .on('exit', code => {
+        if (code !== 0) {
+          reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
+        } else {
+          resolve()
+        }
+      })
+      .on('error', reject)
+  })
+}
+
+exports.runAsync = runAsync

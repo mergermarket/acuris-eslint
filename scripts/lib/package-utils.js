@@ -1,7 +1,79 @@
+const path = require('path')
 const nodeModules = require('../../core/node-modules')
-const { getRepositoryFromGitConfig } = require('./fs-utils')
+const { getRepositoryFromGitConfig, fileExists } = require('./fs-utils')
 const referencePackageJson = require('../../package.json')
 const semver = require('semver')
+
+function addObjectKeysToSet(set, obj) {
+  if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+    for (const key of Object.keys(obj)) {
+      set.add(key)
+    }
+  }
+}
+
+function getNeededDependencies(manifest, cwd = process.cwd()) {
+  const result = new Set()
+
+  const allDeps = new Set()
+  addObjectKeysToSet(allDeps, manifest.dependencies)
+  addObjectKeysToSet(allDeps, manifest.devDependencies)
+  addObjectKeysToSet(allDeps, manifest.peerDependencies)
+  addObjectKeysToSet(allDeps, manifest.bundleDependencies)
+  addObjectKeysToSet(allDeps, manifest.bundledDependencies)
+  addObjectKeysToSet(allDeps, manifest.optionalDependencies)
+
+  const hasDep = name => {
+    if (allDeps.has(name)) {
+      return true
+    }
+    if (isPackageInstalled(name)) {
+      allDeps.add(name)
+      return true
+    }
+    return false
+  }
+
+  if (hasDep('acuris-shared-component-tools')) {
+    result.add('acuris-shared-component-tools')
+  } else {
+    if (manifest.name !== referencePackageJson.name) {
+      result.add(manifest.name)
+    }
+    addObjectKeysToSet(result, referencePackageJson.peerDependencies)
+
+    if (hasDep('@babel/runtime')) {
+      result.add('babel-eslint')
+    }
+
+    if (hasDep('typescript') || fileExists(path.resolve(cwd, 'tsconfig.json'))) {
+      result.add('@types/node')
+      result.add('@typescript-eslint/eslint-plugin')
+      result.add('@typescript-eslint/parser')
+      result.add('typescript')
+    }
+
+    if (hasDep('jest')) {
+      result.add('eslint-plugin-jest')
+    }
+
+    if (hasDep('mocha')) {
+      result.add('eslint-plugin-mocha')
+    }
+
+    if (hasDep('mocha') || hasDep('chai')) {
+      result.add('eslint-plugin-chai-expect')
+    }
+
+    if (hasDep('react') || hasDep('react-scripts') || hasDep('webpack')) {
+      result.add('eslint-plugin-jsx-a11y')
+      result.add('eslint-plugin-react')
+      result.add('eslint-plugin-css-modules')
+    }
+  }
+}
+
+exports.getNeededDependencies = getNeededDependencies
 
 function sanitisePackageJson(manifest) {
   manifest = JSON.parse(JSON.stringify(manifest))

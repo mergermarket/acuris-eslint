@@ -1,16 +1,16 @@
 'use strict'
 
 const chalk = require('chalk').default
-const { spawn } = require('child_process')
-const util = require('util')
-const spawnAsync = util.promisify(spawn)
 const { notes, emitWarning } = require('../lib/notes')
 
-const referencePackageJson = require('../../package.json')
-
-const { resolveProjectFile, fileExists, findUp } = require('../lib/fs-utils')
+const { resolveProjectFile, fileExists, findUp, runAsync } = require('../lib/fs-utils')
 const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
-const { sanitisePackageJson, addDevDependencies, hasPackagesToInstall } = require('../lib/package-utils')
+const {
+  sanitisePackageJson,
+  getNeededDependencies,
+  addDevDependencies,
+  hasPackagesToInstall
+} = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -23,7 +23,7 @@ module.exports = async () => {
 
   if (!packageJsonPath) {
     emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
-    await spawnAsync('npm', ['init'], { stdio: 'inherit' })
+    await runAsync('npm', 'init')
   }
 
   if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
@@ -43,49 +43,19 @@ module.exports = async () => {
         notes.packageJsonIsNotPrivateWarning = true
       }
 
-      if (!manifest.scripts) {
-        manifest.scripts = {}
-      }
-      if (manifest.scripts['acuris-eslint'] === undefined) {
-        manifest.scripts['acuris-eslint'] = 'acuris-eslint'
-      }
-
-      const devDependenciesToAdd = new Set(Object.keys(referencePackageJson.peerDependencies))
-
-      if (manifest.name !== referencePackageJson.name) {
-        devDependenciesToAdd.add(manifest.name)
-      }
-
-      //addDevDependencies(manifest, devDependenciesToAdd)
-
-      /*
-      const manifestAllDependencies = getAllDependencyNames(manifest)
-      hasTypescript = getHasTypescript(manifestAllDependencies)
-      if (hasTypescript) {
-        addTypescriptDependencies(devDependenciesToAdd)
-      }
-
-      if (nodeModules.hasLocalPackage('jest')) {
-        addDependencies(devDependenciesToAdd, 'jest')
-      }
-
-      if (nodeModules.hasLocalPackage('mocha')) {
-        addDependencies(devDependenciesToAdd, 'mocha')
-      }
-
-      if (nodeModules.hasLocalPackage('mocha') || nodeModules.hasLocalPackage('chai')) {
-        addDependencies(devDependenciesToAdd, ['eslint-plugin-chai-expect'])
-      }
-
-      if (nodeModules.hasLocalPackage('react') || nodeModules.hasLocalPackage('webpack')) {
-        addDependencies(devDependenciesToAdd, 'react')
-        addDependencies(devDependenciesToAdd, 'jsx-a11y')
-        addDependencies(devDependenciesToAdd, 'css-modules')
-      }
-
-      if (addDevDependencies(manifest, devDependenciesToAdd)) {
+      const neededDependencies = getNeededDependencies()
+      if (addDevDependencies(manifest, neededDependencies)) {
         notes.needsNpmInstall = true
-      }*/
+      }
+
+      if (manifest.devDependencies && manifest.devDependencies['@acuris/eslint-config']) {
+        if (!manifest.scripts) {
+          manifest.scripts = {}
+        }
+        if (manifest.scripts['acuris-eslint'] === undefined) {
+          manifest.scripts['acuris-eslint'] = 'acuris-eslint'
+        }
+      }
 
       manifest = sanitisePackageJson(manifest)
       return manifest
@@ -95,34 +65,6 @@ module.exports = async () => {
   if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
     notes.needsNpmInstall = true
   }
-}
-
-function addTypescriptDependencies(devDependenciesToAdd) {
-  for (const dep of Object.keys(referencePackageJson.devDependencies)) {
-    if (dep.includes('typescript') || dep.includes('@types/')) {
-      devDependenciesToAdd.add(dep)
-    }
-  }
-}
-
-function getHasTypescript(manifestAllDependencies) {
-  if (
-    manifestAllDependencies.has('tslint') ||
-    manifestAllDependencies.has('typescript') ||
-    manifestAllDependencies.has('acuris-shared-component-tools') ||
-    fileExists(resolveProjectFile('tsconfig.json')) ||
-    fileExists(resolveProjectFile('tslint.json'))
-  ) {
-    return true
-  }
-
-  for (const name of manifestAllDependencies) {
-    if (name.includes('typescript')) {
-      return true
-    }
-  }
-
-  return false
 }
 
 module.exports.description = 'updates package.json'
