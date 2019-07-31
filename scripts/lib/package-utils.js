@@ -111,6 +111,9 @@ function sanitisePackageJson(manifest) {
       repoUrl = getRepositoryFromGitConfig()
     }
     if (typeof repoUrl === 'string' && repoUrl.startsWith('http')) {
+      if (repoUrl.endsWith('.git')) {
+        repoUrl = repoUrl.slice(0, repoUrl.length - '.git'.length)
+      }
       manifest.homepage = `${repoUrl}#readme`
     }
   }

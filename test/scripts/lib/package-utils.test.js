@@ -35,8 +35,8 @@ describe('package-utils', () => {
         description: 'xxx',
         keywords: ['xxx'],
         license: 'UNLICENSED',
-        //repository: packageJson.repository,
-        //homepage: packageJson.homepage,
+        repository: packageJson.repository,
+        homepage: packageJson.homepage,
         engines: packageJson.engines
       })
     })

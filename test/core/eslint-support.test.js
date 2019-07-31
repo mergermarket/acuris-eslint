@@ -3,7 +3,7 @@ const eslintSupport = require('../../core/eslint-support')
 describe('core/eslint-support', () => {
   it('contains all packages for @acuris/eslint-config dev configuration', () => {
     expect(eslintSupport).to.deep.include({
-      isCI: false,
+      isCI: 'CI' in process.env,
       reactVersion: '16.8.6',
       hasEslint: true,
       hasTypescript: true,
