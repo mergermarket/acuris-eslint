@@ -3,8 +3,6 @@ set -e
 git fetch
 git checkout master
 git pull
-#npm i
-npm ci
 npm run lint -- --max-warnings 0
 npm test
 npm version patch -m "Version %s"
