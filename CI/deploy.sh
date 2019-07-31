@@ -1,4 +1,11 @@
+#!/bin/sh
+
 set -e
+
+if [[ -z "${CI}" ]]; then
+  export CI='X'
+fi
+
 npm ci
 npm run lint -- --max-warnings 0
 npm test
