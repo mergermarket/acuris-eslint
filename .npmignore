@@ -2,6 +2,8 @@ CI/
 Jenkinsfile
 test/
 .gitignore
+.travis.yml
+.nvmrc
 
 # excluded files for security
 .npmrc
