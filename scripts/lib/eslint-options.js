@@ -34,6 +34,7 @@ class OptionsMap extends Map {
 }
 
 const acurisEslintCommands = {
+  version: 'print versions',
   init: 'initialises or updates a project',
   'init-eslint': 'updates or creates eslint configuration',
   'init-gitignore': 'updates or creates .gitignore',
@@ -126,7 +127,11 @@ function extendOptions(instance) {
       }
     }
 
-    const format = parsed.format
+    let format = parsed.format
+
+    if (parsed.commandName === 'version') {
+      format = 'json'
+    }
 
     parsed.canLog =
       !format ||

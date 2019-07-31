@@ -69,8 +69,8 @@ if (options.help || options.commands || options.init) {
 }
 
 if (options.help || options.commands) {
-  console.info(appTitle)
-  console.info(acurisEslintOptions.generateHelp({ showCommandsOnly: options.commands }))
+  console.error(appTitle)
+  console.error(acurisEslintOptions.generateHelp({ showCommandsOnly: options.commands }))
 } else if (!options.commandName) {
   try {
     if (options.canLog) {
@@ -79,24 +79,13 @@ if (options.help || options.commands) {
     eslintRequire('./bin/eslint')
   } finally {
     if (options.canLog) {
-      setTimeout(() => {
+      setTimeout(function timeEnd() {
         console.timeEnd(appTitle)
       }, 0)
     }
   }
 } else {
-  console.info(`\n${appTitle}${chalk.yellowBright(options.commandName)}\n`)
-
-  const handleCommandError = error => {
-    if (!process.exitCode) {
-      process.exitCode = 1
-    }
-    console.log()
-    console.error(error)
-    try {
-      require('./lib/notes').flushNotes()
-    } catch (_error) {}
-  }
+  console.error(`\n${appTitle}${chalk.yellowBright(options.commandName)}\n`)
 
   try {
     const command = require(`./commands/${options.commandName}`)
@@ -107,14 +96,27 @@ if (options.help || options.commands) {
 
     const commandResult = command(options)
     if (commandResult && typeof commandResult.then === 'function' && typeof commandResult.catch === 'function') {
-      commandResult
-        .then(() => {
-          require('./lib/notes').flushNotes()
-          console.log()
-        })
-        .catch(handleCommandError)
+      commandResult.then(handleCommandSuccess).catch(handleCommandError)
+    } else {
+      handleCommandSuccess()
     }
   } catch (error) {
     handleCommandError(error)
   }
+}
+
+function handleCommandSuccess() {
+  require('./lib/notes').flushNotes()
+  console.log()
+}
+
+function handleCommandError(error) {
+  if (!process.exitCode) {
+    process.exitCode = 1
+  }
+  console.log()
+  console.error(error)
+  try {
+    require('./lib/notes').flushNotes()
+  } catch (_error) {}
 }
