@@ -1,9 +1,9 @@
-const packageJson = require('../../../package.json')
-const { getRepositoryFromGitConfig } = require('../../../scripts/lib/fs-utils')
+//const packageJson = require('../../../package.json')
+//const { getRepositoryFromGitConfig } = require('../../../scripts/lib/fs-utils')
 require('chai/register-expect')
 
 describe('fs-utils', () => {
-  describe('getRepositoryFromGitConfig', () => {
+  /*describe('getRepositoryFromGitConfig', () => {
     it('returns the correct repository', () => {
       expect(getRepositoryFromGitConfig()).to.deep.equal(packageJson.repository)
     })
@@ -15,5 +15,5 @@ describe('fs-utils', () => {
     it('returns undefined if .git does not exists', () => {
       expect(getRepositoryFromGitConfig('/')).to.equal(undefined)
     })
-  })
+  })*/
 })
