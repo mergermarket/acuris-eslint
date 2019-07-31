@@ -1,5 +1,5 @@
-const manifest = require('../../package.json')
 const { eslintRequire } = require('../../core/node-modules')
+const manifest = require('../../package.json')
 
 module.exports = function() {
   const versions = {
@@ -10,12 +10,13 @@ module.exports = function() {
     versions.eslint = eslintRequire('./package.json').version
   } catch (_error1) {}
 
-  const allDeps = new Set()
+  const names = new Set()
+  names.add('react')
 
   function addDepNames(obj) {
     if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
       for (const key of Object.keys(obj)) {
-        allDeps.add(key)
+        names.add(key)
       }
     }
   }
@@ -24,7 +25,7 @@ module.exports = function() {
   addDepNames(manifest.devDependencies)
 
   const plugins = {}
-  for (const name of Array.from(allDeps).sort()) {
+  for (const name of Array.from(names).sort()) {
     if (name !== 'eslint') {
       const p = `${name}/package.json`
       try {
