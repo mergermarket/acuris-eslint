@@ -10,7 +10,9 @@ const { eslintRequire } = require('../core/node-modules')
 
 // To use V8's code cache to speed up instantiation time.
 // eslint-disable-next-line node/no-extraneous-require
-eslintRequire('v8-compile-cache')
+try {
+  eslintRequire('v8-compile-cache')
+} catch (_error) {}
 
 function preinit() {
   const indexOfCwdOption = process.argv.indexOf('--cwd')
