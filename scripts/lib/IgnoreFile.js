@@ -1,6 +1,6 @@
 'use strict'
 
-class GitIgnore {
+class IgnoreFile {
   constructor(content) {
     /** @type {Set<string>} */
     const ignoredPatterns = new Set()
@@ -27,7 +27,7 @@ class GitIgnore {
       let previousLineIsEmpty = false
       for (let line of content.split('\n')) {
         line = line.trim()
-        if (line === GitIgnore.acurisEslintMarker) {
+        if (line === IgnoreFile.acurisEslintMarker) {
           this.addAcurisEslintMarker()
           previousLineIsComment = false
         } else if (
@@ -79,7 +79,7 @@ class GitIgnore {
   addAcurisEslintMarker() {
     if (this.acurisEslintMarkerPosition === -1) {
       this.acurisEslintMarkerPosition = this.sections.length
-      this.sections.push({ header: [GitIgnore.acurisEslintMarker], body: [] })
+      this.sections.push({ header: [IgnoreFile.acurisEslintMarker], body: [] })
     }
     return this.acurisEslintMarkerPosition
   }
@@ -130,6 +130,6 @@ class GitIgnore {
   }
 }
 
-GitIgnore.acurisEslintMarker = '# @acuris/eslint-config'
+IgnoreFile.acurisEslintMarker = '# @acuris/eslint-config'
 
-module.exports = GitIgnore
+module.exports = IgnoreFile

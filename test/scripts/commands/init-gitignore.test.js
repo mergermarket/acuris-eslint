@@ -1,4 +1,4 @@
-const GitIgnore = require('../../../scripts/lib/GitIgnore')
+const IgnoreFile = require('../../../scripts/lib/IgnoreFile')
 const mockFs = require('mock-fs')
 const fs = require('fs')
 const fsUtils = require('../../../scripts/lib/fs-utils')
@@ -33,8 +33,8 @@ describe('commands/init-gitignore', () => {
 
     await initGitignore()
 
-    expect(new GitIgnore(fs.readFileSync('.gitignore', 'utf8')).toStringArray()).to.deep.equal(
-      new GitIgnore(gitignoreDefaultContent).toStringArray()
+    expect(new IgnoreFile(fs.readFileSync('.gitignore', 'utf8')).toStringArray()).to.deep.equal(
+      new IgnoreFile(gitignoreDefaultContent).toStringArray()
     )
   })
 
@@ -50,8 +50,8 @@ describe('commands/init-gitignore', () => {
 
     await initGitignore()
 
-    expect(new GitIgnore(fs.readFileSync('.gitignore', 'utf8')).toStringArray()).to.deep.equal(
-      new GitIgnore(gitignoreDefaultContent).toStringArray()
+    expect(new IgnoreFile(fs.readFileSync('.gitignore', 'utf8')).toStringArray()).to.deep.equal(
+      new IgnoreFile(gitignoreDefaultContent).toStringArray()
     )
   })
 
@@ -67,8 +67,8 @@ describe('commands/init-gitignore', () => {
 
     await initGitignore()
 
-    const finalPatterns = [...new GitIgnore(fs.readFileSync('.gitignore', 'utf8')).patterns].sort()
-    const expectedPatterns = [...new GitIgnore(gitignoreDefaultContent).patterns, 'xxxx.js', 'yyyy.js'].sort()
+    const finalPatterns = [...new IgnoreFile(fs.readFileSync('.gitignore', 'utf8')).patterns].sort()
+    const expectedPatterns = [...new IgnoreFile(gitignoreDefaultContent).patterns, 'xxxx.js', 'yyyy.js'].sort()
 
     expect(finalPatterns).to.deep.equal(expectedPatterns)
   })

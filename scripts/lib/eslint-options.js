@@ -3,44 +3,52 @@
 const path = require('path')
 const { eslintRequire } = require('../../core/node-modules')
 const eslintSupport = require('../../core/eslint-support')
-const eslintCommands = require('./eslint-commands')
 const chalk = require('chalk').default
 
 const programName = path.basename(process.argv[1], '.js')
 
 const optionator = require('optionator')
 
-function getOptionatorOptionsMap(libOptions) {
-  const options = new Map()
-  for (const optionObj of libOptions.options) {
-    const name = optionObj.option
-    if (name) {
-      options.set(name, optionObj)
+class OptionsMap extends Map {
+  constructor(options) {
+    super()
+    this.options = options
+    for (const optionObj of options) {
+      const name = optionObj.option
+      if (name) {
+        this.set(name, optionObj)
+      }
     }
   }
-  return options
+
+  delete(name) {
+    if (this.has(name)) {
+      const idx = this.options.indexOf(this.get(name))
+      if (idx >= 0) {
+        this.options.splice(idx, 1)
+      }
+      return super.delete(name)
+    }
+    return false
+  }
+}
+
+const acurisEslintCommands = {
+  init: 'initialises or updates a project',
+  'init-eslint': 'updates or creates eslint configuration',
+  'init-gitignore': 'updates or creates .gitignore',
+  'init-package': 'updates or creates package.json',
+  'init-prettier': 'updates or creates prettier configuration',
+  'init-tsconfig': 'updates or creates typescript tsconfig.json',
+  'init-vscode': 'updates or creates Visual Studio Code workspace settings',
+  'clear-cache': 'deletes eslint cache from disk',
+  version: 'print versions'
 }
 
 function acurisEslintOptions(libOptions) {
-  const optionsMap = getOptionatorOptionsMap(libOptions)
+  const optionsMap = new OptionsMap(libOptions.options)
 
   libOptions.prepend = ''
-
-  if (!optionsMap.has('cwd')) {
-    libOptions.options.splice(1, 0, {
-      option: 'cwd',
-      type: 'path::String',
-      description: 'The base folder for the project (cwd)'
-    })
-  }
-
-  if (!optionsMap.has('commands')) {
-    libOptions.options.push({
-      option: 'commands',
-      type: 'Boolean',
-      description: 'Show commands help'
-    })
-  }
 
   const extOption = optionsMap.get('ext')
   if (extOption) {
@@ -65,6 +73,34 @@ function acurisEslintOptions(libOptions) {
     }
   }
 
+  if (!optionsMap.has('cwd')) {
+    libOptions.options.push({
+      option: 'cwd',
+      type: 'path::String',
+      description: 'The base folder for the project (cwd)'
+    })
+  }
+
+  if (!optionsMap.has('commands')) {
+    libOptions.options.push({
+      option: 'commands',
+      type: 'Boolean',
+      description: 'Show commands help'
+    })
+  }
+
+  const commandOptions = [{ heading: 'Commands' }]
+  for (const key of Object.keys(acurisEslintCommands)) {
+    optionsMap.delete(key)
+    commandOptions.push({
+      option: key,
+      type: 'Boolean',
+      isCommand: true,
+      description: chalk.cyan(acurisEslintCommands[key])
+    })
+  }
+  libOptions.options.splice(0, 0, ...commandOptions)
+
   return optionator(libOptions)
 }
 
@@ -73,89 +109,37 @@ function extendOptions(instance) {
   const oldGenerateHelp = instance.generateHelp
 
   instance.parse = function parse(input, parseOptions) {
-    let commandName
-    let command = null
-
     if (Array.isArray(input)) {
       if (input._acurisEslintOptionsCache && !parseOptions) {
         return input._acurisEslintOptionsCache
       }
-
-      if (input[2] === 'help') {
-        input = input.slice()
-        input[2] = '--help'
-      }
-
-      command = eslintCommands.getCommand(input[2])
-      if (command) {
-        commandName = input[2]
-        input = [input[0], input[1], ...input.slice(3)]
-      }
-
-      if (input.length === 3) {
-        if (input[2] === 'help' || input[2] === 'init') {
-          input = [input[0], input[1], `--${input[2]}`]
-        }
-      }
     }
 
-    let parsed
+    const parsed = oldParse.call(this, input, parseOptions)
 
-    try {
-      parsed = oldParse.call(this, input, parseOptions)
-    } catch (error) {
-      if (!command && error && typeof error.message === 'string' && error.message.startsWith('Invalid option')) {
-        try {
-          const commandNamesSet = new Set(eslintCommands.getCommandNames())
-          for (let i = 2; i < input.length; ++i) {
-            let arg = input[i]
-            if (typeof arg === 'string' && arg.startsWith('--')) {
-              arg = arg.slice(2)
-              if (commandNamesSet.has(arg)) {
-                command = eslintCommands.getCommand(arg)
-                if (command) {
-                  commandName = arg
-                  input = [input[0], input[1], ...input.slice(2, i), ...input.slice(i + 1)]
-                }
-              }
-            }
-          }
-          parsed = oldParse.call(this, input, parseOptions)
-        } catch (_error) {
-          throw error
-        }
-      } else {
-        throw error
-      }
-    }
-
-    if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help)) {
+    if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help && !parsed.version)) {
       parsed._ = ['.']
     }
 
-    const format = parsed.format
-
-    if (!command && parsed.init) {
-      command = eslintCommands.getCommand('init')
-      if (command) {
-        commandName = 'init'
+    for (const key of Object.keys(acurisEslintCommands)) {
+      if (parsed[camelize(key)] === true) {
+        parsed.commandName = key
       }
     }
 
-    if (commandName === 'init') {
-      parsed.init = true
+    if (parsed.commandName) {
+      parsed.canLog = parsed.commandName !== 'version'
+    } else {
+      const format = parsed.format
+      parsed.canLog =
+        !format ||
+        format === 'unix' ||
+        format === 'visualstudio' ||
+        format === 'codeframe' ||
+        format === 'table' ||
+        format === 'compact' ||
+        format === 'stylish'
     }
-
-    parsed.commandName = commandName
-    parsed.command = command
-    parsed.canLog =
-      !format ||
-      format === 'unix' ||
-      format === 'visualstudio' ||
-      format === 'codeframe' ||
-      format === 'table' ||
-      format === 'compact' ||
-      format === 'stylish'
 
     input._acurisEslintOptionsCache = parsed
 
@@ -163,12 +147,18 @@ function extendOptions(instance) {
   }
 
   instance.generateHelp = function generateHelp(helpOptions) {
-    let usage = `\n${chalk.yellowBright('Commands')}:\n\n`
-
-    usage += eslintCommands.getCommandsHelp(programName)
+    let usage = `${chalk.whiteBright(programName)} [options] [file.js] [dir]\n`
 
     if (helpOptions && helpOptions.showCommandsOnly) {
-      return usage
+      const result = ['', usage, `${chalk.greenBright('Commands')}:`, '']
+      for (const key of Object.keys(acurisEslintCommands)) {
+        result.push(
+          `${chalk.white(programName)} ${chalk.whiteBright(`--${key}`)}`,
+          `  ${chalk.cyanBright(acurisEslintCommands[key])}`,
+          ''
+        )
+      }
+      return result.join('\n')
     }
 
     const additionalHelp = []
@@ -185,9 +175,12 @@ function extendOptions(instance) {
 
     let help = oldGenerateHelp.call(this, helpOptions)
 
+    help = help.replace(/(^(Commands)):/gm, `${chalk.greenBright('$1')}:\n`)
     help = help.replace(/(^([A-Za-z\s])+):/gm, `${chalk.yellow('$1')}:`)
 
-    return `${usage}${help}${chalk.gray(additionalHelp.join('\n'))}`
+    usage += `  ${chalk.cyan('lints the current folder or the given files')}\n\n`
+
+    return `\n${usage}${help}${chalk.gray(additionalHelp.join('\n'))}`
   }
 
   return instance
@@ -243,6 +236,12 @@ function createEslintOptions() {
   }
 
   return extendOptions(baseOptions || getBasicOptions())
+}
+
+function camelize(value) {
+  return value.replace(/[-_]+(.)?/g, (_args, c) => {
+    return (c || '').toUpperCase()
+  })
 }
 
 module.exports = createEslintOptions()

@@ -1,6 +1,6 @@
 'use strict'
 
-const prettierInterface = require('../../core/prettier-interface')
+const { prettierInterface } = require('../../core/node-modules')
 const mkdirp = require('mkdirp')
 const hjson = require('hjson')
 const fs = require('fs')
@@ -83,7 +83,7 @@ function parse(source, format, filename) {
       if (source.length === 0) {
         return undefined
       }
-      source = prettierInterface.format(source, { ignoreErrors: false, parser: format || 'json' })
+      source = prettierInterface.format(source, { ignoreErrors: true, parser: format || 'json' })
       if (format === 'json-stringify') {
         try {
           return JSON.parse(source)
@@ -438,11 +438,11 @@ function getPackageJsonSortOrder() {
     'private',
     'description',
     'keywords',
+    'license',
+    'author',
     'homepage',
     'bugs',
     'repository',
-    'license',
-    'author',
     'contributors',
     'os',
     'cpu',

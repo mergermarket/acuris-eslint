@@ -1,16 +1,16 @@
 'use strict'
 
 const chalk = require('chalk').default
-const { spawn } = require('child_process')
-const util = require('util')
-const spawnAsync = util.promisify(spawn)
 const { notes, emitWarning } = require('../lib/notes')
 
-const sourcePackageJson = require('../../package.json')
-
-const { resolveProjectFile, fileExists, directoryExists, findUp } = require('../lib/fs-utils')
+const { resolveProjectFile, fileExists, findUp, runAsync } = require('../lib/fs-utils')
 const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
-const { sanitisePackageJson, addDevDependencies, hasPackagesToInstall } = require('../lib/package-utils')
+const {
+  sanitisePackageJson,
+  getNeededDependencies,
+  addDevDependencies,
+  hasPackagesToInstall
+} = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
@@ -23,7 +23,7 @@ module.exports = async () => {
 
   if (!packageJsonPath) {
     emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
-    await spawnAsync('npm', ['init'], { stdio: 'inherit' })
+    await runAsync('npm', 'init')
   }
 
   if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
@@ -33,42 +33,34 @@ module.exports = async () => {
   await updateTextFileAsync({
     format: 'json-stringify',
     filePath: packageJsonPath,
+    throwIfNotFound: true,
     async content(manifest) {
-      if (manifest === undefined) {
-        throw new Error('Could not find package.json')
-      }
-
-      if (!manifest.scripts) {
-        manifest.scripts = {}
-      }
-      if (manifest.scripts['acuris-eslint'] === undefined) {
-        manifest.scripts['acuris-eslint'] = 'acuris-eslint'
-      }
-
-      const devDependenciesToAdd = {
-        ...sourcePackageJson.peerDependencies
-      }
-
-      if (manifest.name !== sourcePackageJson.name) {
-        devDependenciesToAdd[manifest.name] = `>=${manifest.version}`
-      }
-
-      if (addDevDependencies(manifest, devDependenciesToAdd)) {
-        notes.needsNpmInstall = true
+      if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
+        throw new TypeError('Invalid package.json')
       }
 
       if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
         notes.packageJsonIsNotPrivateWarning = true
       }
 
+      const neededDependencies = getNeededDependencies(manifest)
+      if (addDevDependencies(manifest, neededDependencies)) {
+        notes.needsNpmInstall = true
+      }
+
+      if (manifest.devDependencies && manifest.devDependencies['@acuris/eslint-config']) {
+        if (!manifest.scripts) {
+          manifest.scripts = {}
+        }
+        if (manifest.scripts['acuris-eslint'] === undefined) {
+          manifest.scripts['acuris-eslint'] = 'acuris-eslint'
+        }
+      }
+
       manifest = sanitisePackageJson(manifest)
       return manifest
     }
   })
-
-  if (!notes.needsNpmInstall && !directoryExists(resolveProjectFile('node_modules'))) {
-    notes.needsNpmInstall = true
-  }
 
   if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
     notes.needsNpmInstall = true

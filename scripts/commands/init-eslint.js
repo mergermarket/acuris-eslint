@@ -1,13 +1,12 @@
 'use strict'
 
 const chalk = require('chalk').default
-const inquirer = require('inquirer')
 const fs = require('fs')
+const eslintSupport = require('../../core/eslint-support')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { notes, emitWarning, emitNote } = require('../lib/notes')
-const mergeEslintConfigs = require('../../core/mergeEslintConfigs')
-const GitIgnore = require('../lib/GitIgnore')
+const IgnoreFile = require('../lib/IgnoreFile')
 
 module.exports = async () => {
   const packageJsonEslintConfig = await getEslintConfigFromPackageJson()
@@ -48,11 +47,11 @@ async function initEslintIgnore(packageJsonEslintConfig) {
   await updateTextFileAsync({
     filePath: resolveProjectFile('.eslintignore'),
     async content(previousContent) {
-      const target = new GitIgnore(previousContent)
+      const target = new IgnoreFile(previousContent)
       if (packageJsonEslintConfig.eslintIgnore) {
-        target.merge(new GitIgnore(packageJsonEslintConfig.eslintIgnore), false)
+        target.merge(new IgnoreFile(packageJsonEslintConfig.eslintIgnore), false)
       }
-      target.merge(new GitIgnore(readTextFile(resolveAcurisEslintFile('.eslintignore'))))
+      target.merge(new IgnoreFile(readTextFile(resolveAcurisEslintFile('.eslintignore'))))
       if (!target.changed) {
         return undefined
       }
@@ -93,7 +92,7 @@ async function initEslintrc(packageJsonEslintConfig) {
         content = {}
       }
       if (packageJsonEslintConfig.eslintConfig) {
-        content = mergeEslintConfigs(packageJsonEslintConfig.eslintConfig, content)
+        content = eslintSupport.mergeEslintConfigs(packageJsonEslintConfig.eslintConfig, content)
       }
       if (!content.extends) {
         content.extends = []

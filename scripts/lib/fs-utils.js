@@ -2,6 +2,7 @@
 
 require('../../core/node-modules')
 
+const { spawn } = require('child_process')
 const path = require('path')
 const fs = require('fs')
 
@@ -126,3 +127,55 @@ function findUp(filename, { directories = true, files = true, cwd = process.cwd(
 }
 
 exports.findUp = findUp
+
+function getRepositoryFromGitConfig(cwd = process.cwd()) {
+  let gitConfig
+  try {
+    const found = findUp('.git/config', { files: true, directories: false, cwd })
+    gitConfig = found && fs.readFileSync(found, 'utf8').split('\n')
+  } catch (_error) {}
+  if (gitConfig) {
+    const indexOfRemoteOrigin = gitConfig.indexOf('[remote "origin"]')
+    for (let i = indexOfRemoteOrigin + 1; i < gitConfig.length; ++i) {
+      const line = gitConfig[i].trim()
+      if (line.startsWith('url = ')) {
+        let repo = line.slice('url = '.length).trim()
+        if (repo.startsWith('git@github.com:')) {
+          repo = repo.slice('git@github.com:'.length).trim()
+          if (repo.length !== 0) {
+            repo = `https://github.com/${repo}`
+          }
+        }
+        if (repo) {
+          return {
+            repository: 'git',
+            url: repo
+          }
+        }
+      }
+    }
+  }
+  return undefined
+}
+
+exports.getRepositoryFromGitConfig = getRepositoryFromGitConfig
+
+function runAsync(command, args, options = { stdio: 'inherit' }) {
+  if (!Array.isArray(args)) {
+    args = typeof args === 'string' ? [args] : []
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, options)
+    child
+      .on('exit', code => {
+        if (code !== 0) {
+          reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
+        } else {
+          resolve()
+        }
+      })
+      .on('error', reject)
+  })
+}
+
+exports.runAsync = runAsync

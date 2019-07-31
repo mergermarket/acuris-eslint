@@ -1,5 +1,6 @@
 'use strict'
 
+const { prettierInterface } = require('../../core/node-modules')
 const inquirer = require('inquirer')
 const chalk = require('chalk').default
 const fs = require('fs')
@@ -7,8 +8,7 @@ const util = require('util')
 const { resolveProjectFile, resolveAcurisEslintFile, fileExists } = require('../lib/fs-utils')
 const { sortObjectKeys, readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { emitWarning } = require('../lib/notes')
-const GitIgnore = require('../lib/GitIgnore')
-const prettierInterface = require('../../core/prettier-interface')
+const IgnoreFile = require('../lib/IgnoreFile')
 
 module.exports = async () => {
   await initPrettierrc()
@@ -20,8 +20,8 @@ async function initPrettierIgnore() {
     format: 'text',
     filePath: resolveProjectFile('.prettierignore'),
     async content(previousContent) {
-      const target = new GitIgnore(previousContent)
-      target.merge(new GitIgnore(readTextFile(resolveAcurisEslintFile('.prettierignore'))))
+      const target = new IgnoreFile(previousContent)
+      target.merge(new IgnoreFile(readTextFile(resolveAcurisEslintFile('.prettierignore'))))
       if (!target.changed) {
         return undefined
       }
@@ -29,16 +29,27 @@ async function initPrettierIgnore() {
     }
   })
 
-  await updateTextFileAsync({
-    format: 'text',
-    filePath: resolveProjectFile('.editorconfig'),
-    async content(previousContent) {
-      if (!previousContent) {
-        return readTextFile(resolveAcurisEslintFile('.editorconfig'), 'text')
-      }
-      return previousContent
+  let editorConfig
+  try {
+    editorConfig = readTextFile(resolveAcurisEslintFile('.editorconfig'), 'text')
+  } catch (error) {
+    if (!error || error.code !== 'ENOENT') {
+      throw error
     }
-  })
+  }
+
+  if (editorConfig) {
+    await updateTextFileAsync({
+      format: 'text',
+      filePath: resolveProjectFile('.editorconfig'),
+      async content(previousContent) {
+        if (!previousContent) {
+          return editorConfig
+        }
+        return previousContent
+      }
+    })
+  }
 }
 
 async function initPrettierrc() {
@@ -83,6 +94,7 @@ async function initPrettierrc() {
   }
 
   await updateTextFileAsync({
+    format: 'text',
     filePath: ['.prettierrc', '.prettierrc.json'],
     content() {
       return `${JSON.stringify(prettierConfig, null, 2)}\n`

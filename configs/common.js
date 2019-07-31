@@ -1,6 +1,6 @@
 'use strict'
 
-const { eslintSupport } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 
 module.exports = {
   parserOptions: {
@@ -15,6 +15,7 @@ module.exports = {
     node: true
   },
   rules: {
+    curly: 1,
     'global-require': 1,
     'no-process-exit': 2,
     'symbol-description': 1,

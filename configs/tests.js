@@ -3,7 +3,7 @@
 /* eslint-disable node/no-unpublished-require */
 /* eslint-disable global-require */
 
-const { eslintSupport, mergeEslintConfigs } = require('../core')
+const eslintSupport = require('../core/eslint-support')
 
 let testOverrides = {
   files: ['*.test.*', '*.spec.*', 'test/**/*', 'tests/**/*', 'testUtils/**/*', '__mocks__/**/*'],
@@ -20,7 +20,7 @@ let testOverrides = {
 if (eslintSupport.hasEslintPluginJest) {
   const eslintPluginJestConfigs = require('eslint-plugin-jest').configs
 
-  testOverrides = mergeEslintConfigs(
+  testOverrides = eslintSupport.mergeEslintConfigs(
     testOverrides,
     eslintPluginJestConfigs.recommended,
     eslintPluginJestConfigs.style,
@@ -48,7 +48,7 @@ if (eslintSupport.hasEslintPluginJest) {
 if (eslintSupport.hasEslintPluginMocha) {
   const eslintPluginMochaConfigs = require('eslint-plugin-mocha').configs
 
-  testOverrides = mergeEslintConfigs(testOverrides, eslintPluginMochaConfigs.recommended, {
+  testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, eslintPluginMochaConfigs.recommended, {
     plugins: ['mocha'],
     rules: {
       'no-unused-expressions': 0, // for chai
@@ -78,7 +78,7 @@ if (eslintSupport.hasEslintPluginMocha) {
 }
 
 if (eslintSupport.hasEslintPluginChaiExpect) {
-  testOverrides = mergeEslintConfigs(testOverrides, {
+  testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, {
     plugins: ['chai-expect'],
     rules: {
       'chai-expect/missing-assertion': 2,
