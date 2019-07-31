@@ -5,7 +5,7 @@ const fsUtils = require('../../../scripts/lib/fs-utils')
 
 const initPrettier = require('../../../scripts/commands/init-prettier')
 
-describe.only('commands/init-prettier', () => {
+describe('commands/init-prettier', () => {
   let originalCwd
 
   const prettierIgnoreDefaultContent = fs.readFileSync(fsUtils.resolveAcurisEslintFile('.prettierignore'), 'utf8')
@@ -23,7 +23,7 @@ describe.only('commands/init-prettier', () => {
     mockFs({
       myProject: {},
       '.prettierignore': prettierIgnoreDefaultContent,
-      '.prettierrc': JSON.stringify({ semi: true }),
+      '.prettierrc': JSON.stringify({ semi: false }),
       '.editorconfig': 'hello=1'
     })
 
@@ -35,7 +35,7 @@ describe.only('commands/init-prettier', () => {
       new IgnoreFile(prettierIgnoreDefaultContent).toStringArray()
     )
 
-    expect(JSON.parse(fs.readFileSync('.prettierrc', 'utf8'))).to.deep.equal({ semi: true })
+    expect(JSON.parse(fs.readFileSync('.prettierrc', 'utf8'))).to.deep.include({ semi: false })
 
     expect(fs.readFileSync('.editorconfig', 'utf8')).to.equal('hello=1\n')
   })

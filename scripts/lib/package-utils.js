@@ -140,7 +140,7 @@ function semverToVersion(version) {
     return null
   }
 
-  if (version.startsWith('file:')) {
+  if (version.startsWith('file:') || version === 'latest') {
     return version
   }
 
@@ -185,12 +185,12 @@ function getMaxSemver(version, range) {
   }
 
   version = semverToVersion(version)
-  if (typeof version === 'string' && version.startsWith('file:')) {
+  if (typeof version === 'string' && (version.startsWith('file:') || version === 'latest')) {
     return version
   }
 
   if (range) {
-    if (range.startsWith('file:')) {
+    if (range.startsWith('file:') || range === 'latest') {
       return range
     }
 
@@ -229,7 +229,7 @@ function inferPackageVersion(name, projectPackageJson) {
     return null
   }
 
-  if (!v.startsWith('file:') && nodeModules.hasLocalPackage(name)) {
+  if (!v.startsWith('file:') && v !== 'latest' && nodeModules.hasLocalPackage(name)) {
     const pkgName = `${name}/package.json`
     let pkg
     try {
@@ -295,7 +295,10 @@ function isPackageInstalled(name, version = null) {
   }
 
   version = typeof version === 'string' ? version.trim() : ''
-  if (version.length !== 0 && !version.startsWith('file:')) {
+  if (version === 'latest' || version.startsWith('file:')) {
+    return true
+  }
+  if (version.length !== 0) {
     try {
       if (semver.ltr(pkg.version, version)) {
         return false
