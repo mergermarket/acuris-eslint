@@ -292,7 +292,14 @@ for (const p of _defaultNodeModulePaths(path.dirname(process.cwd()))) {
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 
 prettierInterface.loadDefaultPrettierConfig = function loadDefaultPrettierConfig() {
-  return JSON.parse(readFileSync(path.join(path.dirname(__dirname), '.prettierrc')))
+  try {
+    return JSON.parse(readFileSync(path.join(path.dirname(__dirname), '.prettierrc')))
+  } catch (error) {
+    if (!error || error.code !== 'ENOENT') {
+      throw error
+    }
+  }
+  return {}
 }
 
 module.exports.prettierInterface = prettierInterface

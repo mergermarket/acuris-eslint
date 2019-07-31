@@ -71,7 +71,7 @@ if (options.help || options.commands || options.init) {
 if (options.help || options.commands) {
   console.info(appTitle)
   console.info(acurisEslintOptions.generateHelp({ showCommandsOnly: options.commands }))
-} else if (!options.command) {
+} else if (!options.commandName) {
   try {
     if (options.canLog) {
       console.info(appTitle)
@@ -87,10 +87,6 @@ if (options.help || options.commands) {
 } else {
   console.info(`\n${appTitle}${chalk.yellowBright(options.commandName)}\n`)
 
-  if (!options.command.name || options.command.name === 'exports') {
-    Object.defineProperty(options.command, 'name', { value: options.commandName, configurable: true })
-  }
-
   const handleCommandError = error => {
     if (!process.exitCode) {
       process.exitCode = 1
@@ -103,7 +99,13 @@ if (options.help || options.commands) {
   }
 
   try {
-    const commandResult = options.command(options)
+    const command = require(`./commands/${options.commandName}`)
+
+    if (!command.name || command.name === 'exports') {
+      Object.defineProperty(command, 'name', { value: options.commandName, configurable: true })
+    }
+
+    const commandResult = command(options)
     if (commandResult && typeof commandResult.then === 'function' && typeof commandResult.catch === 'function') {
       commandResult
         .then(() => {

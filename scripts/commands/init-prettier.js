@@ -29,16 +29,27 @@ async function initPrettierIgnore() {
     }
   })
 
-  await updateTextFileAsync({
-    format: 'text',
-    filePath: resolveProjectFile('.editorconfig'),
-    async content(previousContent) {
-      if (!previousContent) {
-        return readTextFile(resolveAcurisEslintFile('.editorconfig'), 'text')
-      }
-      return previousContent
+  let editorConfig
+  try {
+    editorConfig = readTextFile(resolveAcurisEslintFile('.editorconfig'), 'text')
+  } catch (error) {
+    if (!error || error.code !== 'ENOENT') {
+      throw error
     }
-  })
+  }
+
+  if (editorConfig) {
+    await updateTextFileAsync({
+      format: 'text',
+      filePath: resolveProjectFile('.editorconfig'),
+      async content(previousContent) {
+        if (!previousContent) {
+          return editorConfig
+        }
+        return previousContent
+      }
+    })
+  }
 }
 
 async function initPrettierrc() {
@@ -83,6 +94,7 @@ async function initPrettierrc() {
   }
 
   await updateTextFileAsync({
+    format: 'text',
     filePath: ['.prettierrc', '.prettierrc.json'],
     content() {
       return `${JSON.stringify(prettierConfig, null, 2)}\n`

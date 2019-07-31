@@ -83,7 +83,7 @@ function parse(source, format, filename) {
       if (source.length === 0) {
         return undefined
       }
-      source = prettierInterface.format(source, { ignoreErrors: false, parser: format || 'json' })
+      source = prettierInterface.format(source, { ignoreErrors: true, parser: format || 'json' })
       if (format === 'json-stringify') {
         try {
           return JSON.parse(source)
