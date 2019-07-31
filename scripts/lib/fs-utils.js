@@ -144,9 +144,6 @@ function getRepositoryFromGitConfig(cwd = process.cwd()) {
           repo = repo.slice('git@github.com:'.length).trim()
           if (repo.length !== 0) {
             repo = `https://github.com/${repo}`
-            if (repo.endsWith('.git')) {
-              repo = repo.slice(0, repo.length - '.git'.length)
-            }
           }
         }
         if (repo) {
