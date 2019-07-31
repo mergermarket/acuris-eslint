@@ -1,5 +1,4 @@
 set -e
-npm version from-git -m "Version %s"
 npm ci
 npm run lint -- --max-warnings 0
 npm test
