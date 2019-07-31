@@ -1,2 +1,6 @@
+set -e
+
+git checkout master
 git pull
-npm version from-git -m "Version %s"
+npm version patch -m "Version %s"
+git push --follow-tags

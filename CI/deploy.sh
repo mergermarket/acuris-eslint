@@ -1,4 +1,3 @@
-# exit when any command fails
 set -e
 npm version from-git -m "Version %s"
 npm ci
