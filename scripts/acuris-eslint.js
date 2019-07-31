@@ -85,7 +85,7 @@ if (options.help || options.commands) {
     }
   }
 } else {
-  console.error(`\n${appTitle}${chalk.yellowBright(options.commandName)}\n`)
+  console.error(options.canLog ? `\n${appTitle}${chalk.yellowBright(options.commandName)}\n` : '')
 
   try {
     const command = require(`./commands/${options.commandName}`)

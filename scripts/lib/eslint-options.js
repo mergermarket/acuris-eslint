@@ -34,7 +34,6 @@ class OptionsMap extends Map {
 }
 
 const acurisEslintCommands = {
-  version: 'print versions',
   init: 'initialises or updates a project',
   'init-eslint': 'updates or creates eslint configuration',
   'init-gitignore': 'updates or creates .gitignore',
@@ -42,7 +41,8 @@ const acurisEslintCommands = {
   'init-prettier': 'updates or creates prettier configuration',
   'init-tsconfig': 'updates or creates typescript tsconfig.json',
   'init-vscode': 'updates or creates Visual Studio Code workspace settings',
-  'clear-cache': 'deletes eslint cache from disk'
+  'clear-cache': 'deletes eslint cache from disk',
+  version: 'print versions'
 }
 
 function acurisEslintOptions(libOptions) {
@@ -127,21 +127,19 @@ function extendOptions(instance) {
       }
     }
 
-    let format = parsed.format
-
-    if (parsed.commandName === 'version') {
-      format = 'json'
+    if (parsed.commandName) {
+      parsed.canLog = parsed.commandName !== 'version'
+    } else {
+      const format = parsed.format
+      parsed.canLog =
+        !format ||
+        format === 'unix' ||
+        format === 'visualstudio' ||
+        format === 'codeframe' ||
+        format === 'table' ||
+        format === 'compact' ||
+        format === 'stylish'
     }
-
-    parsed.canLog =
-      !format ||
-      !!parsed.commandName ||
-      format === 'unix' ||
-      format === 'visualstudio' ||
-      format === 'codeframe' ||
-      format === 'table' ||
-      format === 'compact' ||
-      format === 'stylish'
 
     input._acurisEslintOptionsCache = parsed
 
