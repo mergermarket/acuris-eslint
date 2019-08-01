@@ -1,14 +1,18 @@
-CI/
-Jenkinsfile
-test/
-.gitignore
-.travis.yml
-.nvmrc
-
 # excluded files for security
 .npmrc
 .env
 .env.test
+
+# test
+test/
+
+# CI
+CI/
+Jenkinsfile
+.gitignore
+.travis.yml
+.nvmrc
+
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

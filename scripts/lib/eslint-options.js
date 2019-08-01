@@ -224,13 +224,7 @@ function createEslintOptions() {
       require.cache[eslintOptionatorPath].exports = optionator
     }
   } catch (error) {
-    if (error && error.code === 'MODULE_NOT_FOUND') {
-      console.warn(
-        chalk.yellowBright('[WARNING]'),
-        chalk.yellow(`${error.message}`.split('\n')[0]),
-        chalk.gray('- try to run `npm install` or `yarn`')
-      )
-    } else {
+    if (!error || error.code !== 'MODULE_NOT_FOUND') {
       throw error
     }
   }

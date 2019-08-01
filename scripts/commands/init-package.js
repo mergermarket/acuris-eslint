@@ -11,21 +11,29 @@ const {
   sanitisePackageJson,
   getNeededDependencies,
   addDevDependencies,
-  hasPackagesToInstall
+  hasPackagesToInstall,
+  getPackageManager
 } = require('../lib/package-utils')
 
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
 
-  if (packageJsonPath && packageJsonPath !== findUp('package.json', { directories: false, files: false })) {
+  let foundPackageJsonPath = findUp('package.json', { directories: false, files: true })
+
+  if (!foundPackageJsonPath) {
+    emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
+    await runAsync('npm', 'init')
+    foundPackageJsonPath = findUp('package.json', { directories: false, files: true })
+  }
+
+  if (!foundPackageJsonPath) {
+    throw new Error('Could not find package.json')
+  }
+
+  if (packageJsonPath && packageJsonPath.toLowerCase() !== foundPackageJsonPath.toLowerCase()) {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${packageJsonPath}.`
     )
-  }
-
-  if (!packageJsonPath) {
-    emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
-    await runAsync('npm', 'init')
   }
 
   if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
@@ -69,6 +77,15 @@ module.exports = async () => {
 
   if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
     notes.needsNpmInstall = true
+
+    if (getPackageManager() === 'yarn') {
+      await runAsync('yarn', [])
+    } else {
+      await runAsync('npm', ['install'])
+    }
+
+    // eslint-disable-next-line require-atomic-updates
+    notes.needsNpmInstall = hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))
   }
 }
 

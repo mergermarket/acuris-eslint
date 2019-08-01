@@ -116,9 +116,9 @@ function handleCommandError(error) {
   if (!process.exitCode) {
     process.exitCode = 1
   }
-  console.log()
-  console.error(error)
   try {
     require('./lib/notes').flushNotes()
   } catch (_error) {}
+  console.log()
+  console.error(chalk.redBright('[ERROR]'), error)
 }

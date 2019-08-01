@@ -55,7 +55,7 @@ exports.emitInitComplete = emitInitComplete
 
 function flushNotes() {
   if (exports.notes.gitFolderNotFound) {
-    emitWarning('.git folder not found. Did you run "git init"?')
+    emitWarning(chalk.yellow('.git folder not found. Did you run "git init"?'))
   }
 
   if (exports.notes.hasIdea) {

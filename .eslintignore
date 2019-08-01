@@ -1,5 +1,8 @@
 # @acuris/eslint-config
 
+.gitignore
+.npmignore
+
 # Dependencies and vendor
 vendor/
 typings/

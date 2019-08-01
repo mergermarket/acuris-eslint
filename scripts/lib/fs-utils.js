@@ -105,7 +105,6 @@ function findUp(filename, { directories = true, files = true, cwd = process.cwd(
   let p = cwd
   for (;;) {
     const resolvedPath = path.resolve(p, filename)
-
     if (files && !directories) {
       if (fileExists(resolvedPath)) {
         result = resolvedPath

@@ -1,6 +1,7 @@
 const path = require('path')
 const nodeModules = require('../../core/node-modules')
 const { getRepositoryFromGitConfig, fileExists } = require('./fs-utils')
+const fs = require('fs')
 const referencePackageJson = require('../../package.json')
 const semver = require('semver')
 
@@ -279,7 +280,7 @@ function addDevDependencies(projectPackageJson, listOfDependenciesToAdd) {
 
 exports.addDevDependencies = addDevDependencies
 
-function isPackageInstalled(name, version = null) {
+function isPackageInstalled(name, version = null, cwd = process.cwd()) {
   if (typeof name !== 'string' || name.length === 0) {
     return false
   }
@@ -290,7 +291,12 @@ function isPackageInstalled(name, version = null) {
   }
   let pkg
   try {
-    pkg = require(pkgName)
+    const resolved = require.resolve(pkgName)
+    const relative = path.relative(cwd, resolved)
+    if (relative.startsWith('..')) {
+      return false
+    }
+    pkg = require(resolved)
   } catch (_error) {}
 
   if (!pkg || !pkg.version) {
@@ -348,3 +354,28 @@ function hasPackagesToInstall(manifest) {
 }
 
 exports.hasPackagesToInstall = hasPackagesToInstall
+
+function getPackageManager(manifest, cwd = process.cwd()) {
+  let yarnDate
+  let packageLockDate
+  try {
+    const stats = fs.statSync(path.resolve(cwd, 'yarn.lock'))
+    yarnDate = stats.isFile() && stats.mtimeMs
+  } catch (_error) {}
+  try {
+    const stats = fs.statSync(path.resolve(cwd, 'package-lock.json'))
+    packageLockDate = stats.isFile() && stats.mtimeMs
+  } catch (_error) {}
+
+  if (yarnDate > packageLockDate) {
+    return 'yarn'
+  }
+
+  if (packageLockDate > yarnDate) {
+    return 'npm'
+  }
+
+  return undefined
+}
+
+exports.getPackageManager = getPackageManager
