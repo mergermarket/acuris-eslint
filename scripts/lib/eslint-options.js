@@ -37,6 +37,7 @@ const acurisEslintCommands = {
   init: 'initialises or updates a project',
   'init-eslint': 'updates or creates eslint configuration',
   'init-gitignore': 'updates or creates .gitignore',
+  'init-npmignore': 'updates or creates .npmignore',
   'init-package': 'updates or creates package.json',
   'init-prettier': 'updates or creates prettier configuration',
   'init-tsconfig': 'updates or creates typescript tsconfig.json',

@@ -1,18 +1,23 @@
 'use strict'
 
-const { resolveProjectFile } = require('../lib/fs-utils')
+const chalk = require('chalk').default
+const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
-const { notes } = require('../lib/notes')
+const { notes, emitImportant } = require('../lib/notes')
 const { name: packageName } = require('../../package.json')
 
 module.exports = async () => {
+  let fileExisting = true
   if (
     await updateTextFileAsync({
       format: 'json',
       filePath: resolveProjectFile('tsconfig.json'),
-      async content(settings) {
+      async content(settings, targetPath) {
         if (typeof settings !== 'object' || settings === null) {
+          fileExisting = false
           settings = {}
+        } else if (targetPath === resolveAcurisEslintFile('tsconfig.json')) {
+          return settings
         }
 
         if (typeof settings.extends === 'string') {
@@ -39,5 +44,14 @@ module.exports = async () => {
     })
   ) {
     notes.shouldRestartIde = true
+    if (!fileExisting) {
+      emitImportant(
+        chalk.yellowBright(
+          `You should run ${chalk.cyanBright(
+            'acuris-eslint --init'
+          )} to update package.json and install required dependencies.`
+        )
+      )
+    }
   }
 }

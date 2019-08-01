@@ -6,6 +6,7 @@ const hjson = require('hjson')
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk').default
+const inquire = require('./inquire')
 
 const { isArray } = Array
 const { keys: objectKeys } = Object
@@ -283,7 +284,8 @@ async function updateTextFileAsync({
   beforeWrite,
   basePath = process.cwd(),
   format = '',
-  throwIfNotFound = false
+  throwIfNotFound = false,
+  askConfirmation = false
 }) {
   let source
 
@@ -323,8 +325,9 @@ async function updateTextFileAsync({
 
   const previousContent = parse(source, format)
 
+  const targetName = path.relative(basePath, targetPath)
   if (typeof content === 'function') {
-    content = await content(parse(source, format), targetPath, path.relative(basePath, targetPath))
+    content = await content(parse(source, format), targetPath, targetName)
   }
 
   let shouldUpdate = true
@@ -333,8 +336,16 @@ async function updateTextFileAsync({
     shouldUpdate = false
   }
 
-  if (beforeWrite && !(await beforeWrite(previousContent, content))) {
+  if (shouldUpdate && beforeWrite && !(await beforeWrite(previousContent, content))) {
     shouldUpdate = false
+  }
+
+  if (shouldUpdate && askConfirmation) {
+    if (
+      !(await inquire.askConfirmation(`Can I ${exists ? 'update' : 'create'} file ${chalk.yellowBright(targetName)}?`))
+    ) {
+      shouldUpdate = false
+    }
   }
 
   if (shouldUpdate) {

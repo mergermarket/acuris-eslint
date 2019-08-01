@@ -3,11 +3,11 @@
 const referencePackageJson = require('../../package.json')
 
 const chalk = require('chalk').default
-const { emitWarning } = require('../lib/notes')
+const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
 const { askConfirmation } = require('../lib/inquire')
-const { resolveProjectFile, findUp, runAsync } = require('../lib/fs-utils')
+const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
 const { reloadNodeResolvePaths } = require('../../core/node-modules')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const {
@@ -19,7 +19,7 @@ const {
   getPackageManager
 } = require('../lib/package-utils')
 
-module.exports = async () => {
+module.exports = async options => {
   const packageJsonPath = resolveProjectFile('package.json')
 
   let foundPackageJsonPath = getPackageJsonPath()
@@ -46,7 +46,7 @@ module.exports = async () => {
     )
   }
 
-  await updatePackage(packageJsonPath)
+  let manifest = await updatePackage(packageJsonPath)
 
   if (hasPackagesToInstall()) {
     console.log(chalk.cyan('\n  Some packages are missing...'))
@@ -61,11 +61,24 @@ module.exports = async () => {
     }
 
     reloadNodeResolvePaths()
-    await updatePackage(packageJsonPath)
+    manifest = await updatePackage(packageJsonPath)
+  }
+
+  if (options.initNpmignore !== false) {
+    if (!Array.isArray(manifest.files) && !manifest.private) {
+      emitSection('init-npmignore')
+
+      if (!fileExists('.npmignore')) {
+        emitWarning(chalk.yellow(`File ${chalk.yellowBright('.npmignore')} does not exists on a public package`))
+      }
+
+      await require('./init-npmignore')({ ...options, askConfirmation: true })
+    }
   }
 }
 
 async function updatePackage(packageJsonPath) {
+  let resultManifest
   await updateTextFileAsync({
     format: 'json-stringify',
     filePath: packageJsonPath,
@@ -91,7 +104,9 @@ async function updatePackage(packageJsonPath) {
       }
 
       manifest = sanitisePackageJson(manifest)
+      resultManifest = manifest
       return manifest
     }
   })
+  return resultManifest
 }
