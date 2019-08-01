@@ -159,21 +159,35 @@ function getRepositoryFromGitConfig(cwd = process.cwd()) {
 
 exports.getRepositoryFromGitConfig = getRepositoryFromGitConfig
 
-function runAsync(command, args, options = { stdio: 'inherit' }) {
-  if (!Array.isArray(args)) {
-    args = typeof args === 'string' ? [args] : []
-  }
+function runAsync(command, args = [], options) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, options)
+    const oldEslintRunAsync = process.env.ACURIS_ESLINT_RUN_ASYNC
+    let complete = () => {
+      complete = () => {}
+      if (oldEslintRunAsync === undefined) {
+        delete process.env.ACURIS_ESLINT_RUN_ASYNC
+      } else {
+        process.env.ACURIS_ESLINT_RUN_ASYNC = oldEslintRunAsync
+      }
+    }
+    process.env.ACURIS_ESLINT_RUN_ASYNC = command
+    const child = spawn(command, args, {
+      stdio: 'inherit',
+      ...options
+    })
     child
       .on('exit', code => {
+        complete()
         if (code !== 0) {
           reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
         } else {
           resolve()
         }
       })
-      .on('error', reject)
+      .on('error', error => {
+        complete()
+        reject(error || new Error(`${command} failed`))
+      })
   })
 }
 

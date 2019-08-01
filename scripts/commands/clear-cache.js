@@ -20,5 +20,3 @@ module.exports = options => {
       : chalk.green(`${deletedFilesResult.toString()}\n`)
   )
 }
-
-module.exports.description = 'deletes eslint cache from disk'

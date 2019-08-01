@@ -17,5 +17,3 @@ module.exports = async () => {
     }
   })
 }
-
-module.exports.description = 'writes .gitignore'

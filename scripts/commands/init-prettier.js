@@ -1,7 +1,7 @@
 'use strict'
 
 const { prettierInterface } = require('../../core/node-modules')
-const inquirer = require('inquirer')
+const { askConfirmation } = require('../lib/inquire')
 const chalk = require('chalk').default
 const fs = require('fs')
 const util = require('util')
@@ -83,12 +83,7 @@ async function initPrettierrc() {
       chalk.gray(`\n.prettierrc will have the following content: ${util.inspect(prettierConfig)}`)
     )
 
-    const answer = await inquirer.prompt({
-      name: 'confirm',
-      type: 'confirm',
-      message: `Can I delete ${chalk.redBright(filesToDelete.join(', '))}?`
-    })
-    if (!answer.confirm) {
+    if (!(await askConfirmation(`Can I delete ${chalk.redBright(filesToDelete.join(', '))}?`))) {
       filesToDelete = []
     }
   }
@@ -112,5 +107,3 @@ async function initPrettierrc() {
     }
   }
 }
-
-module.exports.description = 'writes .eslintrc and .eslintignore configuration'

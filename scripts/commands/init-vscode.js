@@ -1,15 +1,10 @@
 'use strict'
 
-const fs = require('fs')
 const { resolveAcurisEslintFile, resolveProjectFile } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { notes } = require('../lib/notes')
 
 module.exports = async () => {
-  if (fs.existsSync(resolveProjectFile('.idea'))) {
-    notes.hasIdea = true
-  }
-
   if (
     await updateTextFileAsync({
       format: 'json',
@@ -109,5 +104,3 @@ function mergeEslintValidate(target, source) {
 
   return target
 }
-
-module.exports.description = 'writes Visual Studio Code workspace settings'

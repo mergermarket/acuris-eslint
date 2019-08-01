@@ -1,16 +1,11 @@
 'use strict'
 
-const fs = require('fs')
 const { resolveProjectFile } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const { notes } = require('../lib/notes')
 const { name: packageName } = require('../../package.json')
 
 module.exports = async () => {
-  if (fs.existsSync(resolveProjectFile('.idea'))) {
-    notes.hasIdea = true
-  }
-
   if (
     await updateTextFileAsync({
       format: 'json',
@@ -46,5 +41,3 @@ module.exports = async () => {
     notes.shouldRestartIde = true
   }
 }
-
-module.exports.description = `updates or creates tsconfig.json `

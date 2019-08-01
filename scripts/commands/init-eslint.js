@@ -190,5 +190,3 @@ async function removeEslintConfigFromPackageJson({ removeEslintConfig, removeEsl
     }
   })
 }
-
-module.exports.description = 'updates .eslintrc and .eslintignore'

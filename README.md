@@ -1,10 +1,41 @@
-# acuris-eslint
+# @acuris/eslint-config
 
 @acuris/eslint-config
 
-# acuris-eslint
+Shared Acuris eslint configuration and code quality tooling.
 
-## For administrators:
+# initialize your project
 
-To publish a new version in npm run `./CI/release.sh`, this will bump the patch version number (0.0.x), add a new release on git and start the `npm publish` operation in CI.
-To update to a major version (x.x.0), update the version in package.json, commit and push before running ./CI/release.sh
+The simplest and preferred way to initialise your project is to run in your project folder this command:
+
+```sh
+npx @acuris/eslint-config@latest --init
+```
+
+This will start an interactive initialisation script that will setup everything you need, including packages installation.
+
+# lint your entire project
+
+You can lint your entire project running
+
+```sh
+npx acuris-eslint
+```
+
+You can fix the formatting for your entire project running
+
+```sh
+npx acuris-eslint --fix
+```
+
+You can also pass glob paths, folders or sinngle files to lint.
+
+```sh
+npx acuris-eslint hello.js myFolder
+```
+
+For mor help on the list of available options and commands, run
+
+```sh
+npx acuris-eslint --help
+```

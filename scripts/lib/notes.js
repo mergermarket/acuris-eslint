@@ -1,13 +1,13 @@
 const chalk = require('chalk').default
+const path = require('path')
+const { findUp, fileExists, directoryExists, resolveProjectFile } = require('./fs-utils')
+const { readProjectPackageJson, hasPackagesToInstall, getPackageJsonPath } = require('./package-utils')
 
 const _defaultNotes = {
-  gitFolderNotFound: false,
   shouldRestartVsCode: false,
   shouldRestartIde: false,
   shouldInstallVsCodePlugins: false,
-  packageJsonIsNotPrivateWarning: false,
   eslintConfigUpdated: null,
-  hasIdea: false,
   needsNpmInstall: false
 }
 
@@ -41,35 +41,23 @@ function emitImportant(...args) {
 
 exports.emitImportant = emitImportant
 
-function emitSubCommand(name) {
+function emitSection(name) {
   console.log(`\n${chalk.blueBright(name)}\n`)
 }
 
-exports.emitSubCommand = emitSubCommand
+exports.emitSection = emitSection
 
 function emitInitComplete() {
-  console.log(chalk.greenBright('\n> Initialization completed <'))
+  if (!process.exitCode) {
+    console.log(chalk.greenBright('\n> Initialization completed <'))
+  }
 }
 
 exports.emitInitComplete = emitInitComplete
 
 function flushNotes() {
-  if (exports.notes.gitFolderNotFound) {
-    emitWarning(chalk.yellow('.git folder not found. Did you run "git init"?'))
-  }
-
-  if (exports.notes.hasIdea) {
-    emitWarning(
-      chalk.yellow(
-        `It seems you are using IntelliJ Idea ${chalk.gray(
-          '(.idea folder found)'
-        )}. Did you try Visual Studio Code? :-)\n  ${chalk.blue('https://code.visualstudio.com/')}`
-      )
-    )
-  }
-
-  if (exports.notes.eslintConfigUpdated) {
-    emitNote(chalk.cyan(`eslint configuration has been updated. Manually check it to ensure it makes sense.`))
+  if (!findUp('.git', { directories: true, files: false })) {
+    emitWarning(chalk.yellow(`.git folder not found. Did you run "${chalk.yellowBright('git init')}"?`))
   }
 
   if (exports.notes.shouldRestartIde) {
@@ -88,32 +76,93 @@ function flushNotes() {
     )
   }
 
-  if (exports.notes.packageJsonIsNotPrivateWarning) {
-    emitWarning(
+  validatePackage()
+
+  if (directoryExists(resolveProjectFile('.idea'))) {
+    emitNote(
       chalk.yellow(
-        `Package is not private but ${chalk.yellowBright(
-          '.npmignore'
-        )} file was not found. Please, add ${chalk.yellowBright(
-          'private: true | false'
-        )} in package.json to prevent accidental publication or create a ${chalk.yellowBright(
-          '.npmignore'
-        )} file.\n  ${chalk.blue('https://docs.npmjs.com/files/package.json#private')}`
+        `It seems you are using IntelliJ Idea ${chalk.gray(
+          '(.idea folder found)'
+        )} - did you try Visual Studio Code? :-)\n  ${chalk.blue('https://code.visualstudio.com/')}`
       )
     )
   }
 
-  if (exports.notes.needsNpmInstall) {
+  if (process.exitCode) {
     emitImportant(
-      chalk.yellowBright(`You need to install packages before continuing.\n`) +
-        chalk.yellow(
-          `  Run ${['npm install', 'yarn', 'lerna bootstrap']
-            .map(x => chalk.greenBright(x))
-            .join(' or ')} (depending on your project setup).`
-        )
+      chalk.yellowBright(
+        `You should run ${`${chalk.cyanBright(path.basename(process.argv[1], '.js'))} ${chalk.cyanBright(
+          process.argv.slice(2).join(' ')
+        )}`} again.`
+      )
     )
   }
-
   exports.reset()
+}
+
+function validatePackage() {
+  const packageJsonPath = getPackageJsonPath()
+
+  const manifest = readProjectPackageJson(packageJsonPath)
+  if (!manifest) {
+    emitWarning(chalk.yellow('package.json not found'))
+  } else if (hasPackagesToInstall(manifest)) {
+    if (manifest.private !== true && manifest !== false) {
+      emitWarning(
+        `${chalk.yellow('Field ')} ${chalk.yellowBright(
+          `private: ${chalk.greenBright('false')} | ${chalk.redBright('true')}`
+        )} ${chalk.yellow('not found in')} ${chalk.yellowBright('package.json')}.\n  ${chalk.yellow(
+          'Set'
+        )} ${chalk.yellowBright('private: ')}${chalk.greenBright('true')} ${chalk.yellow(
+          'if you want the package to not accidentally be published in npm.'
+        )}\n  ${chalk.yellow('Set')} ${chalk.yellowBright('private: ')}${chalk.redBright('false')} ${chalk.yellow(
+          'if you the project is an npm pakage.'
+        )}\n  ${chalk.blue('https://docs.npmjs.com/files/package.json#private')}`
+      )
+    }
+
+    if (
+      !manifest.private &&
+      !Array.isArray(manifest.files) &&
+      !fileExists(path.resolve(path.dirname(packageJsonPath), '.npmignore'))
+    ) {
+      emitWarning(
+        `${chalk.yellow('File')} ${chalk.yellowBright('.npmignore')} ${chalk.yellow(
+          `not found, field ${chalk.yellowBright('files')} not found in ${chalk.yellowBright(
+            'package.json'
+          )} and field ${chalk.yellowBright('private')} is ${chalk.redBright(
+            `${manifest.private}`
+          )}.\n  This may cause unwanted files to be published on npm.`
+        )}\n  ${chalk.blue('https://docs.npmjs.com/misc/developers#keeping-files-out-of-your-package')}`
+      )
+    }
+
+    if (hasPackagesToInstall(manifest)) {
+      emitImportant(
+        chalk.yellowBright(`You need to install packages before continuing.\n`) +
+          chalk.yellow(
+            `  Run ${['npm install', 'yarn', 'lerna bootstrap']
+              .map(x => chalk.greenBright(x))
+              .join(' or ')} (depending on your project setup).`
+          )
+      )
+    }
+  }
+
+  if (
+    fileExists(path.join(path.dirname(packageJsonPath), 'yarn.lock')) &&
+    fileExists(path.join(path.dirname(packageJsonPath), 'package-lock.json'))
+  ) {
+    emitWarning(
+      chalk.yellow(
+        `Both ${chalk.yellowBright('package-lock.json')} and ${chalk.yellowBright(
+          'yarn.lock'
+        )} exists. You should use one package manager.\n  Delete ${chalk.yellowBright(
+          'yarn.lock'
+        )} if you want to use npm.\n  Delete ${chalk.yellowBright('package-lock.json')} if you want to use yarn.`
+      )
+    )
+  }
 }
 
 exports.flushNotes = flushNotes

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const { name, version } = require('../package.json')
+const { name, version, homepage } = require('../package.json')
 
-if ('CI' in process.env) {
+if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   console.log(`\n  ${name} v${version}\n`)
 } else {
   require('./lib/logo').printLogo()
@@ -14,6 +14,8 @@ if ('CI' in process.env) {
 
   Run ${chalk.yellow('acuris-eslint help')} to get help.
   Run ${chalk.yellow('acuris-eslint init')} to initialise a project.
+
+  ${chalk.blue(homepage)}
   `
     )
   )

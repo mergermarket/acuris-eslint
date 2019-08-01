@@ -1,40 +1,41 @@
 'use strict'
 
 const { prettierInterface } = require('../../core/node-modules')
-const { notes, emitSubCommand, emitInitComplete } = require('../lib/notes')
+const { emitSection, emitInitComplete } = require('../lib/notes')
 
 module.exports = async options => {
   let prettierInitialised = false
   try {
     if (prettierInterface.tryGetPrettier()) {
-      emitSubCommand('init-prettier')
+      emitSection('init-prettier')
       await require('./init-prettier')(options)
       prettierInitialised = true
     }
   } catch (_error) {}
 
-  emitSubCommand('init-package')
+  emitSection('init-package')
   await require('./init-package')(options)
 
-  if (notes.needsNpmInstall) {
-    return
-  }
-
   if (!prettierInitialised) {
-    emitSubCommand('init-prettier')
+    if (!prettierInterface.tryGetPrettier()) {
+      if (!process.exitCode) {
+        process.exitCode = 1
+      }
+      return
+    }
+
+    emitSection('init-prettier')
     await require('./init-prettier')(options)
   }
 
-  emitSubCommand('init-eslint')
+  emitSection('init-eslint')
   await require('./init-eslint')(options)
 
-  emitSubCommand('init-vscode')
+  emitSection('init-vscode')
   await require('./init-vscode')(options)
 
-  emitSubCommand('init-gitignore')
+  emitSection('init-gitignore')
   await require('./init-gitignore')(options)
 
   emitInitComplete()
 }
-
-module.exports.description = 'initialises or updates a project'

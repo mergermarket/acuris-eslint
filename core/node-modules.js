@@ -9,6 +9,7 @@ if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 8) {
 const Module = require('module')
 const path = require('path')
 const os = require('os')
+const fs = require('fs')
 const { statSync, readFileSync } = require('fs')
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
@@ -34,9 +35,9 @@ const _hasLocalPackageCache = new Map()
 
 /** @type {Set<string>} */
 const _nonLocalPathsSet = new Set(Module.globalPaths)
-_nonLocalPathsSet.add(pathResolve(os.homedir() || '/', 'node_modules'))
-_nonLocalPathsSet.add(pathResolve('/node_modules'))
 _nonLocalPathsSet.add(pathResolve('/'))
+_nonLocalPathsSet.add(pathResolve('/node_modules'))
+_nonLocalPathsSet.add(pathResolve(os.homedir() || '/', 'node_modules'))
 
 const cwdNodeModules = path.join(process.cwd(), 'node_modules')
 
@@ -46,8 +47,8 @@ const cwdNodeModules = path.join(process.cwd(), 'node_modules')
  * @returns {string[]} The node module paths to use.
  */
 function nodeModulePaths(from = process.cwd()) {
-  const set = new Set()
   let customAdded = false
+  const set = new Set()
   const defaults = _defaultNodeModulePaths.call(Module, from)
   for (let i = 0, defaultsLen = defaults.length; i !== defaultsLen; ++i) {
     const value = defaults[i]
@@ -57,17 +58,13 @@ function nodeModulePaths(from = process.cwd()) {
       for (const p of _resolvePaths) {
         set.add(p)
       }
-    } else {
-      if (!customAdded && _nonLocalPathsSet.has(value)) {
-        customAdded = true
-        for (const p of _resolvePaths) {
-          set.add(p)
-        }
-      }
-      if (directoryExists(value)) {
-        set.add(value)
+    } else if (!customAdded && _nonLocalPathsSet.has(value)) {
+      customAdded = true
+      for (const p of _resolvePaths) {
+        set.add(p)
       }
     }
+    set.add(value)
   }
   if (!customAdded) {
     for (const p of _resolvePaths) {
@@ -167,10 +164,17 @@ exports.isGlobalPath = isGlobalPath
 function getEslintPath() {
   if (_eslintPath === undefined) {
     try {
-      _eslintPath = path.dirname(require.resolve('eslint/package.json'))
-    } catch (_error) {
-      _eslintPath = null
-    }
+      _eslintPath = path.dirname(require.resolve('eslint'))
+    } catch (_error) {}
+  }
+  for (const p of nodeModulePaths(__dirname)) {
+    try {
+      const resolved = path.resolve(p, 'eslint', 'package.json')
+      if (fs.statSync(resolved).isFile()) {
+        _eslintPath = path.dirname(resolved)
+        return _eslintPath
+      }
+    } catch (_error) {}
   }
   return _eslintPath
 }
@@ -191,6 +195,9 @@ function eslintResolve(id) {
       }
     }
   }
+  if (id.startsWith('.')) {
+    return require.resolve(`eslint${id.startsWith('./') ? id.slice(1) : `/${id}`}`)
+  }
   return require.resolve(id)
 }
 
@@ -206,24 +213,6 @@ eslintRequire.resolve = eslintResolve
 
 exports.eslintRequire = eslintRequire
 
-const _directoryExistsCache = new Map()
-
-function directoryExists(directory) {
-  if (typeof directory !== 'string' || directory.length === 0) {
-    return false
-  }
-  let found = _directoryExistsCache.get(directory)
-  if (found === undefined) {
-    try {
-      found = statSync(directory).isDirectory()
-    } catch (_error) {
-      found = false
-    }
-    _directoryExistsCache.set(directory, found)
-  }
-  return found
-}
-
 function resolvePackageFolder(packageName) {
   try {
     return path.dirname(require.resolve(`${packageName}/package.json`))
@@ -232,62 +221,10 @@ function resolvePackageFolder(packageName) {
   }
 }
 
-function addNodeResolvePath(folder) {
-  if (typeof folder !== 'string') {
-    return
-  }
-
-  folder = path.resolve(folder)
-  if (!path.basename(folder) !== 'node_modules') {
-    folder = path.join(folder, 'node_modules')
-  }
-
-  if (_resolvePaths.has(folder)) {
-    return
-  }
-
-  if (directoryExists(folder)) {
-    if (!isInstalledGlobally && isGlobalPath(folder)) {
-      return
-    }
-    _resolvePaths.add(folder)
-  }
-
-  const p = path.dirname(path.dirname(folder))
-
-  const parentNodeModules = path.join(p, 'node_modules')
-  if (!_resolvePaths.has(parentNodeModules) && directoryExists(parentNodeModules)) {
-    if (isInstalledGlobally || !isGlobalPath(parentNodeModules)) {
-      _resolvePaths.add(parentNodeModules)
-    }
-  }
-
-  const parentParentNodeModules = path.join(path.dirname(p), 'node_modules')
-  if (!_resolvePaths.has(parentParentNodeModules) && directoryExists(parentParentNodeModules)) {
-    if (isInstalledGlobally || !isGlobalPath(parentParentNodeModules)) {
-      _resolvePaths.add(parentParentNodeModules)
-    }
-  }
-}
-
-// Initialisation
-
 // Overrides Module._nodeModulePaths so eslint is able to resolve plugin modules in the right places
 Module._nodeModulePaths = nodeModulePaths
 
-// Register additional paths
-
-addNodeResolvePath(process.cwd())
-addNodeResolvePath(path.dirname(__dirname))
-addNodeResolvePath(path.dirname(path.dirname(__dirname)))
-
-addNodeResolvePath(resolvePackageFolder('eslint'))
-addNodeResolvePath(resolvePackageFolder('eslint-plugin-quick-prettier'))
-addNodeResolvePath(resolvePackageFolder('acuris-shared-component-tools'))
-
-for (const p of _defaultNodeModulePaths(path.dirname(process.cwd()))) {
-  addNodeResolvePath(p)
-}
+reloadNodeResolvePaths()
 
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 
@@ -303,3 +240,85 @@ prettierInterface.loadDefaultPrettierConfig = function loadDefaultPrettierConfig
 }
 
 module.exports.prettierInterface = prettierInterface
+
+function reloadNodeResolvePaths() {
+  _eslintPath = undefined
+  _resolvePaths.clear()
+  _hasLocalPackageCache.clear()
+
+  const _directoryExistsCache = new Map()
+
+  // Register additional paths
+
+  addNodeResolvePath(process.cwd())
+  addNodeResolvePath(path.dirname(__dirname))
+  addNodeResolvePath(path.dirname(path.dirname(__dirname)))
+
+  addNodeResolvePath(resolvePackageFolder('eslint'))
+  addNodeResolvePath(resolvePackageFolder('eslint-plugin-quick-prettier'))
+  addNodeResolvePath(resolvePackageFolder('acuris-shared-component-tools'))
+
+  for (const p of _defaultNodeModulePaths(path.dirname(process.cwd()))) {
+    addNodeResolvePath(p)
+  }
+
+  _resolvePaths.add(path.resolve(process.cwd(), 'node_modules'))
+
+  require('eslint-plugin-quick-prettier/prettier-interface').reloadPrettier()
+
+  function directoryExists(directory) {
+    if (typeof directory !== 'string' || directory.length === 0) {
+      return false
+    }
+    let found = _directoryExistsCache.get(directory)
+    if (found === undefined) {
+      try {
+        found = statSync(directory).isDirectory()
+      } catch (_error) {
+        found = false
+      }
+      _directoryExistsCache.set(directory, found)
+    }
+    return found
+  }
+
+  function addNodeResolvePath(folder) {
+    if (typeof folder !== 'string') {
+      return
+    }
+
+    folder = path.resolve(folder)
+    if (!path.basename(folder) !== 'node_modules') {
+      folder = path.join(folder, 'node_modules')
+    }
+
+    if (_resolvePaths.has(folder)) {
+      return
+    }
+
+    if (directoryExists(folder)) {
+      if (!isInstalledGlobally && isGlobalPath(folder)) {
+        return
+      }
+      _resolvePaths.add(folder)
+    }
+
+    const p = path.dirname(path.dirname(folder))
+
+    const parentNodeModules = path.join(p, 'node_modules')
+    if (!_resolvePaths.has(parentNodeModules) && directoryExists(parentNodeModules)) {
+      if (isInstalledGlobally || !isGlobalPath(parentNodeModules)) {
+        _resolvePaths.add(parentNodeModules)
+      }
+    }
+
+    const parentParentNodeModules = path.join(path.dirname(p), 'node_modules')
+    if (!_resolvePaths.has(parentParentNodeModules) && directoryExists(parentParentNodeModules)) {
+      if (isInstalledGlobally || !isGlobalPath(parentParentNodeModules)) {
+        _resolvePaths.add(parentParentNodeModules)
+      }
+    }
+  }
+}
+
+module.exports.reloadNodeResolvePaths = reloadNodeResolvePaths

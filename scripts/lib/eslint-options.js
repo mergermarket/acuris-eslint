@@ -104,7 +104,7 @@ function acurisEslintOptions(libOptions) {
   return optionator(libOptions)
 }
 
-function extendOptions(instance) {
+function extendOptionator(instance) {
   const oldParse = instance.parse
   const oldGenerateHelp = instance.generateHelp
 
@@ -217,7 +217,9 @@ function createEslintOptions() {
     if (eslintOptionsPath in require.cache) {
       delete require.cache[eslintOptionsPath]
     }
-    require.cache[eslintOptionatorPath].exports = acurisEslintOptions
+    if (require.cache[eslintOptionatorPath]) {
+      require.cache[eslintOptionatorPath].exports = acurisEslintOptions
+    }
     try {
       baseOptions = eslintRequire(eslintOptionsPath)
     } finally {
@@ -225,17 +227,20 @@ function createEslintOptions() {
     }
   } catch (error) {
     if (!error || error.code !== 'MODULE_NOT_FOUND') {
-      throw error
+      throw error || new Error()
     }
+    console.log(`${chalk.gray("Module 'eslint' was not found.")}\n`)
   }
 
-  return extendOptions(baseOptions || getBasicOptions())
+  if (!baseOptions) {
+    baseOptions = optionator(getBasicOptions())
+  }
+
+  return extendOptionator(baseOptions)
 }
 
 function camelize(value) {
-  return value.replace(/[-_]+(.)?/g, (_args, c) => {
-    return (c || '').toUpperCase()
-  })
+  return value.replace(/[-_]+(.)?/g, (_args, c) => (c || '').toUpperCase())
 }
 
 module.exports = createEslintOptions()

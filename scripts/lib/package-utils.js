@@ -1,6 +1,7 @@
 const path = require('path')
 const nodeModules = require('../../core/node-modules')
-const { getRepositoryFromGitConfig, fileExists } = require('./fs-utils')
+const { getRepositoryFromGitConfig, fileExists, findUp } = require('./fs-utils')
+const { readTextFile } = require('./text-utils')
 const fs = require('fs')
 const referencePackageJson = require('../../package.json')
 const semver = require('semver')
@@ -39,7 +40,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
     result.add('acuris-shared-component-tools')
   } else {
     if (manifest.name !== referencePackageJson.name) {
-      result.add(manifest.name)
+      result.add(referencePackageJson.name)
     }
     addObjectKeysToSet(result, referencePackageJson.peerDependencies)
 
@@ -72,7 +73,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-css-modules')
     }
   }
-  return result
+  return Array.from(result).sort()
 }
 
 exports.getNeededDependencies = getNeededDependencies
@@ -230,6 +231,9 @@ function inferPackageVersion(name, projectPackageJson) {
   v = getMaxSemver(v, referencePackageJson.peerDependencies && referencePackageJson.peerDependencies[name])
 
   if (!v) {
+    if (name === referencePackageJson.name) {
+      return referencePackageJson.version
+    }
     return null
   }
 
@@ -280,57 +284,106 @@ function addDevDependencies(projectPackageJson, listOfDependenciesToAdd) {
 
 exports.addDevDependencies = addDevDependencies
 
-function isPackageInstalled(name, version = null, cwd = process.cwd()) {
+function checkInstalledPackageVersion(version, expectedVersion) {
+  if (typeof version !== 'string' || version.length === 0) {
+    return false
+  }
+  expectedVersion = typeof expectedVersion === 'string' ? expectedVersion.trim() : ''
+  if (expectedVersion === 'latest' || expectedVersion.startsWith('file:')) {
+    return true
+  }
+  if (expectedVersion.length !== 0) {
+    try {
+      if (semver.ltr(version, expectedVersion)) {
+        return false
+      }
+    } catch (_error) {
+      console.log(_error)
+    }
+    try {
+      if (semver.ltr(semverToVersion(version), semverToVersion(expectedVersion))) {
+        return false
+      }
+    } catch (_error) {
+      console.log(_error)
+    }
+    return true
+  }
+}
+
+function isPackageInstalled(name, expectedVersion = null) {
   if (typeof name !== 'string' || name.length === 0) {
     return false
   }
 
-  const pkgName = `${name}/package.json`
-  if (!nodeModules.hasLocalPackage(pkgName)) {
-    return false
-  }
   let pkg
   try {
-    const resolved = require.resolve(pkgName)
-    const relative = path.relative(cwd, resolved)
-    if (relative.startsWith('..')) {
-      return false
+    const pkgName = `${name}/package.json`
+    let resolved
+
+    if (!resolved) {
+      const found = path.resolve(process.cwd(), 'node_modules', name, 'package.json')
+      if (fileExists(found)) {
+        resolved = found
+      }
     }
-    pkg = require(resolved)
+
+    if (!resolved) {
+      const found = path.resolve(process.cwd(), 'acuris-shared-component-tools', 'node_modules', name, 'package.json')
+      if (fileExists(found)) {
+        resolved = found
+      }
+    }
+
+    if (nodeModules.hasLocalPackage(name)) {
+      try {
+        const found = require.resolve(pkgName, { paths: nodeModules.nodeModulePaths(process.cwd()) })
+        if (!nodeModules.isGlobalPath(found)) {
+          resolved = found
+        }
+      } catch (_error) {}
+    }
+
+    if (resolved) {
+      pkg = require(resolved)
+    }
   } catch (_error) {}
 
-  if (!pkg || !pkg.version) {
-    return false
-  }
-
-  version = typeof version === 'string' ? version.trim() : ''
-  if (version === 'latest' || version.startsWith('file:')) {
-    return true
-  }
-  if (version.length !== 0) {
-    try {
-      if (semver.ltr(pkg.version, version)) {
-        return false
-      }
-    } catch (_error) {
-      console.log(_error)
-    }
-    try {
-      if (semver.ltr(semverToVersion(pkg.version), semverToVersion(version))) {
-        return false
-      }
-    } catch (_error) {
-      console.log(_error)
-    }
+  if (checkInstalledPackageVersion(pkg && pkg.version, expectedVersion)) {
     return true
   }
 
-  return true
+  return false
 }
 
 exports.isPackageInstalled = isPackageInstalled
 
-function hasPackagesToInstall(manifest) {
+function getPackageJsonPath(cwd = process.cwd()) {
+  return findUp('package.json', { directories: false, files: true, cwd }) || path.join(cwd, 'package.json')
+}
+
+exports.getPackageJsonPath = getPackageJsonPath
+
+function readProjectPackageJson(packageJsonPath = getPackageJsonPath()) {
+  if (!packageJsonPath) {
+    return false
+  }
+
+  let manifest
+  try {
+    manifest = readTextFile(packageJsonPath, 'json-stringify')
+  } catch (_error) {}
+
+  return typeof manifest === 'object' && manifest !== null && !Array.isArray(manifest) ? manifest : undefined
+}
+
+exports.readProjectPackageJson = readProjectPackageJson
+
+function hasPackagesToInstall(manifest = readProjectPackageJson()) {
+  if (!manifest) {
+    return false
+  }
+
   const allDeps = new Map()
 
   for (const k of ['devDependencies', 'dependencies']) {
@@ -355,7 +408,7 @@ function hasPackagesToInstall(manifest) {
 
 exports.hasPackagesToInstall = hasPackagesToInstall
 
-function getPackageManager(manifest, cwd = process.cwd()) {
+function getPackageManager(cwd = path.dirname(getPackageJsonPath())) {
   let yarnDate
   let packageLockDate
   try {

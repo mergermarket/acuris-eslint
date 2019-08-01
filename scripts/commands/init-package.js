@@ -3,11 +3,15 @@
 const referencePackageJson = require('../../package.json')
 
 const chalk = require('chalk').default
-const { notes, emitWarning } = require('../lib/notes')
+const { emitWarning } = require('../lib/notes')
 
-const { resolveProjectFile, fileExists, findUp, runAsync } = require('../lib/fs-utils')
-const { updateTextFileAsync, readTextFile } = require('../lib/text-utils')
+const path = require('path')
+const { askConfirmation } = require('../lib/inquire')
+const { resolveProjectFile, findUp, runAsync } = require('../lib/fs-utils')
+const { reloadNodeResolvePaths } = require('../../core/node-modules')
+const { updateTextFileAsync } = require('../lib/text-utils')
 const {
+  getPackageJsonPath,
   sanitisePackageJson,
   getNeededDependencies,
   addDevDependencies,
@@ -18,11 +22,17 @@ const {
 module.exports = async () => {
   const packageJsonPath = resolveProjectFile('package.json')
 
-  let foundPackageJsonPath = findUp('package.json', { directories: false, files: true })
+  let foundPackageJsonPath = getPackageJsonPath()
+
+  if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
+    if (await askConfirmation(`.git not found. Do you want to run ${chalk.yellow('git init')}?`)) {
+      await runAsync('git', ['init'])
+    }
+  }
 
   if (!foundPackageJsonPath) {
     emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
-    await runAsync('npm', 'init')
+    await runAsync('npm', ['init'])
     foundPackageJsonPath = findUp('package.json', { directories: false, files: true })
   }
 
@@ -30,16 +40,32 @@ module.exports = async () => {
     throw new Error('Could not find package.json')
   }
 
-  if (packageJsonPath && packageJsonPath.toLowerCase() !== foundPackageJsonPath.toLowerCase()) {
+  if (packageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${packageJsonPath}.`
     )
   }
 
-  if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
-    notes.gitFolderNotFound = true
-  }
+  await updatePackage(packageJsonPath)
 
+  if (hasPackagesToInstall()) {
+    console.log(chalk.cyan('\n  Some packages are missing...'))
+    if (!process.env.ACURIS_ESLINT_RUN_ASYNC) {
+      if (getPackageManager() === 'yarn') {
+        if (await askConfirmation(`Can i run ${chalk.yellowBright('yarn')}?`)) {
+          await runAsync('yarn', [])
+        }
+      } else if (await askConfirmation(`Can i run ${chalk.yellowBright('npm install')}?`)) {
+        await runAsync('npm', ['install'])
+      }
+    }
+
+    reloadNodeResolvePaths()
+    await updatePackage(packageJsonPath)
+  }
+}
+
+async function updatePackage(packageJsonPath) {
   await updateTextFileAsync({
     format: 'json-stringify',
     filePath: packageJsonPath,
@@ -49,14 +75,8 @@ module.exports = async () => {
         throw new TypeError('Invalid package.json')
       }
 
-      if (manifest.private === undefined && !manifest.files && !fileExists(resolveProjectFile('.npmignore'))) {
-        notes.packageJsonIsNotPrivateWarning = true
-      }
-
       const neededDependencies = getNeededDependencies(manifest)
-      if (addDevDependencies(manifest, neededDependencies)) {
-        notes.needsNpmInstall = true
-      }
+      addDevDependencies(manifest, neededDependencies)
 
       if (
         (manifest.devDependencies && manifest.devDependencies[referencePackageJson.name]) ||
@@ -74,19 +94,4 @@ module.exports = async () => {
       return manifest
     }
   })
-
-  if (!notes.needsNpmInstall && hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))) {
-    notes.needsNpmInstall = true
-
-    if (getPackageManager() === 'yarn') {
-      await runAsync('yarn', [])
-    } else {
-      await runAsync('npm', ['install'])
-    }
-
-    // eslint-disable-next-line require-atomic-updates
-    notes.needsNpmInstall = hasPackagesToInstall(readTextFile(packageJsonPath, 'json-stringify'))
-  }
 }
-
-module.exports.description = 'updates package.json'

@@ -1,7 +1,3 @@
-!.vscode/*.json
-
-README-INTERNAL.md
-
 # @acuris/eslint-config
 
 # excluded files for security
@@ -71,6 +67,7 @@ coverage
 
 # IDEs and OS
 .idea/
+.vscode/
 .DS_Store
 .DocumentRevisions-V100
 .fseventsd
