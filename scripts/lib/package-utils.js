@@ -44,11 +44,30 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
     }
     addObjectKeysToSet(result, referencePackageJson.peerDependencies)
 
-    if (hasDep('@babel/runtime')) {
+    if (
+      manifest.babel ||
+      hasDep('@babel/runtime') ||
+      fileExists(path.resolve(cwd, '.babelrc')) ||
+      fileExists(path.resolve(cwd, '.babelrc.js'))
+    ) {
       result.add('babel-eslint')
     }
 
-    if (hasDep('typescript') || fileExists(path.resolve(cwd, 'tsconfig.json'))) {
+    if (manifest.husky || hasDep('husky')) {
+      result.add('husky')
+    }
+
+    if (manifest['lint-staged'] || hasDep('lint-staged')) {
+      result.add('lint-staged')
+    }
+
+    if (
+      hasDep('typescript') ||
+      fileExists(path.resolve(cwd, 'tsconfig.json')) ||
+      fileExists(path.resolve(cwd, 'index.ts')) ||
+      fileExists(path.resolve(cwd, 'index.d.ts')) ||
+      fileExists(path.resolve(cwd, 'src', 'index.ts'))
+    ) {
       result.add('@types/node')
       result.add('@typescript-eslint/eslint-plugin')
       result.add('@typescript-eslint/parser')
@@ -297,18 +316,14 @@ function checkInstalledPackageVersion(version, expectedVersion) {
       if (semver.ltr(version, expectedVersion)) {
         return false
       }
-    } catch (_error) {
-      console.log(_error)
-    }
+    } catch (_error) {}
     try {
       if (semver.ltr(semverToVersion(version), semverToVersion(expectedVersion))) {
         return false
       }
-    } catch (_error) {
-      console.log(_error)
-    }
-    return true
+    } catch (_error) {}
   }
+  return true
 }
 
 function isPackageInstalled(name, expectedVersion = null) {
@@ -335,13 +350,14 @@ function isPackageInstalled(name, expectedVersion = null) {
       }
     }
 
-    if (nodeModules.hasLocalPackage(name)) {
-      try {
-        const found = require.resolve(pkgName, { paths: nodeModules.nodeModulePaths(process.cwd()) })
-        if (!nodeModules.isGlobalPath(found)) {
+    for (const nodeModulesFolder of nodeModules.legacyNodeModulePaths(process.cwd())) {
+      if (!nodeModules.isGlobalPath(nodeModulesFolder)) {
+        const found = path.resolve(nodeModulesFolder, name, 'package.json')
+        if (fileExists(found)) {
           resolved = found
+          break
         }
-      } catch (_error) {}
+      }
     }
 
     if (resolved) {

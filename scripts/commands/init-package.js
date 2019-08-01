@@ -1,5 +1,7 @@
 'use strict'
 
+/* eslint-disable require-atomic-updates */
+
 const referencePackageJson = require('../../package.json')
 
 const chalk = require('chalk').default
@@ -42,7 +44,7 @@ module.exports = async options => {
 
   if (packageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
     throw new Error(
-      `Cannot initialize a sub package. Run this command in the root project. Root project found at ${packageJsonPath}.`
+      `Cannot initialize a sub package. Run this command in the root project. Root project found at ${foundPackageJsonPath}.`
     )
   }
 
@@ -86,6 +88,29 @@ async function updatePackage(packageJsonPath) {
     async content(manifest) {
       if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
         throw new TypeError('Invalid package.json')
+      }
+
+      if (
+        !manifest.husky &&
+        !manifest['lint-staged'] &&
+        findUp(resolveProjectFile('.git'), { directories: true, files: false })
+      ) {
+        if (
+          await askConfirmation(
+            `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
+              'lint-staged'
+            )} to run ${chalk.cyanBright('acuris-eslint')} before commit?`
+          )
+        ) {
+          manifest.husky = {
+            hooks: {
+              'pre-commit': 'lint-staged'
+            }
+          }
+          manifest['lint-staged'] = {
+            '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix', 'git add']
+          }
+        }
       }
 
       const neededDependencies = getNeededDependencies(manifest)

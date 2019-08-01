@@ -15,15 +15,19 @@ const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
 
 /** @type {{ (from: string): string[] }} */
-const _defaultNodeModulePaths = Module._nodeModulePaths
+let legacyNodeModulePaths = Module._nodeModulePaths
 
-if (typeof _defaultNodeModulePaths !== 'function') {
+if (typeof legacyNodeModulePaths !== 'function') {
   throw new Error(
-    `Module._nodeModulePaths is ${typeof _defaultNodeModulePaths}. Maybe node version ${
+    `Module._nodeModulePaths is ${typeof legacyNodeModulePaths}. Maybe node version ${
       process.version
     } does not support it?`
   )
 }
+
+legacyNodeModulePaths = legacyNodeModulePaths.bind(Module)
+
+exports.legacyNodeModulePaths = legacyNodeModulePaths
 
 let _eslintPath
 
@@ -49,7 +53,7 @@ const cwdNodeModules = path.join(process.cwd(), 'node_modules')
 function nodeModulePaths(from = process.cwd()) {
   let customAdded = false
   const set = new Set()
-  const defaults = _defaultNodeModulePaths.call(Module, from)
+  const defaults = legacyNodeModulePaths(from)
   for (let i = 0, defaultsLen = defaults.length; i !== defaultsLen; ++i) {
     const value = defaults[i]
     if (!customAdded && value === cwdNodeModules) {
@@ -258,7 +262,7 @@ function reloadNodeResolvePaths() {
   addNodeResolvePath(resolvePackageFolder('eslint-plugin-quick-prettier'))
   addNodeResolvePath(resolvePackageFolder('acuris-shared-component-tools'))
 
-  for (const p of _defaultNodeModulePaths(path.dirname(process.cwd()))) {
+  for (const p of legacyNodeModulePaths(path.dirname(process.cwd()))) {
     addNodeResolvePath(p)
   }
 
