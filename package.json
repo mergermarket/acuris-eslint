@@ -36,7 +36,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,json,ts,tsx}": [
-      "acuris-eslint --fix",
+      "acuris-eslint --fix --max-warnings 0",
       "git add"
     ]
   },
