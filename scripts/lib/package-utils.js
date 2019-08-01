@@ -332,38 +332,37 @@ function isPackageInstalled(name, expectedVersion = null) {
   }
 
   let pkg
-  try {
-    const pkgName = `${name}/package.json`
-    let resolved
+  let resolved
 
-    if (!resolved) {
-      const found = path.resolve(process.cwd(), 'node_modules', name, 'package.json')
+  if (!resolved) {
+    const found = path.resolve(process.cwd(), 'node_modules', name, 'package.json')
+    if (fileExists(found)) {
+      resolved = found
+    }
+  }
+
+  if (!resolved) {
+    const found = path.resolve(process.cwd(), 'acuris-shared-component-tools', 'node_modules', name, 'package.json')
+    if (fileExists(found)) {
+      resolved = found
+    }
+  }
+
+  for (const nodeModulesFolder of nodeModules.legacyNodeModulePaths(process.cwd())) {
+    if (!nodeModules.isGlobalPath(nodeModulesFolder)) {
+      const found = path.resolve(nodeModulesFolder, name, 'package.json')
       if (fileExists(found)) {
         resolved = found
+        break
       }
     }
+  }
 
-    if (!resolved) {
-      const found = path.resolve(process.cwd(), 'acuris-shared-component-tools', 'node_modules', name, 'package.json')
-      if (fileExists(found)) {
-        resolved = found
-      }
-    }
-
-    for (const nodeModulesFolder of nodeModules.legacyNodeModulePaths(process.cwd())) {
-      if (!nodeModules.isGlobalPath(nodeModulesFolder)) {
-        const found = path.resolve(nodeModulesFolder, name, 'package.json')
-        if (fileExists(found)) {
-          resolved = found
-          break
-        }
-      }
-    }
-
-    if (resolved) {
+  if (resolved) {
+    try {
       pkg = require(resolved)
-    }
-  } catch (_error) {}
+    } catch (_error) {}
+  }
 
   if (checkInstalledPackageVersion(pkg && pkg.version, expectedVersion)) {
     return true

@@ -108,7 +108,7 @@ async function updatePackage(packageJsonPath) {
             }
           }
           manifest['lint-staged'] = {
-            '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings 0', 'git add']
+            '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings=0', 'git add']
           }
         }
       }
