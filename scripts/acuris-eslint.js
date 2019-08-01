@@ -8,6 +8,8 @@ const argv = process.argv
 
 const { eslintRequire } = require('../core/node-modules')
 
+console.log(process.argv)
+
 // To use V8's code cache to speed up instantiation time.
 // eslint-disable-next-line node/no-extraneous-require
 try {
