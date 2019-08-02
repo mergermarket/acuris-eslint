@@ -1,4 +1,4 @@
-# @acuris/eslint-config
+# <@acuris/eslint-config>
 # You can disable patterns by prepending # without any space. For example #.npmrc
 
 # excluded files for security
@@ -83,3 +83,5 @@ ehthumbs_vista.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *.lnk
+
+# </@acuris/eslint-config>

@@ -1,7 +1,7 @@
 # yarn is not allowed, this repository uses npm
 yarn.lock
 
-# @acuris/eslint-config
+# <@acuris/eslint-config>
 
 # excluded files for security
 .npmrc
@@ -85,3 +85,5 @@ ehthumbs_vista.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *.lnk
+
+# </@acuris/eslint-config>

@@ -3,8 +3,8 @@
 class IgnoreFile {
   constructor(content) {
     /** @type {Set<string>} */
-    const ignoredPatterns = new Set()
-    this.ignoredPatterns = ignoredPatterns
+    const commentedPatterns = new Set()
+    this.commentedPatterns = commentedPatterns
 
     /** @type {Set<string>} */
     const patterns = new Set()
@@ -19,6 +19,8 @@ class IgnoreFile {
     this.changed = false
 
     this.acurisEslintMarkerPosition = -1
+    this.acurisEslintEndMarker = null
+
     if (content) {
       if (Array.isArray(content)) {
         content = content.join('\n')
@@ -28,7 +30,27 @@ class IgnoreFile {
       for (let line of content.split('\n')) {
         line = line.trim()
         if (line === IgnoreFile.acurisEslintMarker) {
-          this.addAcurisEslintMarker()
+          if (sections[sections.length - 1] !== section && (section.body.length !== 0 || section.header.length !== 0)) {
+            sections.push(section)
+          }
+          if (this.acurisEslintMarkerPosition === -1) {
+            this.acurisEslintMarkerPosition = sections.length
+            sections.push({ header: [IgnoreFile.acurisEslintMarker], body: [], marker: true })
+            section = { header: [], body: [] }
+            previousLineIsComment = false
+          }
+        } else if (line === IgnoreFile.acurisEslintEndMarker) {
+          if (sections[sections.length - 1] !== section && (section.body.length !== 0 || section.header.length !== 0)) {
+            sections.push(section)
+          }
+          if (this.acurisEslintMarkerPosition !== -1) {
+            if (this.acurisEslintEndMarker) {
+              sections.splice(sections.indexOf(this.acurisEslintEndMarker), 1)
+            }
+            this.acurisEslintEndMarker = { header: [IgnoreFile.acurisEslintEndMarker], body: [], marker: 'end' }
+            sections.push(this.acurisEslintEndMarker)
+          }
+          section = { header: [], body: [] }
           previousLineIsComment = false
         } else if (
           (line.length === 0 && previousLineIsComment) ||
@@ -62,15 +84,18 @@ class IgnoreFile {
   }
 
   addPattern(pattern) {
+    if (pattern === IgnoreFile.acurisEslintEndMarker || pattern === IgnoreFile.acurisEslintEndMarker) {
+      return false
+    }
     if (pattern.startsWith('#')) {
-      const ignoredPattern = pattern.slice(1).trim()
-      if (!this.ignoredPatterns.has(ignoredPattern) && !this.patterns.has(ignoredPattern)) {
-        this.ignoredPatterns.add(ignoredPattern)
+      const cp = pattern.slice(1).trim()
+      if (!this.commentedPatterns.has(cp) && !this.patterns.has(cp)) {
+        this.commentedPatterns.add(cp)
         return true
       }
     } else if (!this.patterns.has(pattern)) {
       this.patterns.add(pattern)
-      this.ignoredPatterns.delete(pattern)
+      this.commentedPatterns.delete(pattern)
       return true
     }
     return false
@@ -78,8 +103,8 @@ class IgnoreFile {
 
   addAcurisEslintMarker() {
     if (this.acurisEslintMarkerPosition === -1) {
-      this.acurisEslintMarkerPosition = this.sections.length
-      this.sections.push({ header: [IgnoreFile.acurisEslintMarker], body: [] })
+      this.acurisEslintMarkerPosition = 0
+      this.sections.splice(0, 0, { header: [IgnoreFile.acurisEslintMarker], body: [], marker: true })
     }
     return this.acurisEslintMarkerPosition
   }
@@ -89,17 +114,24 @@ class IgnoreFile {
     for (const section of gitignore.sections) {
       const body = []
       for (const pattern of section.body) {
-        if (!this.ignoredPatterns.has(pattern) && this.addPattern(pattern)) {
+        if (!this.commentedPatterns.has(pattern) && this.addPattern(pattern)) {
           body.push(pattern)
         }
       }
-      if (body.length !== 0) {
+      if (!section.marker && body.length) {
         sectionsToAdd.push({ header: [...section.header], body })
       }
     }
     if (sectionsToAdd.length !== 0) {
       if (addAcurisEslintMarker) {
-        this.sections.splice(this.addAcurisEslintMarker() + 1, 0, ...sectionsToAdd)
+        this.addAcurisEslintMarker()
+
+        if (!this.acurisEslintEndMarker) {
+          this.acurisEslintEndMarker = { header: [IgnoreFile.acurisEslintEndMarker], body: [], marker: 'end' }
+          sectionsToAdd.push(this.acurisEslintEndMarker)
+        }
+
+        this.sections.splice(this.acurisEslintMarkerPosition + 1, 0, ...sectionsToAdd)
       } else {
         this.sections.push(...sectionsToAdd)
       }
@@ -130,6 +162,7 @@ class IgnoreFile {
   }
 }
 
-IgnoreFile.acurisEslintMarker = '# @acuris/eslint-config'
+IgnoreFile.acurisEslintMarker = '# <@acuris/eslint-config>'
+IgnoreFile.acurisEslintEndMarker = '# </@acuris/eslint-config>'
 
 module.exports = IgnoreFile

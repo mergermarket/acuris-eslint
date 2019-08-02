@@ -1,8 +1,4 @@
-!.vscode/*.json
-
-README-INTERNAL.md
-
-# @acuris/eslint-config
+# <@acuris/eslint-config>
 
 # excluded files for security
 .npmrc
@@ -51,7 +47,6 @@ lerna-debug.log*
 .fusebox/
 .dynamodb/
 *.tsbuildinfo
-.cache
 .npm
 .eslintcache
 .node_repl_history
@@ -71,6 +66,7 @@ coverage
 
 # IDEs and OS
 .idea/
+.vscode/
 .DS_Store
 .DocumentRevisions-V100
 .fseventsd
@@ -95,3 +91,10 @@ ehthumbs_vista.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *.lnk
+
+# overrides
+
+!.vscode/*.json
+README-INTERNAL.md
+
+# </@acuris/eslint-config>

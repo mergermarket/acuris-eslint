@@ -1,4 +1,4 @@
-# @acuris/eslint-config
+# <@acuris/eslint-config>
 
 # Dependencies and vendor
 vendor/
@@ -26,3 +26,5 @@ lib-cov
 coverage
 .nyc_output
 __snapshots__
+
+# </@acuris/eslint-config>

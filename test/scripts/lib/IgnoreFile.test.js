@@ -21,7 +21,7 @@ const simpleGitIgnore = [
 ].join('\n')
 
 const gitIgnoreToMerge = [
-  IgnoreFile.acurisEslintMarker,
+  '# <@acuris/eslint-config>',
   '',
   '# after marker1',
   'xxx1',
@@ -34,7 +34,8 @@ const gitIgnoreToMerge = [
   'xxx4',
   '# after marker3',
   'hello world',
-  'commented-pattern'
+  'commented-pattern',
+  '# </@acuris/eslint-config>'
 ].join('\n')
 
 const cleanedUpGitIgnoreArray = [
@@ -54,7 +55,7 @@ const cleanedUpGitIgnoreArray = [
 ]
 
 const cleanedUpGitIgnoreToMergeArray = [
-  '# @acuris/eslint-config',
+  '# <@acuris/eslint-config>',
   '',
   '# after marker1',
   'xxx1',
@@ -67,7 +68,9 @@ const cleanedUpGitIgnoreToMergeArray = [
   '',
   '# after marker3',
   'hello world',
-  'commented-pattern'
+  'commented-pattern',
+  '',
+  '# </@acuris/eslint-config>'
 ]
 
 describe('IgnoreFile', () => {
@@ -106,10 +109,11 @@ describe('IgnoreFile', () => {
         'xxx4'
       ])
       expect(parsed.sections).to.deep.equal([
-        { header: ['# @acuris/eslint-config'], body: [] },
+        { header: ['# <@acuris/eslint-config>'], body: [], marker: true },
         { header: ['# after marker1'], body: ['xxx1', 'hello', 'xxx2'] },
         { header: ['# after marker2'], body: ['xxx3', 'xxx4'] },
-        { header: ['# after marker3'], body: ['hello world', 'commented-pattern'] }
+        { header: ['# after marker3'], body: ['hello world', 'commented-pattern'] },
+        { header: ['# </@acuris/eslint-config>'], body: [], marker: 'end' }
       ])
       expect(parsed.changed).to.equal(false)
     })
@@ -146,15 +150,16 @@ describe('IgnoreFile', () => {
       target.merge(source)
       expect(target.changed).to.equal(true)
       expect(target.sections).to.deep.equal([
+        { header: ['# <@acuris/eslint-config>'], body: [], marker: true },
+        { header: ['# after marker1'], body: ['xxx1', 'xxx2'] },
+        { header: ['# after marker2'], body: ['xxx3', 'xxx4'] },
+        { header: ['# </@acuris/eslint-config>'], body: [], marker: 'end' },
         { header: ['#hello world'], body: ['a.txt', 'b.txt'] },
         { header: ['#section A'], body: ['hello'] },
         {
           header: ['#section B', '#section B continued', ''],
           body: ['hello world', '#commented-pattern', 'hello world 1']
-        },
-        { header: ['# @acuris/eslint-config'], body: [] },
-        { header: ['# after marker1'], body: ['xxx1', 'xxx2'] },
-        { header: ['# after marker2'], body: ['xxx3', 'xxx4'] }
+        }
       ])
       expect(target.patterns.has('commented-pattern')).to.equal(false)
     })
