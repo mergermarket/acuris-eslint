@@ -1,6 +1,6 @@
 const path = require('path')
 const nodeModules = require('../../core/node-modules')
-const { getRepositoryFromGitConfig, fileExists, findUp } = require('./fs-utils')
+const { getRepositoryFromGitConfig, fileExists, findUp, runAsync } = require('./fs-utils')
 const { readTextFile } = require('./text-utils')
 const fs = require('fs')
 const referencePackageJson = require('../../package.json')
@@ -394,9 +394,10 @@ function readProjectPackageJson(packageJsonPath = getPackageJsonPath()) {
 
 exports.readProjectPackageJson = readProjectPackageJson
 
-function hasPackagesToInstall(manifest = readProjectPackageJson()) {
+function getPackagesToInstall(manifest = readProjectPackageJson()) {
+  const result = []
   if (!manifest) {
-    return false
+    return result
   }
 
   const allDeps = new Map()
@@ -413,15 +414,22 @@ function hasPackagesToInstall(manifest = readProjectPackageJson()) {
   }
 
   for (const [name, version] of allDeps) {
-    if (!isPackageInstalled(name, inferPackageVersion(name, manifest) || version)) {
-      return true
+    const inferredVersion = inferPackageVersion(name, manifest) || version
+    if (!isPackageInstalled(name, inferredVersion)) {
+      result.push(
+        `${name}@${
+          inferredVersion.startsWith('^') || inferredVersion.startsWith('~')
+            ? inferredVersion.slice(1)
+            : inferredVersion
+        }`
+      )
     }
   }
 
-  return false
+  return result
 }
 
-exports.hasPackagesToInstall = hasPackagesToInstall
+exports.getPackagesToInstall = getPackagesToInstall
 
 function getPackageManager(cwd = path.dirname(getPackageJsonPath())) {
   let yarnDate
@@ -447,3 +455,13 @@ function getPackageManager(cwd = path.dirname(getPackageJsonPath())) {
 }
 
 exports.getPackageManager = getPackageManager
+
+async function getNpmRegistry() {
+  let registry
+  try {
+    registry = await runAsync('npm', 'config', 'get', 'registry')
+  } catch (_error) {}
+  return registry || 'https://registry.npmjs.org/'
+}
+
+exports.getNpmRegistry = getNpmRegistry

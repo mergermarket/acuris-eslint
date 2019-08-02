@@ -171,22 +171,34 @@ function runAsync(command, args = [], options) {
       }
     }
     process.env.ACURIS_ESLINT_RUN_ASYNC = command
-    const child = spawn(command, args, {
+
+    const opt = {
       stdio: 'inherit',
       ...options
-    })
+    }
+
+    const outputToString = opt.stdio === 'string'
+    if (outputToString) {
+      delete opt.stdio
+    }
+
+    let result
+    const child = spawn(command, args, opt)
     child
       .on('exit', code => {
         complete()
         if (code !== 0) {
           reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
         } else {
-          resolve()
+          resolve(result)
         }
       })
       .on('error', error => {
         complete()
         reject(error || new Error(`${command} failed`))
+      })
+      .on('data', d => {
+        result += d
       })
   })
 }

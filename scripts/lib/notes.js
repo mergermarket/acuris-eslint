@@ -1,7 +1,7 @@
 const chalk = require('chalk').default
 const path = require('path')
 const { findUp, fileExists, directoryExists, resolveProjectFile } = require('./fs-utils')
-const { readProjectPackageJson, hasPackagesToInstall, getPackageJsonPath } = require('./package-utils')
+const { readProjectPackageJson, getPackagesToInstall, getPackageJsonPath } = require('./package-utils')
 
 const _defaultNotes = {
   shouldRestartVsCode: false,
@@ -106,21 +106,7 @@ function validatePackage() {
   const manifest = readProjectPackageJson(packageJsonPath)
   if (!manifest) {
     emitWarning(chalk.yellow('package.json not found'))
-  } else if (hasPackagesToInstall(manifest)) {
-    if (manifest.private !== true && manifest !== false) {
-      emitWarning(
-        `${chalk.yellow('Field ')} ${chalk.yellowBright(
-          `private: ${chalk.greenBright('false')} | ${chalk.redBright('true')}`
-        )} ${chalk.yellow('not found in')} ${chalk.yellowBright('package.json')}.\n  ${chalk.yellow(
-          'Set'
-        )} ${chalk.yellowBright('private: ')}${chalk.greenBright('true')} ${chalk.yellow(
-          'if you want the package to not accidentally be published in npm.'
-        )}\n  ${chalk.yellow('Set')} ${chalk.yellowBright('private: ')}${chalk.redBright('false')} ${chalk.yellow(
-          'if you the project is an npm pakage.'
-        )}\n  ${chalk.blue('https://docs.npmjs.com/files/package.json#private')}`
-      )
-    }
-
+  } else {
     if (
       !manifest.private &&
       !Array.isArray(manifest.files) &&
@@ -137,7 +123,9 @@ function validatePackage() {
       )
     }
 
-    if (hasPackagesToInstall(manifest)) {
+    const packagesToInstall = getPackagesToInstall()
+    if (packagesToInstall.length > 0) {
+      console.log(chalk.cyan('\n  Packages are missing...'), chalk.gray(packagesToInstall.join(' ')))
       emitImportant(
         chalk.yellowBright(`You need to install packages before continuing.\n`) +
           chalk.yellow(

@@ -8,7 +8,7 @@ const chalk = require('chalk').default
 const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
-const { askConfirmation } = require('../lib/inquire')
+const { askConfirmation, getNpmRegistry } = require('../lib/inquire')
 const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
 const { reloadNodeResolvePaths } = require('../../core/node-modules')
 const { updateTextFileAsync } = require('../lib/text-utils')
@@ -17,7 +17,7 @@ const {
   sanitisePackageJson,
   getNeededDependencies,
   addDevDependencies,
-  hasPackagesToInstall,
+  getPackagesToInstall,
   getPackageManager
 } = require('../lib/package-utils')
 
@@ -45,8 +45,9 @@ module.exports = async options => {
 
   let manifest = await updatePackage(true)
 
-  if (hasPackagesToInstall()) {
-    console.log(chalk.cyan('\n  Some packages are missing...'))
+  const packagesToInstall = getPackagesToInstall()
+  if (packagesToInstall.length > 0) {
+    console.log(chalk.cyan('\n  Packages are missing...'), chalk.gray(packagesToInstall.join(' ')))
     if (!process.env.ACURIS_ESLINT_RUN_ASYNC) {
       if (getPackageManager() === 'yarn') {
         if (await askConfirmation(`Can i run ${chalk.yellowBright('yarn')}?`)) {
@@ -62,7 +63,7 @@ module.exports = async options => {
   }
 
   if (options.initNpmignore !== false) {
-    if (!Array.isArray(manifest.files) && !manifest.private) {
+    if (!manifest.private && !Array.isArray(manifest.files)) {
       emitSection('init-npmignore')
 
       if (!fileExists('.npmignore')) {
@@ -80,30 +81,55 @@ module.exports = async options => {
       filePath: packageJsonPath,
       throwIfNotFound: true,
       async content(pkg) {
-        if (typeof pkg !== 'object' || pkg === null || Array.isArray(pkg)) {
-          throw new TypeError('Invalid package.json')
-        }
+        pkg = sanitisePackageJson(pkg)
 
-        if (
-          canAsk &&
-          !pkg.husky &&
-          !pkg['lint-staged'] &&
-          findUp(resolveProjectFile('.git'), { directories: true, files: false })
-        ) {
-          if (
-            await askConfirmation(
-              `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
-                'lint-staged'
-              )} to run ${chalk.cyanBright('acuris-eslint')} before commit?`
-            )
-          ) {
-            pkg.husky = {
-              hooks: {
-                'pre-commit': 'lint-staged'
-              }
+        if (canAsk) {
+          if (pkg.private !== true && pkg.private !== false) {
+            if (Array.isArray(pkg.files) || fileExists(resolveProjectFile('.npmignore'))) {
+              pkg.private = false
+            } else {
+              emitWarning(
+                `${chalk.yellow('Field ')} ${chalk.yellowBright(
+                  `private: ${chalk.greenBright('false')} | ${chalk.redBright('true')}`
+                )} ${chalk.yellow('not found in')} ${chalk.yellowBright('package.json')}.\n  ${chalk.yellow(
+                  'Set'
+                )} ${chalk.yellowBright('private: ')}${chalk.greenBright('true')} ${chalk.yellow(
+                  `if you dont't want this package to be published.`
+                )}\n  ${chalk.yellow('Set')} ${chalk.yellowBright('private: ')}${chalk.redBright(
+                  'false'
+                )} ${chalk.yellow(
+                  `if this package can be published.`
+                )}\n  The configured npm registry is ${await getNpmRegistry()}\n  ${chalk.blue(
+                  'https://docs.npmjs.com/files/package.json#private'
+                )}`
+              )
+
+              pkg.private = !!(await askConfirmation(
+                `Is this a ${chalk.yellowBright('private')}${chalk.yellow(': ')}${chalk.greenBright('true')} package?`
+              ))
             }
-            pkg['lint-staged'] = {
-              '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings=0', 'git add']
+          }
+
+          if (
+            !pkg.husky &&
+            !pkg['lint-staged'] &&
+            findUp(resolveProjectFile('.git'), { directories: true, files: false })
+          ) {
+            if (
+              await askConfirmation(
+                `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
+                  'lint-staged'
+                )} to run ${chalk.cyanBright('acuris-eslint')} before commit?`
+              )
+            ) {
+              pkg.husky = {
+                hooks: {
+                  'pre-commit': 'lint-staged'
+                }
+              }
+              pkg['lint-staged'] = {
+                '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings=0', 'git add']
+              }
             }
           }
         }

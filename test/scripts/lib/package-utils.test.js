@@ -7,7 +7,7 @@ const {
   inferPackageVersion,
   addDevDependencies,
   isPackageInstalled,
-  hasPackagesToInstall
+  getPackagesToInstall
 } = require('../../../scripts/lib/package-utils')
 require('chai/register-expect')
 
@@ -183,18 +183,18 @@ describe('package-utils', () => {
     })
   })
 
-  describe('hasPackagesToInstall', () => {
-    it('is false for this package', () => {
-      expect(hasPackagesToInstall(packageJson)).to.equal(false)
+  describe('getPackagesToInstall', () => {
+    it('is empty for this package', () => {
+      expect(getPackagesToInstall(packageJson).length).to.equal(0)
     })
 
-    it('is true for a package.json that has not existing packages', () => {
+    it('it shows missing packages', () => {
       expect(
-        hasPackagesToInstall({
+        getPackagesToInstall({
           ...packageJson,
-          devDependencies: { ...packageJson.devDependencies, '--not-existing-pkg': '1.0.0' }
+          devDependencies: { ...packageJson.devDependencies, 'xxx--not-existing-pkg': '1.0.0' }
         })
-      ).to.equal(true)
+      ).to.deep.equal(['xxx--not-existing-pkg@1.0.0'])
     })
   })
 })
