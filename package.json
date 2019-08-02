@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "eslint-plugin-quick-prettier": "^0.0.17",
+    "eslint-plugin-quick-prettier": "^0.0.18",
     "hjson": "^3.1.2",
     "inquirer": "^6.5.0",
     "mkdirp": "^0.5.1",
@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@babel/runtime": "^7.5.5",
-    "@types/node": "^12.6.8",
+    "@types/node": "^12.6.9",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
     "babel-eslint": "^10.0.2",

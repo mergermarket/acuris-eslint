@@ -24,31 +24,26 @@ const {
 module.exports = async options => {
   const packageJsonPath = resolveProjectFile('package.json')
 
-  let foundPackageJsonPath = getPackageJsonPath()
+  const foundPackageJsonPath = getPackageJsonPath()
 
-  if (!findUp(resolveProjectFile('.git'), { directories: true, files: false })) {
+  if (!findUp('.git', { directories: true, files: false })) {
     if (await askConfirmation(`.git not found. Do you want to run ${chalk.yellow('git init')}?`)) {
       await runAsync('git', ['init'])
     }
   }
 
-  if (!foundPackageJsonPath) {
-    emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
-    await runAsync('npm', ['init'])
-    foundPackageJsonPath = findUp('package.json', { directories: false, files: true })
-  }
-
-  if (!foundPackageJsonPath) {
-    throw new Error('Could not find package.json')
-  }
-
-  if (packageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
+  if (foundPackageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${foundPackageJsonPath}.`
     )
   }
 
-  let manifest = await updatePackage(packageJsonPath)
+  if (!fileExists(packageJsonPath)) {
+    emitWarning(chalk.yellow('package.json not found. Creating one...\n'))
+    await runAsync('npm', ['init'])
+  }
+
+  let manifest = await updatePackage(true)
 
   if (hasPackagesToInstall()) {
     console.log(chalk.cyan('\n  Some packages are missing...'))
@@ -63,7 +58,7 @@ module.exports = async options => {
     }
 
     reloadNodeResolvePaths()
-    manifest = await updatePackage(packageJsonPath)
+    manifest = await updatePackage(false)
   }
 
   if (options.initNpmignore !== false) {
@@ -77,61 +72,62 @@ module.exports = async options => {
       await require('./init-npmignore')({ ...options, askConfirmation: true })
     }
   }
-}
 
-async function updatePackage(packageJsonPath) {
-  let resultManifest
-  await updateTextFileAsync({
-    format: 'json-stringify',
-    filePath: packageJsonPath,
-    throwIfNotFound: true,
-    async content(manifest) {
-      if (typeof manifest !== 'object' || manifest === null || Array.isArray(manifest)) {
-        throw new TypeError('Invalid package.json')
-      }
+  async function updatePackage(canAsk) {
+    let resultManifest
+    await updateTextFileAsync({
+      format: 'json-stringify',
+      filePath: packageJsonPath,
+      throwIfNotFound: true,
+      async content(pkg) {
+        if (typeof pkg !== 'object' || pkg === null || Array.isArray(pkg)) {
+          throw new TypeError('Invalid package.json')
+        }
 
-      if (
-        !manifest.husky &&
-        !manifest['lint-staged'] &&
-        findUp(resolveProjectFile('.git'), { directories: true, files: false })
-      ) {
         if (
-          await askConfirmation(
-            `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
-              'lint-staged'
-            )} to run ${chalk.cyanBright('acuris-eslint')} before commit?`
-          )
+          canAsk &&
+          !pkg.husky &&
+          !pkg['lint-staged'] &&
+          findUp(resolveProjectFile('.git'), { directories: true, files: false })
         ) {
-          manifest.husky = {
-            hooks: {
-              'pre-commit': 'lint-staged'
+          if (
+            await askConfirmation(
+              `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
+                'lint-staged'
+              )} to run ${chalk.cyanBright('acuris-eslint')} before commit?`
+            )
+          ) {
+            pkg.husky = {
+              hooks: {
+                'pre-commit': 'lint-staged'
+              }
+            }
+            pkg['lint-staged'] = {
+              '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings=0', 'git add']
             }
           }
-          manifest['lint-staged'] = {
-            '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --fix --max-warnings=0', 'git add']
+        }
+
+        const neededDependencies = getNeededDependencies(pkg)
+        addDevDependencies(pkg, neededDependencies)
+
+        if (
+          (pkg.devDependencies && pkg.devDependencies[referencePackageJson.name]) ||
+          (pkg.dependencies && pkg.dependencies[referencePackageJson.name])
+        ) {
+          if (!pkg.scripts) {
+            pkg.scripts = {}
+          }
+          if (pkg.scripts['acuris-eslint'] === undefined) {
+            pkg.scripts['acuris-eslint'] = 'acuris-eslint'
           }
         }
+
+        pkg = sanitisePackageJson(pkg)
+        resultManifest = pkg
+        return pkg
       }
-
-      const neededDependencies = getNeededDependencies(manifest)
-      addDevDependencies(manifest, neededDependencies)
-
-      if (
-        (manifest.devDependencies && manifest.devDependencies[referencePackageJson.name]) ||
-        (manifest.dependencies && manifest.dependencies[referencePackageJson.name])
-      ) {
-        if (!manifest.scripts) {
-          manifest.scripts = {}
-        }
-        if (manifest.scripts['acuris-eslint'] === undefined) {
-          manifest.scripts['acuris-eslint'] = 'acuris-eslint'
-        }
-      }
-
-      manifest = sanitisePackageJson(manifest)
-      resultManifest = manifest
-      return manifest
-    }
-  })
-  return resultManifest
+    })
+    return resultManifest
+  }
 }
