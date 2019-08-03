@@ -43,14 +43,14 @@
   "peerDependencies": {
     "eslint": ">=6.1.0",
     "eslint-plugin-import": ">=2.18.2",
-    "eslint-plugin-json": ">=1.4.0",
     "eslint-plugin-node": ">=9.1.0",
     "eslint-plugin-promise": ">=4.2.1",
     "prettier": ">=1.18.2"
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "eslint-plugin-quick-prettier": "^0.0.18",
+    "eslint-plugin-json": "^1.4.0",
+    "eslint-plugin-quick-prettier": "^0.0.19",
     "hjson": "^3.1.2",
     "inquirer": "^6.5.0",
     "mkdirp": "^0.5.1",

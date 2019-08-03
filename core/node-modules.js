@@ -326,3 +326,5 @@ function reloadNodeResolvePaths() {
 }
 
 module.exports.reloadNodeResolvePaths = reloadNodeResolvePaths
+
+module.exports.jsonUtils = require('eslint-plugin-quick-prettier/json-utils')

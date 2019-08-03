@@ -31,7 +31,7 @@ const logo = chalk.reset(
 module.exports = {
   logo,
   printLogo() {
-    if (!('CI' in process.env) && hasUnicode) {
+    if (!('CI' in process.env) && hasUnicode && chalk.enabled) {
       process.stdout.write(logo)
     }
   }

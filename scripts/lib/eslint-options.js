@@ -9,6 +9,48 @@ const programName = path.basename(process.argv[1], '.js')
 
 const optionator = require('optionator')
 
+const acurisEslintCommands = {
+  init: 'initialises or updates a project',
+  'init-eslint': 'updates or creates eslint configuration',
+  'init-gitignore': 'updates or creates .gitignore',
+  'init-npmignore': 'updates or creates .npmignore',
+  'init-package': 'updates or creates package.json',
+  'init-prettier': 'updates or creates prettier configuration',
+  'init-tsconfig': 'updates or creates typescript tsconfig.json',
+  'init-vscode': 'updates or creates Visual Studio Code workspace settings',
+  'clear-cache': 'deletes eslint cache from disk',
+  version: 'print versions'
+}
+
+/**
+ * Translates the CLI options into the options expected by the eslint CLIEngine.
+ */
+function translateOptionsForCLIEngine(cliOptions) {
+  return {
+    envs: cliOptions.env,
+    extensions: cliOptions.ext,
+    rules: cliOptions.rule,
+    plugins: cliOptions.plugin,
+    globals: cliOptions.global,
+    ignore: cliOptions.ignore,
+    ignorePath: cliOptions.ignorePath,
+    ignorePattern: cliOptions.ignorePattern,
+    configFile: cliOptions.config,
+    rulePaths: cliOptions.rulesdir,
+    useEslintrc: cliOptions.eslintrc,
+    parser: cliOptions.parser,
+    parserOptions: cliOptions.parserOptions,
+    cache: cliOptions.cache,
+    cacheFile: cliOptions.cacheFile,
+    cacheLocation: cliOptions.cacheLocation,
+    fix: cliOptions.fix || cliOptions.fixDryRun,
+    fixTypes: cliOptions.fixType,
+    allowInlineConfig: cliOptions.inlineConfig,
+    reportUnusedDisableDirectives: cliOptions.reportUnusedDisableDirectives,
+    resolvePluginsRelativeTo: cliOptions.resolvePluginsRelativeTo
+  }
+}
+
 class OptionsMap extends Map {
   constructor(options) {
     super()
@@ -31,19 +73,6 @@ class OptionsMap extends Map {
     }
     return false
   }
-}
-
-const acurisEslintCommands = {
-  init: 'initialises or updates a project',
-  'init-eslint': 'updates or creates eslint configuration',
-  'init-gitignore': 'updates or creates .gitignore',
-  'init-npmignore': 'updates or creates .npmignore',
-  'init-package': 'updates or creates package.json',
-  'init-prettier': 'updates or creates prettier configuration',
-  'init-tsconfig': 'updates or creates typescript tsconfig.json',
-  'init-vscode': 'updates or creates Visual Studio Code workspace settings',
-  'clear-cache': 'deletes eslint cache from disk',
-  version: 'print versions'
 }
 
 function acurisEslintOptions(libOptions) {
@@ -118,6 +147,23 @@ function extendOptionator(instance) {
 
     const parsed = oldParse.call(this, input, parseOptions)
 
+    if (parsed.fix && parsed.fixDryRun) {
+      parsed.fix = false
+    }
+
+    if (parsed.stdin && parsed.fix) {
+      parsed.fix = false
+      parsed.fixDryRun = true
+    }
+
+    if (parsed.fixType && !parsed.fix && !parsed.fixDryRun) {
+      throw new Error('The --fix-type option requires either --fix or --fix-dry-run.')
+    }
+
+    if (parsed.printConfig && parsed.stdin) {
+      throw new Error('The --print-config option and --stdin cannot be used together.')
+    }
+
     if (!parsed._ || (!parsed._.length && !parsed.printConfig && !parsed.help && !parsed.version)) {
       parsed._ = ['.']
     }
@@ -184,6 +230,23 @@ function extendOptionator(instance) {
     return `\n${usage}${help}${chalk.gray(additionalHelp.join('\n'))}`
   }
 
+  instance.tryParse = function tryParse(input, parseOptions) {
+    let options
+    try {
+      options = instance.parse(input, parseOptions)
+    } catch (error) {
+      if (error && error.message && error.name === 'Error') {
+        console.error(`\n${chalk.redBright(`Error: ${error.message}`)}\n`)
+        console.error(`${chalk.yellowBright(`  run ${chalk.bold(`${programName} --help`)} for additional options`)}\n`)
+      } else {
+        throw error
+      }
+    }
+    return options
+  }
+
+  instance.translateOptionsForCLIEngine = translateOptionsForCLIEngine
+
   return instance
 }
 
@@ -228,7 +291,7 @@ function createEslintOptions() {
     }
   } catch (error) {
     if (!error || error.code !== 'MODULE_NOT_FOUND') {
-      throw error || new Error()
+      throw error || new Error('createEslintOptions')
     }
     console.log(`${chalk.gray("Module 'eslint' was not found.")}\n`)
   }

@@ -6,6 +6,7 @@ typings/
 node_modules/
 bower_components/
 jspm_packages/
+package-lock.json
 
 # Build outputs
 bundle.js
