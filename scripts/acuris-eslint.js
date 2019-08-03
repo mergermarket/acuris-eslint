@@ -6,8 +6,6 @@ const path = require('path')
 const fs = require('fs')
 
 let debugEnabled = false
-//const useStdIn = process.argv.indexOf('--stdin') > -1
-//const debug = process.argv.indexOf('--debug') > -1
 
 function preinit() {
   const indexOfCwdOption = process.argv.indexOf('--cwd')
@@ -104,6 +102,8 @@ function filterEslintWarnings(report) {
       const messages = item.messages
       if (messages && messages.length === 1) {
         const msg = messages[0]
+
+        // Filter out "file ignored" message, it is incompatible with husky/eslint-staged and .eslintignore
         if (msg.message === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.') {
           --report.warningCount
           if (filtered === null) {
@@ -130,11 +130,9 @@ function eslint() {
     return 0
   }
 
-  const files = options._
-
   const report = options.stdin
     ? engine.executeOnText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
-    : engine.executeOnFiles(files)
+    : engine.executeOnFiles(options._)
 
   if (options.fix) {
     // Fix mode enabled - applying fixes
