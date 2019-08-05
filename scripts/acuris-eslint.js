@@ -45,8 +45,10 @@ if (debugEnabled) {
 }
 
 const { version: packageVersion } = require('../package.json')
+
 const eslintPath = getEslintPath()
 const chalk = require('chalk').default
+
 const programName = path.basename(process.argv[1], '.js')
 
 const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${chalk.blueBright(`v${packageVersion}`)}`
@@ -58,6 +60,7 @@ if (chalk.enabled && chalk.supportsColor.hasBasic) {
 }
 
 const acurisEslintOptions = require('./lib/eslint-options')
+
 const options = acurisEslintOptions.tryParse(process.argv)
 
 if (!options) {

@@ -4,6 +4,7 @@
 /* eslint-disable global-require */
 
 const { hasLocalPackage, hasPackage } = require('./node-modules')
+
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
 
@@ -91,6 +92,7 @@ function getReactVersion() {
   let version = defaultReactVersion
   if (hasLocalPackage('react')) {
     try {
+      // eslint-disable-next-line import/no-unresolved
       version = require('react/package.json').version
     } catch (_error) {}
   }
