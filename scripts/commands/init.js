@@ -1,7 +1,8 @@
 'use strict'
 
+const { fileExists, resolveProjectFile } = require('../lib/fs-utils')
 const { prettierInterface } = require('../../core/node-modules')
-const { emitSection, emitInitComplete } = require('../lib/notes')
+const { emitSection, emitInitComplete, emitNote } = require('../lib/notes')
 
 module.exports = async options => {
   let prettierInitialised = false
@@ -35,9 +36,11 @@ module.exports = async options => {
     await require('./init-vscode')(options)
   }
 
-  if (options.initGitignore !== false) {
+  if (options.initGitignore !== false && !fileExists(resolveProjectFile('.gitignore'))) {
     emitSection('init-gitignore')
     await require('./init-gitignore')(options)
+  } else {
+    emitNote('.gitignore already exists. You can run acuris-eslint --init-gitignore to update it.')
   }
 
   emitInitComplete()

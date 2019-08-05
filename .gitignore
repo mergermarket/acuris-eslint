@@ -25,7 +25,7 @@ build/Release
 ipch
 
 # some projects still requires yarn-packages-cache to be published
-!yarn-packages-cache/*.tgz
+#!**/yarn-packages-cache/*.tgz
 
 # logs
 logs
@@ -38,8 +38,8 @@ lerna-debug.log*
 # Cache and lockfiles
 .cache
 .fuse_hidden*
-.fusebox/
-.dynamodb/
+**/.fusebox/
+**/.dynamodb/
 *.tsbuildinfo
 .cache
 .npm

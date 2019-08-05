@@ -44,8 +44,8 @@ lerna-debug.log*
 # Cache and lockfiles
 .cache
 .fuse_hidden*
-.fusebox/
-.dynamodb/
+**/.fusebox/
+**/.dynamodb/
 *.tsbuildinfo
 .npm
 .eslintcache
