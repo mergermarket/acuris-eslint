@@ -107,9 +107,9 @@ function filterEslintWarnings(report) {
         const msg = messages[0]
 
         const text = msg.message
-        // Filter out "file ignored" message, it is incompatible with husky/eslint-staged and .eslintignore
+        // Filter out "file ignored" messages for husky/lint-staged + .eslintignore
         if (
-          text === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.' &&
+          text === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.' ||
           (typeof text === 'string' && text.startsWith('File ignored by default. '))
         ) {
           --report.warningCount
