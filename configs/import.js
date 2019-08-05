@@ -44,16 +44,7 @@ if (eslintSupport.hasEslintPluginImport) {
             'newlines-between': 'never'
           }
         ],
-        'import/extensions': [
-          1,
-          'always',
-          {
-            ts: 'never',
-            tsx: 'never',
-            js: 'never',
-            jsx: 'never'
-          }
-        ],
+        'import/extensions': 0,
         'import/no-extraneous-dependencies': [
           2,
           {
