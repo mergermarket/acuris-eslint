@@ -16,7 +16,7 @@
     "url": "https://github.com/mergermarket/acuris-eslint.git"
   },
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=10.15.0"
   },
   "main": "index.js",
   "bin": {

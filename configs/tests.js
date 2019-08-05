@@ -82,7 +82,8 @@ if (eslintSupport.hasEslintPluginChaiExpect) {
     plugins: ['chai-expect'],
     rules: {
       'chai-expect/missing-assertion': 2,
-      'chai-expect/terminating-properties': 1
+      'chai-expect/terminating-properties': 1,
+      'chai-expect/no-inner-compare': 0
     }
   })
 }

@@ -2,8 +2,8 @@
 
 /* eslint-disable global-require */
 
-if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 8) {
-  throw new Error(`Node 8.10.0 or greater is required. Current version is ${process && process.version}`)
+if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 10) {
+  throw new Error(`Node 10.15.0 or greater is required. Current version is ${process && process.version}`)
 }
 
 const Module = require('module')
@@ -11,6 +11,7 @@ const path = require('path')
 const os = require('os')
 const fs = require('fs')
 const { statSync, readFileSync } = require('fs')
+
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
 

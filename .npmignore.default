@@ -24,6 +24,7 @@ bower_components
 **/node_modules/
 **/bower_components/
 **/jspm_packages/
+**/yarn-packages-cache/
 
 # Build outputs
 .serverless/
