@@ -7,5 +7,5 @@ git checkout master
 git pull
 npm run lint -- --max-warnings 0
 npm test
-#npm version patch -m "Version %s"
-#git push --follow-tags
+npm version patch -m "Version %s"
+git push --follow-tags
