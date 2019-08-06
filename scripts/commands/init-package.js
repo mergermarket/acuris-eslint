@@ -135,15 +135,15 @@ module.exports = async options => {
           }
         }
 
-        const neededDependencies = getNeededDependencies(pkg)
-        addDevDependencies(pkg, neededDependencies)
-
+        let neededDependencies = getNeededDependencies(pkg)
         if (canAsk && !neededDependencies.has('typescript')) {
           if (await askConfirmation(`Would you like to add ${chalk.cyanBright('typescript')} support?`)) {
             neededDependencies.add('typescript')
             addDevDependencies(pkg, neededDependencies)
+            neededDependencies = getNeededDependencies(pkg)
           }
         }
+        addDevDependencies(pkg, neededDependencies)
 
         if (
           (pkg.devDependencies && pkg.devDependencies[referencePackageJson.name]) ||
