@@ -92,7 +92,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-css-modules')
     }
   }
-  return Array.from(result).sort()
+  return new Set(Array.from(result).sort())
 }
 
 exports.getNeededDependencies = getNeededDependencies
