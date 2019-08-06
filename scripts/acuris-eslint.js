@@ -38,7 +38,9 @@ preinit()
 
 const { eslintRequire, getEslintPath } = require('../core/node-modules')
 
-eslintRequire('v8-compile-cache')
+try {
+  eslintRequire('v8-compile-cache')
+} catch (_error) {}
 
 if (debugEnabled) {
   eslintRequire('debug').enable('eslint:*,-eslint:code-path')
