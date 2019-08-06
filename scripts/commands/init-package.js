@@ -8,7 +8,7 @@ const chalk = require('chalk').default
 const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
-const { askConfirmation, getNpmRegistry } = require('../lib/inquire')
+const { askConfirmation } = require('../lib/inquire')
 const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
 const { reloadNodeResolvePaths } = require('../../core/node-modules')
 const { updateTextFileAsync } = require('../lib/text-utils')
@@ -18,7 +18,8 @@ const {
   getNeededDependencies,
   addDevDependencies,
   getPackagesToInstall,
-  getPackageManager
+  getPackageManager,
+  getNpmRegistry
 } = require('../lib/package-utils')
 
 module.exports = async options => {
@@ -136,6 +137,13 @@ module.exports = async options => {
 
         const neededDependencies = getNeededDependencies(pkg)
         addDevDependencies(pkg, neededDependencies)
+
+        if (canAsk && !neededDependencies.has('typescript')) {
+          if (await askConfirmation(`Would you like to add ${chalk.cyanBright('typescript')} support?`)) {
+            neededDependencies.add('typescript')
+            addDevDependencies(pkg, neededDependencies)
+          }
+        }
 
         if (
           (pkg.devDependencies && pkg.devDependencies[referencePackageJson.name]) ||
