@@ -28,8 +28,8 @@ if (eslintSupport.hasTypescript) {
           baseRules[ruleKey] = baseRule
         }
       }
-    } else {
-      baseRules[ruleKey] = ruleKey in commonRules ? commonRules[ruleKey] : 0
+    } else if (!(ruleKey in baseRules)) {
+      baseRules[ruleKey] = 0
     }
   }
 
