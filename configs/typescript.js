@@ -8,11 +8,12 @@ const eslintSupport = require('../core/eslint-support')
 const common = require('./common')
 
 if (eslintSupport.hasTypescript) {
-  const allRuleKeys = Object.keys(require('@typescript-eslint/eslint-plugin').configs.all.rules)
+  const eslintPlugin = require('@typescript-eslint/eslint-plugin')
+  const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
 
   const baseRules = {
-    ...require('@typescript-eslint/eslint-plugin').configs.recommended.rules,
-    ...require('@typescript-eslint/eslint-plugin').configs['eslint-recommended'].overrides[0].rules
+    ...eslintPlugin.configs.recommended.rules,
+    ...eslintPlugin.configs['eslint-recommended'].overrides[0].rules
   }
 
   const commonRules = common.rules
@@ -50,7 +51,9 @@ if (eslintSupport.hasTypescript) {
       'import/no-duplicates': 0
     }),
 
-    'no-dupe-class-members': 0, // TODO: this would be a useful thing, but at the moment is buggy with overloads.
+    // TODO: this would be a useful thing, but at the moment is buggy with overloads.
+    'no-dupe-class-members': 0,
+
     '@typescript-eslint/adjacent-overload-signatures': 1,
     '@typescript-eslint/array-type': 1,
     '@typescript-eslint/ban-types': 1,

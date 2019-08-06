@@ -1,6 +1,10 @@
 const { fork } = require('child_process')
 
 describe('eslint', () => {
+  it('has working rules', () => {
+    require('../index')
+  })
+
   it('can lint this file', function() {
     this.timeout(5000)
     return new Promise((resolve, reject) => {
