@@ -41,18 +41,15 @@
     ]
   },
   "peerDependencies": {
-    "@typescript-eslint/eslint-plugin": "^1.13.0",
-    "@typescript-eslint/parser": "^1.13.0",
     "eslint": ">=6.1.0",
     "eslint-plugin-import": ">=2.18.2",
     "eslint-plugin-node": ">=9.1.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "prettier": ">=1.18.2",
-    "typescript": "^3.5.3"
+    "prettier": ">=1.18.2"
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "eslint-plugin-quick-prettier": "^0.0.19",
+    "eslint-plugin-quick-prettier": "^0.0.21",
     "hjson": "^3.1.2",
     "inquirer": "^6.5.0",
     "mkdirp": "^0.5.1",
@@ -61,7 +58,7 @@
   },
   "devDependencies": {
     "@babel/runtime": "^7.5.5",
-    "@types/node": "^12.6.9",
+    "@types/node": "^12.7.0",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
     "babel-eslint": "^10.0.2",
