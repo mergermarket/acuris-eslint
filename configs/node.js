@@ -1,8 +1,5 @@
 'use strict'
 
-/* eslint-disable global-require */
-/* eslint-disable node/no-unpublished-require */
-
 const eslintSupport = require('../core/eslint-support')
 const common = require('./common')
 
@@ -13,6 +10,7 @@ if (eslintSupport.hasEslintPluginNode) {
 
   const rules = {
     'node/exports-style': [0, 'module.exports'],
+    'node/no-unpublished-require': 2,
     'node/no-deprecated-api': 2,
     'node/no-missing-require': 2,
     'node/no-unpublished-bin': 2,

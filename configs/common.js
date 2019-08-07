@@ -5,7 +5,7 @@ const eslintSupport = require('../core/eslint-support')
 module.exports = {
   parserOptions: {
     sourceType: 'module',
-    ecmaVersion: 10,
+    ecmaVersion: 2018,
     ecmaFeatures: {
       jsx: true
     }
@@ -215,7 +215,7 @@ module.exports = {
     'one-var-declaration-per-line': [1, 'always'],
     'operator-assignment': [1, 'always'],
     'padding-line-between-statements': [
-      'warn',
+      1,
       {
         blankLine: 'always',
         next: 'import',

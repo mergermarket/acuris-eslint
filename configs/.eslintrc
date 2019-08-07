@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "global-require": 0,
+    "node/no-unpublished-require": 0
+  }
+}

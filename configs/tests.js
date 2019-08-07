@@ -1,19 +1,28 @@
 'use strict'
 
-/* eslint-disable node/no-unpublished-require */
-/* eslint-disable global-require */
-
 const eslintSupport = require('../core/eslint-support')
 
 let testOverrides = {
-  files: ['*.test.*', '*.spec.*', 'test/**/*', 'tests/**/*', 'testUtils/**/*', '__mocks__/**/*'],
+  files: [
+    '*.test.*',
+    '*.spec.*',
+    '**/test/**/*',
+    '**/tests/**/*',
+    '**/testUtils/**/*',
+    '**/__mocks__/**/*',
+    '**/__specs__/**/*',
+    '**/__tests__/**/*'
+  ],
   env: {
     mocha: true,
     jest: true
   },
   rules: {
     'global-require': 0,
-    ...(eslintSupport.hasEslintPluginNode && { 'node/no-unpublished-require': 0 })
+    ...(eslintSupport.hasEslintPluginNode && {
+      'node/no-unpublished-require': 0,
+      'node/no-extraneous-import': 0
+    })
   }
 }
 
@@ -89,13 +98,5 @@ if (eslintSupport.hasEslintPluginChaiExpect) {
 }
 
 module.exports = {
-  overrides: [
-    testOverrides,
-    {
-      files: ['**/testUtils/**/*'],
-      rules: {
-        'no-console': 0
-      }
-    }
-  ]
+  overrides: [testOverrides]
 }
