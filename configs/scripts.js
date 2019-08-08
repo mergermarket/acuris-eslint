@@ -8,7 +8,8 @@ const scriptRules = {
   'global-require': 0,
   ...(eslintSupport.hasEslintPluginNode && {
     'node/no-unpublished-require': 0,
-    'node/no-extraneous-import': 0
+    'node/no-extraneous-import': 0,
+    'node/no-extraneous-require': 0
   })
 }
 
@@ -27,6 +28,7 @@ module.exports = {
     {
       files: [
         '**/scripts/**/*',
+        '**/build/**/*',
         'webpack.config.*',
         'webpack.*.config.*',
         'jest-*.*',

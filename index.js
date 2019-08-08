@@ -16,6 +16,7 @@ module.exports = addEslintConfigPrettierRules(
     require('./configs/scripts'),
     require('./configs/react'),
     require('./configs/server'),
-    require('./configs/tests')
+    require('./configs/tests'),
+    require('./configs/dist')
   )
 )
