@@ -5,6 +5,7 @@ const eslintSupport = require('../core/eslint-support')
 const scriptFiles = [
   '**/scripts/**/*',
   '**/build/**/*',
+  '.eslintrc.js',
   'webpack.config.*',
   'webpack.*.config.*',
   'jest-*.*',

@@ -2,21 +2,28 @@
 
 const eslintSupport = require('../core/eslint-support')
 
+const typescriptExtensions = ['.ts', '.tsx', '.d.ts']
+
 if (eslintSupport.hasEslintPluginImport) {
-  const extensions = new Set([
-    '.ts',
-    '.tsx',
-    '.d.ts',
-    '.cjs',
-    '.js',
-    '.jsx',
-    '.mjs',
-    '.web.js',
-    '.ios.js',
-    '.android.js'
-  ])
-  for (const ext of eslintSupport.extensions) {
-    extensions.add(ext)
+  const extensions = getExtensions()
+
+  const settings = {
+    'import/core-modules': ['electron', 'aws-sdk'],
+    'import/extensions': extensions,
+    'import/resolver': {
+      node: { extensions }
+    }
+  }
+
+  if (eslintSupport.hasEslintImportResolverParcel) {
+    settings['import/resolver'].parcel = { extensions }
+  }
+
+  if (eslintSupport.hasTypescript) {
+    settings['import/parsers'] = {
+      ...settings['import/parsers'],
+      '@typescript-eslint/parser': typescriptExtensions
+    }
   }
 
   const config = {
@@ -41,12 +48,22 @@ if (eslintSupport.hasEslintPluginImport) {
         { devDependencies: true, optionalDependencies: false, peerDependencies: true }
       ]
     },
-    settings: {
-      'import/core-modules': ['electron', 'aws-sdk'],
-      'import/extensions': extensions,
-      'import/resolver': { node: { extensions } }
-    }
+    settings
   }
 
   module.exports = config
+}
+
+function getExtensions() {
+  const result = new Set(typescriptExtensions)
+
+  for (const ext of ['.cjs', '.js', '.jsx', '.mjs', '.web.js', '.ios.js', '.android.js']) {
+    result.add(ext)
+  }
+
+  for (const ext of eslintSupport.extensions) {
+    result.add(ext)
+  }
+
+  return Array.from(result)
 }

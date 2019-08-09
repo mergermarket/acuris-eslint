@@ -2,7 +2,7 @@
 
 const eslintSupport = require('./core/eslint-support')
 
-module.exports = eslintSupport.mergeEslintConfigs(
+const config = eslintSupport.mergeEslintConfigs(
   require('eslint/conf/eslint-recommended'),
   require('./configs/import'),
   require('./configs/node'),
@@ -18,3 +18,5 @@ module.exports = eslintSupport.mergeEslintConfigs(
   require('./configs/dist'),
   require('./configs/formatting')
 )
+
+module.exports = config

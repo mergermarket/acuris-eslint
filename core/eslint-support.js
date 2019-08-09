@@ -28,6 +28,8 @@ class EslintSupport {
       hasLocalPackage('@typescript-eslint/eslint-plugin') &&
       hasLocalPackage('typescript')
 
+    this.hasEslintImportResolverParcel = hasLocalPackage('eslint-import-resolver-parcel')
+
     this.hasEslintPluginCssModules = hasLocalPackage('eslint-plugin-css-modules')
 
     this.hasEslintPluginImport = hasLocalPackage('eslint-plugin-import')

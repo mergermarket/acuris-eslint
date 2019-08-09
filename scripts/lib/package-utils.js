@@ -80,6 +80,10 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-jest')
     }
 
+    if (hasDep('parcel')) {
+      result.add('eslint-import-resolver-parcel')
+    }
+
     if (hasDep('mocha')) {
       result.add('eslint-plugin-mocha')
     }
