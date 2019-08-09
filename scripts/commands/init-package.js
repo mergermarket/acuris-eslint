@@ -1,7 +1,5 @@
 'use strict'
 
-/* eslint-disable require-atomic-updates */
-
 const referencePackageJson = require('../../package.json')
 
 const chalk = require('chalk').default

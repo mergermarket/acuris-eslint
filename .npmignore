@@ -1,5 +1,12 @@
 # <@acuris/eslint-config>
 
+# Dependency directories
+**/yarn-packages-cache/
+
+# Cache and lockfiles
+.fusebox/
+.dynamodb/
+
 # excluded files for security
 .npmrc
 .env

@@ -30,7 +30,7 @@ class DeleteFileOrDirResult {
 
   toString() {
     const folderMsg = this.folders > 0 && `${this.folders} ${this.folders > 1 ? 'folders' : 'folder'}`
-    const filesMsg = this.files > 0 && `${this.files} ${this.files > 1 ? 'folders' : 'folder'}`
+    const filesMsg = this.files > 0 && `${this.files} ${this.files > 1 ? 'files' : 'files'}`
     if (folderMsg) {
       return filesMsg ? `${folderMsg} and ${filesMsg} deleted` : `${folderMsg} deleted`
     }

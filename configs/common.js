@@ -16,6 +16,7 @@ module.exports = {
   },
   rules: {
     curly: 1,
+    'require-atomic-updates': 0,
     'global-require': 1,
     'no-process-exit': 2,
     'symbol-description': 1,

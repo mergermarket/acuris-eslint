@@ -6,7 +6,7 @@ function runCommand(options, appTitle) {
     require('./logo').printLogo()
   }
 
-  console.log(options.canLog ? `\n${appTitle}${chalk.yellowBright(options.commandName)}\n` : '')
+  console.log(options.canLog ? `\n${appTitle} ${chalk.yellowBright(options.commandName)}\n` : '')
 
   try {
     const command = require(`../commands/${options.commandName}`)

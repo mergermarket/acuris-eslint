@@ -36,7 +36,12 @@ function preinit() {
 // This must execute before everything else.
 preinit()
 
-const { eslintRequire, getEslintPath } = require('../core/node-modules')
+const {
+  eslintRequire,
+  getEslintPath,
+  getEslintVersion,
+  getMinimumSupportedEslintVersion
+} = require('../core/node-modules')
 
 try {
   eslintRequire('v8-compile-cache')
@@ -81,19 +86,34 @@ if (!options) {
   if (options.canLog) {
     console.info(appTitle)
   }
-  let exitCode = 1
-  try {
-    exitCode = eslint()
-  } catch (error) {
-    handleEslintError(error)
-  } finally {
-    if (options.canLog) {
-      setTimeout(function timeEnd() {
-        console.timeEnd(appTitle)
-      }, 0)
+
+  const eslintVersion = getEslintVersion()
+  const minimumSupportedEslintVersion = getMinimumSupportedEslintVersion()
+
+  if (parseFloat(eslintVersion) < parseFloat(minimumSupportedEslintVersion)) {
+    console.error(
+      chalk.redBright(
+        `\n[ERROR] eslint version ${eslintVersion} not supported. Minimum supported version is ${minimumSupportedEslintVersion}.\n`
+      )
+    )
+    if (!process.exitCode) {
+      process.exitCode = 3
     }
-    if (exitCode && !process.exitCode) {
-      process.exitCode = exitCode
+  } else {
+    let exitCode = 1
+    try {
+      exitCode = eslint()
+    } catch (error) {
+      handleEslintError(error)
+    } finally {
+      if (options.canLog) {
+        setTimeout(function timeEnd() {
+          console.timeEnd(appTitle)
+        }, 0)
+      }
+      if (exitCode && !process.exitCode) {
+        process.exitCode = exitCode
+      }
     }
   }
 }
@@ -227,11 +247,7 @@ function handleEslintError(error) {
       const template = eslintRequire('lodash').template(
         fs.readFileSync(path.resolve(eslintPath, `./messages/${error.messageTemplate}.txt`), 'utf-8')
       )
-      let eslintVersion
-      try {
-        eslintVersion = eslintRequire('./package.json').version
-      } catch (_error) {}
-      console.error(`\nESLint: ${eslintVersion || '<not found>'}.\n\n${template(error.messageData || {})}`)
+      console.error(`\nESLint: ${getEslintVersion() || '<not found>'}.\n\n${template(error.messageData || {})}`)
     } catch (_error) {
       console.error(error.stack)
     }

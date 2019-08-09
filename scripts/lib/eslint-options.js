@@ -87,7 +87,7 @@ function acurisEslintOptions(libOptions) {
 
   const cacheLocationOption = optionsMap.get('cache-location')
   if (cacheLocationOption) {
-    optionsMap.get('cache-location').default = 'node_modules/.eslintcache'
+    optionsMap.get('cache-location').default = '.eslintcache'
   }
 
   const cacheFileOption = optionsMap.get('cache-file')

@@ -2,7 +2,9 @@
 
 const { fileExists, resolveProjectFile } = require('../lib/fs-utils')
 const { prettierInterface } = require('../../core/node-modules')
-const { emitSection, emitInitComplete, emitNote } = require('../lib/notes')
+const { emitSection, emitInitComplete } = require('../lib/notes')
+const { updateTextFileAsync } = require('../lib/text-utils')
+const IgnoreFile = require('../lib/IgnoreFile')
 
 module.exports = async options => {
   let prettierInitialised = false
@@ -36,11 +38,25 @@ module.exports = async options => {
     await require('./init-vscode')(options)
   }
 
-  if (options.initGitignore !== false && !fileExists(resolveProjectFile('.gitignore'))) {
-    emitSection('init-gitignore')
-    await require('./init-gitignore')(options)
-  } else {
-    emitNote('.gitignore already exists. You can run acuris-eslint --init-gitignore to update it.')
+  if (options.initGitignore !== false) {
+    emitSection('gitignore')
+    if (fileExists(resolveProjectFile('.gitignore'))) {
+      await updateTextFileAsync({
+        filePath: resolveProjectFile('.gitignore'),
+        async content(previousContent) {
+          const target = new IgnoreFile(previousContent)
+          target.merge(new IgnoreFile('.elintcache'), false)
+          if (!target.changed) {
+            return undefined
+          }
+          return target.toString()
+        }
+      })
+      console.log('      You can also run `acuris-eslint --init-gitignore` to update all defaults')
+    } else {
+      emitSection('init-gitignore')
+      await require('./init-gitignore')(options)
+    }
   }
 
   emitInitComplete()

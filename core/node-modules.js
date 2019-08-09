@@ -186,7 +186,55 @@ function getEslintPath() {
 
 exports.getEslintPath = getEslintPath
 
+let _eslintVersion = null
+
+/**
+ * Gets the currently installed eslint version.
+ *
+ * @returns {string} The eslint version
+ */
+function getEslintVersion() {
+  if (_eslintVersion === undefined) {
+    try {
+      _eslintVersion = eslintRequire('./package.json').version
+    } catch (_error) {
+      _eslintVersion = ''
+    }
+  }
+  return _eslintVersion
+}
+
+exports.getEslintVersion = getEslintVersion
+
+let _minimumSupportedEslintVersion
+
+function getMinimumSupportedEslintVersion() {
+  if (!_minimumSupportedEslintVersion) {
+    const pkg = require('../package.json')
+    const peerDependencies = pkg.peerDependencies
+    const devDependencies = pkg.devDependencies
+    _minimumSupportedEslintVersion =
+      (peerDependencies && peerDependencies.eslint) || (devDependencies && devDependencies.eslint) || '6.1.0'
+    if (
+      _minimumSupportedEslintVersion.startsWith('>') ||
+      _minimumSupportedEslintVersion.startsWith('~') ||
+      _minimumSupportedEslintVersion.startsWith('^')
+    ) {
+      _minimumSupportedEslintVersion = _minimumSupportedEslintVersion.slice(1)
+    }
+    if (_minimumSupportedEslintVersion.startsWith('=')) {
+      _minimumSupportedEslintVersion = _minimumSupportedEslintVersion.slice(1)
+    }
+  }
+  return _minimumSupportedEslintVersion
+}
+
+exports.getMinimumSupportedEslintVersion = getMinimumSupportedEslintVersion
+
 function eslintResolve(id) {
+  if (id.startsWith('eslint/')) {
+    id = `.${id.slice('eslint'.length)}`
+  }
   const eslintPath = getEslintPath()
   if (eslintPath) {
     try {
@@ -200,8 +248,8 @@ function eslintResolve(id) {
       }
     }
   }
-  if (id.startsWith('.')) {
-    return require.resolve(`eslint${id.startsWith('./') ? id.slice(1) : `/${id}`}`)
+  if (id.startsWith('./')) {
+    return require.resolve(`eslint${id.slice(1)}`)
   }
   return require.resolve(id)
 }
@@ -248,6 +296,7 @@ module.exports.prettierInterface = prettierInterface
 
 function reloadNodeResolvePaths() {
   _eslintPath = undefined
+  _eslintVersion = undefined
   _resolvePaths.clear()
   _hasLocalPackageCache.clear()
 

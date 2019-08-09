@@ -21,6 +21,15 @@ module.exports = async () => {
           settings['eslint.validate'],
           defaultSettings['eslint.validate']
         )
+
+        if (defaultSettings['search.exclude']) {
+          settings['search.exclude'] = { ...defaultSettings['search.exclude'], ...settings['search.exclude'] }
+        }
+
+        if (defaultSettings['files.exclude']) {
+          settings['files.exclude'] = { ...defaultSettings['files.exclude'], ...settings['files.exclude'] }
+        }
+
         return settings
       }
     })

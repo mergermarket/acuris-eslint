@@ -20,7 +20,7 @@
   },
   "main": "index.js",
   "bin": {
-    "acuris-eslint": "scripts/acuris-eslint.js"
+    "acuris-eslint": "bin/acuris-eslint.js"
   },
   "scripts": {
     "lint": "node scripts/acuris-eslint.js",
@@ -74,7 +74,7 @@
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.14.3",
-    "husky": "^3.0.2",
+    "husky": "^3.0.3",
     "lint-staged": "^9.2.1",
     "mocha": "^6.2.0",
     "mock-fs": "^4.10.1",
