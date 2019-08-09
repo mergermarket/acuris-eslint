@@ -119,6 +119,14 @@ function acurisEslintOptions(libOptions) {
     })
   }
 
+  if (!optionsMap.has('lint-staged')) {
+    libOptions.options.push({
+      option: 'lint-staged',
+      type: 'Boolean',
+      description: 'Should be used when called by lint-staged or husky'
+    })
+  }
+
   const commandOptions = [{ heading: 'Commands' }]
   for (const key of Object.keys(acurisEslintCommands)) {
     optionsMap.delete(key)
@@ -146,6 +154,10 @@ function extendOptionator(instance) {
     }
 
     const parsed = oldParse.call(this, input, parseOptions)
+
+    if (parsed.lintStaged) {
+      parsed.cache = false
+    }
 
     if (parsed.fix && parsed.fixDryRun) {
       parsed.fix = false
