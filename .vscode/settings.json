@@ -37,7 +37,6 @@
     "**/.DS_Store": true,
     ".eslintcache": true,
     ".cache": true,
-    ".fuse_hidden*": true,
-    ".node_repl_history": true
+    ".fuse_hidden*": true
   }
 }
