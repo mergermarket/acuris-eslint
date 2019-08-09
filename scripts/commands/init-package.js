@@ -55,10 +55,10 @@ module.exports = async options => {
       } else if (await askConfirmation(`Can i run ${chalk.yellowBright('npm install')}?`)) {
         await runAsync('npm', ['install'])
       }
-    }
 
-    reloadNodeResolvePaths()
-    manifest = await updatePackage(false)
+      reloadNodeResolvePaths()
+      manifest = await updatePackage(false)
+    }
   }
 
   if (options.initNpmignore !== false) {

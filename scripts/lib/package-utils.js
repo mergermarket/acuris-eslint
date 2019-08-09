@@ -63,6 +63,8 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
 
     if (
       hasDep('typescript') ||
+      hasDep('@typescript-eslint/eslint-plugin') ||
+      hasDep('@typescript-eslint/parser') ||
       fileExists(path.resolve(cwd, 'tsconfig.json')) ||
       fileExists(path.resolve(cwd, 'index.ts')) ||
       fileExists(path.resolve(cwd, 'index.d.ts')) ||
@@ -235,8 +237,12 @@ function getMaxSemver(version, range) {
 
 exports.getMaxSemver = getMaxSemver
 
-function inferPackageVersion(name, projectPackageJson) {
+function inferPackageVersion(name, projectPackageJson, canUseReferencePackage = true) {
   let v
+
+  if (name === referencePackageJson.name) {
+    return referencePackageJson.version
+  }
 
   if (projectPackageJson) {
     v = getMaxSemver(v, projectPackageJson.dependencies && projectPackageJson.dependencies[name])
@@ -245,14 +251,13 @@ function inferPackageVersion(name, projectPackageJson) {
     v = getMaxSemver(v, projectPackageJson.optionalDependencies && projectPackageJson.optionalDependencies[name])
   }
 
-  v = getMaxSemver(v, referencePackageJson.dependencies && referencePackageJson.dependencies[name])
-  v = getMaxSemver(v, referencePackageJson.devDependencies && referencePackageJson.devDependencies[name])
-  v = getMaxSemver(v, referencePackageJson.peerDependencies && referencePackageJson.peerDependencies[name])
+  if (canUseReferencePackage || !v) {
+    v = getMaxSemver(v, referencePackageJson.dependencies && referencePackageJson.dependencies[name])
+    v = getMaxSemver(v, referencePackageJson.devDependencies && referencePackageJson.devDependencies[name])
+    v = getMaxSemver(v, referencePackageJson.peerDependencies && referencePackageJson.peerDependencies[name])
+  }
 
   if (!v) {
-    if (name === referencePackageJson.name) {
-      return referencePackageJson.version
-    }
     return null
   }
 
@@ -414,7 +419,7 @@ function getPackagesToInstall(manifest = readProjectPackageJson()) {
   }
 
   for (const [name, version] of allDeps) {
-    const inferredVersion = inferPackageVersion(name, manifest) || version
+    const inferredVersion = inferPackageVersion(name, manifest, false) || version
     if (!isPackageInstalled(name, inferredVersion)) {
       result.push(
         `${name}@${

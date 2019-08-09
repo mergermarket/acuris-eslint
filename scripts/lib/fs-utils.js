@@ -159,48 +159,45 @@ function getRepositoryFromGitConfig(cwd = process.cwd()) {
 
 exports.getRepositoryFromGitConfig = getRepositoryFromGitConfig
 
-function runAsync(command, args = [], options) {
-  return new Promise((resolve, reject) => {
-    const oldEslintRunAsync = process.env.ACURIS_ESLINT_RUN_ASYNC
-    let complete = () => {
-      complete = () => {}
-      if (oldEslintRunAsync === undefined) {
-        delete process.env.ACURIS_ESLINT_RUN_ASYNC
-      } else {
-        process.env.ACURIS_ESLINT_RUN_ASYNC = oldEslintRunAsync
+async function runAsync(command, args = [], options) {
+  const oldEnv = process.env.ACURIS_ESLINT_RUN_ASYNC
+  process.env.ACURIS_ESLINT_RUN_ASYNC = command
+  try {
+    await new Promise((resolve, reject) => {
+      const opt = {
+        stdio: 'inherit',
+        ...options
       }
-    }
-    process.env.ACURIS_ESLINT_RUN_ASYNC = command
 
-    const opt = {
-      stdio: 'inherit',
-      ...options
-    }
+      const outputToString = opt.stdio === 'string'
+      if (outputToString) {
+        delete opt.stdio
+      }
 
-    const outputToString = opt.stdio === 'string'
-    if (outputToString) {
-      delete opt.stdio
+      let result
+      const child = spawn(command, args, opt)
+      child
+        .on('exit', code => {
+          if (code !== 0) {
+            reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
+          } else {
+            resolve(result)
+          }
+        })
+        .on('error', error => {
+          reject(error || new Error(`${command} failed`))
+        })
+        .on('data', d => {
+          result += d
+        })
+    })
+  } finally {
+    if (oldEnv !== undefined) {
+      process.env.ACURIS_ESLINT_RUN_ASYNC = oldEnv
+    } else {
+      delete process.env.ACURIS_ESLINT_RUN_ASYNC
     }
-
-    let result
-    const child = spawn(command, args, opt)
-    child
-      .on('exit', code => {
-        complete()
-        if (code !== 0) {
-          reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
-        } else {
-          resolve(result)
-        }
-      })
-      .on('error', error => {
-        complete()
-        reject(error || new Error(`${command} failed`))
-      })
-      .on('data', d => {
-        result += d
-      })
-  })
+  }
 }
 
 exports.runAsync = runAsync
