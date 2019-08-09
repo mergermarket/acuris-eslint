@@ -9,6 +9,7 @@ if (eslintSupport.hasEslintPluginReact) {
       browser: true
     },
     rules: {
+      ...require('eslint-config-prettier/react').rules,
       'react/display-name': 0
     },
     settings: {

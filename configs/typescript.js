@@ -10,7 +10,8 @@ if (eslintSupport.hasTypescript) {
 
   const baseRules = {
     ...eslintPlugin.configs.recommended.rules,
-    ...eslintPlugin.configs['eslint-recommended'].overrides[0].rules
+    ...eslintPlugin.configs['eslint-recommended'].overrides[0].rules,
+    ...require('eslint-config-prettier/@typescript-eslint').rules
   }
 
   const commonRules = common.rules

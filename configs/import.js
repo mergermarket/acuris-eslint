@@ -28,7 +28,7 @@ if (eslintSupport.hasEslintPluginImport) {
       'import/no-named-as-default-member': 1,
       'import/no-duplicates': 1,
       'import/no-amd': 2,
-      'import/newline-after-import': 1,
+      'import/newline-after-import': 0,
       'import/no-absolute-path': 2,
       'import/no-self-import': 2,
       'import/no-useless-path-segments': [1, { noUselessIndex: false }],
