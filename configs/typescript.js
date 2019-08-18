@@ -75,11 +75,9 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/no-misused-new': 2,
     '@typescript-eslint/no-namespace': 0,
     '@typescript-eslint/no-non-null-assertion': 0,
-    '@typescript-eslint/no-object-literal-type-assertion': 1,
     '@typescript-eslint/no-parameter-properties': 0,
     '@typescript-eslint/no-triple-slash-reference': 0,
     '@typescript-eslint/no-var-requires': 1,
-    '@typescript-eslint/prefer-interface': 1,
     '@typescript-eslint/prefer-namespace-keyword': 1,
     '@typescript-eslint/type-annotation-spacing': 1
   }
