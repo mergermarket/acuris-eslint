@@ -21,13 +21,13 @@
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
-    "package-lock.json": true,
-    "yarn.lock": true,
-    "**/.fusebox/": true,
-    "**/.dynamodb/": true,
-    "*.tsbuildinfo": true,
-    ".yarn-integrity": true,
-    ".grunt": true
+    "**/package-lock.json": true,
+    "**/yarn.lock": true,
+    "**/.fusebox/**/*": true,
+    "**/.dynamodb/**/*": true,
+    "**/*.tsbuildinfo": true,
+    "**/.yarn-integrity": true,
+    "**/.grunt": true
   },
   "files.exclude": {
     "**/.git": true,
@@ -35,8 +35,8 @@
     "**/.hg": true,
     "**/CVS": true,
     "**/.DS_Store": true,
-    ".eslintcache": true,
-    ".cache": true,
-    ".fuse_hidden*": true
+    "**/.eslintcache": true,
+    "**/.cache": true,
+    "**/.fuse_hidden*": true
   }
 }

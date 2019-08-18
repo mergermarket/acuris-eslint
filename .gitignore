@@ -3,6 +3,9 @@ yarn.lock
 
 # <@acuris/eslint-config>
 
+# Build outputs
+**/.serverless/
+
 # excluded files for security
 .npmrc
 .env
