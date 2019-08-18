@@ -52,6 +52,7 @@ if (eslintSupport.hasTypescript) {
     // TODO: this would be a useful thing, but at the moment is buggy with overloads.
     'no-dupe-class-members': 0,
 
+    '@typescript-eslint/prefer-includes': 0,
     '@typescript-eslint/adjacent-overload-signatures': 1,
     '@typescript-eslint/array-type': 1,
     '@typescript-eslint/ban-types': 1,
@@ -68,18 +69,20 @@ if (eslintSupport.hasTypescript) {
         singleline: { delimiter: 'semi', requireLast: false }
       }
     ],
-    '@typescript-eslint/no-angle-bracket-type-assertion': 0,
+    '@typescript-eslint/consistent-type-assertions': 0,
     '@typescript-eslint/no-empty-interface': 0,
     '@typescript-eslint/no-explicit-any': 0,
+    '@typescript-eslint/no-this-alias': 0,
     '@typescript-eslint/no-inferrable-types': 0,
     '@typescript-eslint/no-misused-new': 2,
     '@typescript-eslint/no-namespace': 0,
     '@typescript-eslint/no-non-null-assertion': 0,
     '@typescript-eslint/no-parameter-properties': 0,
-    '@typescript-eslint/no-triple-slash-reference': 0,
-    '@typescript-eslint/no-var-requires': 1,
+    '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/prefer-namespace-keyword': 1,
-    '@typescript-eslint/type-annotation-spacing': 1
+    '@typescript-eslint/type-annotation-spacing': 1,
+    '@typescript-eslint/triple-slash-reference': 0,
+    '@typescript-eslint/consistent-type-definitions': 0
   }
 
   module.exports = {
