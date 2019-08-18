@@ -70,6 +70,7 @@ if (eslintSupport.hasTypescript) {
       }
     ],
     '@typescript-eslint/consistent-type-assertions': 0,
+    '@typescript-eslint/no-empty-function': 0,
     '@typescript-eslint/no-empty-interface': 0,
     '@typescript-eslint/no-explicit-any': 0,
     '@typescript-eslint/no-this-alias': 0,
