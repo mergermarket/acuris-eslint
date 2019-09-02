@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const { name, version, homepage } = require('../package.json')
+const path = require('path')
+const fs = require('fs')
 
 if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   console.log(`\n  ${name} v${version}\n`)
@@ -21,4 +23,12 @@ if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
     )
   )
   console.log(text)
+
+  const eslintCachePath = path.resolve(process.cwd(), '.eslintcache')
+  if (fs.existsSync(eslintCachePath)) {
+    const clearCache = require('./commands/clear-cache')
+    clearCache({
+      cacheLocation: '.eslintcache'
+    })
+  }
 }
