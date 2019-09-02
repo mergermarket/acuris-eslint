@@ -169,6 +169,7 @@ function semverToVersion(version) {
   if (typeof version !== 'string') {
     return null
   }
+
   version = version.trim()
   if (version.length === 0) {
     return null
@@ -203,6 +204,9 @@ function semverToVersion(version) {
   let minVer
   try {
     minVer = semver.minVersion(version, { includePrerelease: true, loose: true })
+    if (minVer.raw !== version && minVer.raw === '0.0.0') {
+      minVer = undefined
+    }
   } catch (_error) {}
 
   const parsed = minVer || semver.parse(version, { loose: true, includePrerelease: true }) || semver.coerce(version)

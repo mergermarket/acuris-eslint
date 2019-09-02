@@ -2,6 +2,7 @@
 yarn.lock
 
 # <@acuris/eslint-config>
+
 # You can disable patterns by prepending # without any space. For example #.npmrc
 
 # excluded files for security
@@ -16,7 +17,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 typings
 bower_components
 node_modules
-bower_components
 jspm_packages
 
 # Build outputs
@@ -41,7 +41,6 @@ lerna-debug.log*
 .fusebox
 .dynamodb
 *.tsbuildinfo
-.cache
 .npm
 .eslintcache
 .node_repl_history
@@ -90,3 +89,5 @@ $RECYCLE.BIN/
 !**/yarn-packages-cache/*.tgz
 
 # </@acuris/eslint-config>
+
+.elintcache
