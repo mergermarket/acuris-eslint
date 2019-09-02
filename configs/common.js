@@ -74,7 +74,7 @@ module.exports = {
     'no-console': 1,
     'no-const-assign': 2,
     'no-constant-condition': 1,
-    'no-control-regex': 2,
+    'no-control-regex': 0,
     'no-debugger': 1,
     'no-dupe-args': 2,
     'no-dupe-class-members': 2,
@@ -252,4 +252,6 @@ module.exports = {
 
 if (eslintSupport.hasBabelEslintParser) {
   module.exports.parser = 'babel-eslint'
+
+  module.exports.parserOptions.requireConfigFile = false
 }

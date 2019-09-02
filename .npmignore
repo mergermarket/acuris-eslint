@@ -1,19 +1,17 @@
 # <@acuris/eslint-config>
 
-# Dependency directories
-**/yarn-packages-cache/
-
-# Cache and lockfiles
-.fusebox/
-.dynamodb/
-
 # excluded files for security
 .npmrc
 .env
 .env.test
 
 # test
-test/
+**/test/
+**/tests/
+**/spec/
+**/specs/
+**/__spec__/
+**/__specs__/
 
 # CI
 CI/
@@ -26,16 +24,19 @@ Jenkinsfile
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Dependency directories
-typings/
+typings
 bower_components
-**/node_modules/
-**/bower_components/
-**/jspm_packages/
+node_modules
+bower_components
+jspm_packages
+yarn-packages-cache
 
 # Build outputs
-.serverless/
+.serverless
 build/Release
+build/Debug
 *.tgz
+*.tmp-browserify-*
 ipch
 config.gypi
 CVS
@@ -51,9 +52,10 @@ lerna-debug.log*
 # Cache and lockfiles
 .cache
 .fuse_hidden*
-**/.fusebox/
-**/.dynamodb/
+.fusebox
+.dynamodb
 *.tsbuildinfo
+.cache
 .npm
 .eslintcache
 .node_repl_history
@@ -72,8 +74,8 @@ coverage
 *.lcov
 
 # IDEs and OS
-.idea/
-.vscode/
+.idea
+.vscode
 .DS_Store
 .DocumentRevisions-V100
 .fseventsd
@@ -96,12 +98,7 @@ ehthumbs.db
 ehthumbs_vista.db
 *.stackdump
 [Dd]esktop.ini
-$RECYCLE.BIN/
+$RECYCLE.BIN
 *.lnk
-
-# overrides
-
-!.vscode/*.json
-README-INTERNAL.md
 
 # </@acuris/eslint-config>

@@ -36,7 +36,7 @@ class EslintSupport {
 
     this.hasEslintPluginNode = hasLocalPackage('eslint-plugin-node')
 
-    this.hasBabelEslintParser = hasLocalPackage('babel-eslint')
+    this.hasBabelEslintParser = hasLocalPackage('babel-eslint') && hasLocalPackage('@babel/core')
 
     this.hasEslintPluginReact = hasLocalPackage('eslint-plugin-react')
 

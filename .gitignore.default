@@ -10,20 +10,19 @@
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Dependency directories
-typings/
+typings
 bower_components
-**/node_modules/
-**/bower_components/
-**/jspm_packages/
+node_modules
+bower_components
+jspm_packages
 
 # Build outputs
-**/.serverless/
+.serverless
 build/Release
+build/Debug
 *.tgz
+*.tmp-browserify-*
 ipch
-
-# some projects still requires yarn-packages-cache to be published
-!**/yarn-packages-cache/*.tgz
 
 # logs
 logs
@@ -36,8 +35,8 @@ lerna-debug.log*
 # Cache and lockfiles
 .cache
 .fuse_hidden*
-**/.fusebox/
-**/.dynamodb/
+.fusebox
+.dynamodb
 *.tsbuildinfo
 .cache
 .npm
@@ -81,7 +80,10 @@ ehthumbs.db
 ehthumbs_vista.db
 *.stackdump
 [Dd]esktop.ini
-$RECYCLE.BIN/
+$RECYCLE.BIN
 *.lnk
+
+# some projects still requires yarn-packages-cache to be published
+!**/yarn-packages-cache/*.tgz
 
 # </@acuris/eslint-config>

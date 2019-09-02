@@ -1,17 +1,17 @@
 # <@acuris/eslint-config>
 
 # Dependencies and vendor
-vendor/
-typings/
-node_modules/
-bower_components/
-jspm_packages/
+vendor
+typings
+node_modules
+bower_components
+jspm_packages
 package-lock.json
 
 # Build outputs
 bundle.js
 *.bundle.js
-.serverless/
+.serverless
 build/Release
 *.min.js
 *.min.json
@@ -19,8 +19,9 @@ build/Release
 # Cache
 .cache
 .fuse_hidden*
-.fusebox/
-.dynamodb/
+.temp
+.fusebox
+.dynamodb
 
 # Test coverage and snapshots
 lib-cov

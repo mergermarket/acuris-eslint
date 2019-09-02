@@ -149,7 +149,7 @@ async function initEslintrc(packageJsonEslintConfig) {
   notes.shouldRestartIde = !!eslintConfigUpdateResult
   notes.eslintConfigUpdated = eslintConfigUpdateResult === 'updated'
 
-  if (eslintConfigUpdateResult) {
+  if (eslintConfigUpdateResult && extendsToRemove.length !== 0) {
     emitNote(
       `Removed ${extendsToRemove.map(x => chalk.yellow(x)).join(',')} from eslint configuration. ${chalk.gray(
         'Check your package.json to remove unused packages.'

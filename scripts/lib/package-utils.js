@@ -45,12 +45,16 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
     addObjectKeysToSet(result, referencePackageJson.peerDependencies)
 
     if (
-      manifest.babel ||
       hasDep('@babel/runtime') ||
+      hasDep('@babel/core') ||
+      hasDep('babel-eslint') ||
+      manifest.babel ||
       fileExists(path.resolve(cwd, '.babelrc')) ||
       fileExists(path.resolve(cwd, '.babelrc.js'))
     ) {
       result.add('babel-eslint')
+      result.add('@babel/runtime')
+      result.add('@babel/core')
     }
 
     if (manifest.husky || hasDep('husky')) {
