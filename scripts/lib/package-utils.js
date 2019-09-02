@@ -193,7 +193,8 @@ function semverToVersion(version) {
     if (indexOfLt >= 0) {
       v = v.slice(0, indexOfLt)
     }
-    const found = semver.parse(v, { loose: true })
+    const found = semver.parse(v, { loose: true, includePrerelease: true })
+
     if (found && found.version) {
       return found.version
     }
@@ -201,10 +202,10 @@ function semverToVersion(version) {
 
   let minVer
   try {
-    semver.minVersion(version, { includePrerelease: true, loose: true })
+    minVer = semver.minVersion(version, { includePrerelease: true, loose: true })
   } catch (_error) {}
 
-  const parsed = minVer || semver.parse(version, { loose: true }) || semver.coerce(version)
+  const parsed = minVer || semver.parse(version, { loose: true, includePrerelease: true }) || semver.coerce(version)
 
   return parsed && parsed.version
 }
@@ -231,7 +232,7 @@ function getMaxSemver(version, range) {
     const r = semverToVersion(range) || range
     if (typeof version === 'string') {
       try {
-        if (semver.ltr(version, r, true)) {
+        if (semver.ltr(version, r, { includePrerelease: true, loose: true })) {
           version = r
         }
       } catch (_error) {}
@@ -294,7 +295,7 @@ function addDevDependencies(projectPackageJson, listOfDependenciesToAdd) {
       continue
     }
 
-    if (semver.parse(v)) {
+    if (semver.parse(v, { includePrerelease: true })) {
       v = `^${v}`
     }
 
@@ -326,12 +327,12 @@ function checkInstalledPackageVersion(version, expectedVersion) {
   }
   if (expectedVersion.length !== 0) {
     try {
-      if (semver.ltr(version, expectedVersion)) {
+      if (semver.ltr(version, expectedVersion, { includePrerelease: true })) {
         return false
       }
     } catch (_error) {}
     try {
-      if (semver.ltr(semverToVersion(version), semverToVersion(expectedVersion))) {
+      if (semver.ltr(semverToVersion(version), semverToVersion(expectedVersion), { includePrerelease: true })) {
         return false
       }
     } catch (_error) {}
