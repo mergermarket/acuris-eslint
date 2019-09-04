@@ -8,7 +8,7 @@ const { emitWarning, emitSection } = require('../lib/notes')
 const path = require('path')
 const { askConfirmation } = require('../lib/inquire')
 const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
-const { reloadNodeResolvePaths } = require('../../core/node-modules')
+const { reloadNodeResolvePaths, hasLocalPackage } = require('../../core/node-modules')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const {
   getPackageJsonPath,
@@ -134,8 +134,15 @@ module.exports = async options => {
           }
         }
 
+        const hasDependency = name =>
+          !!((pkg.devDependencies && pkg.devDependencies[name]) || (pkg.dependencies && pkg.dependencies[name]))
+
         let neededDependencies = getNeededDependencies(pkg)
-        if (canAsk && !neededDependencies.has('typescript')) {
+        if (
+          canAsk &&
+          !neededDependencies.has('typescript') &&
+          (!hasDependency('typescript') && !hasLocalPackage('typescript'))
+        ) {
           if (await askConfirmation(`Would you like to add ${chalk.cyanBright('typescript')} support?`)) {
             neededDependencies.add('typescript')
             addDevDependencies(pkg, neededDependencies)
@@ -144,15 +151,12 @@ module.exports = async options => {
         }
         addDevDependencies(pkg, neededDependencies)
 
-        if (
-          (pkg.devDependencies && pkg.devDependencies[referencePackageJson.name]) ||
-          (pkg.dependencies && pkg.dependencies[referencePackageJson.name])
-        ) {
+        if (hasDependency(referencePackageJson.name)) {
           if (!pkg.scripts) {
             pkg.scripts = {}
           }
           if (pkg.scripts['acuris-eslint'] === undefined) {
-            pkg.scripts['acuris-eslint'] = 'acuris-eslint'
+            pkg.scripts['acuris-eslint'] = 'npx acuris-eslint'
           }
         }
 
