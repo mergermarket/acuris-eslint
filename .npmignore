@@ -75,7 +75,7 @@ coverage
 
 # IDEs and OS
 .idea
-.vscode
+#.vscode
 .DS_Store
 .DocumentRevisions-V100
 .fseventsd
