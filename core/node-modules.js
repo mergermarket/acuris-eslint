@@ -33,6 +33,9 @@ exports.legacyNodeModulePaths = legacyNodeModulePaths
 let _eslintPath
 
 /** @type {Set<string>} */
+const _resolvePackageNames = new Set()
+
+/** @type {Set<string>} */
 const _resolvePaths = new Set()
 
 /** @type {Map<string, 0|1|2>} */
@@ -310,7 +313,14 @@ function reloadNodeResolvePaths() {
 
   addNodeResolvePath(resolvePackageFolder('eslint'))
   addNodeResolvePath(resolvePackageFolder('eslint-plugin-quick-prettier'))
-  addNodeResolvePath(resolvePackageFolder('acuris-shared-component-tools'))
+
+  const sharedComponentToolsPath = resolvePackageFolder('acuris-shared-component-tools')
+  if (sharedComponentToolsPath) {
+    addNodeResolvePath(sharedComponentToolsPath)
+    for (const relative of _resolvePackageNames) {
+      addNodeResolvePath(path.join(sharedComponentToolsPath, 'node_modules', relative))
+    }
+  }
 
   for (const p of legacyNodeModulePaths(path.dirname(process.cwd()))) {
     addNodeResolvePath(p)
@@ -336,18 +346,57 @@ function reloadNodeResolvePaths() {
     return found
   }
 
+  function getPackageNameFromFolder(folder) {
+    if (typeof folder !== 'string' || folder.length === 0) {
+      return undefined
+    }
+    if (folder.endsWith(path.sep)) {
+      folder = folder.slice(0, folder.length - 1)
+    }
+    if (folder.endsWith(`${path.sep}node_modules`)) {
+      folder = path.dirname(folder)
+    }
+
+    const result = path.basename(folder)
+    if (!result || result.startsWith('@')) {
+      return undefined
+    }
+
+    const parentName = path.basename(path.dirname(folder))
+    if (parentName && parentName.startsWith('@')) {
+      return `${parentName}/${result}`
+    }
+
+    return result
+  }
+
   function addNodeResolvePath(folder) {
     if (typeof folder !== 'string') {
       return
     }
 
     folder = path.resolve(folder)
+
+    if (!folder) {
+      return
+    }
+
+    let baseName = path.basename(folder)
+    if (baseName.startsWith('@') && baseName.includes('node_modules')) {
+      baseName = path.dirname(baseName)
+    }
+
     if (path.basename(folder) !== 'node_modules') {
       folder = path.join(folder, 'node_modules')
     }
 
     if (_resolvePaths.has(folder)) {
       return
+    }
+
+    const packageName = getPackageNameFromFolder(folder)
+    if (packageName) {
+      _resolvePackageNames.add(packageName)
     }
 
     if (directoryExists(folder)) {
