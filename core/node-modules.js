@@ -342,7 +342,7 @@ function reloadNodeResolvePaths() {
     }
 
     folder = path.resolve(folder)
-    if (!path.basename(folder) !== 'node_modules') {
+    if (path.basename(folder) !== 'node_modules') {
       folder = path.join(folder, 'node_modules')
     }
 

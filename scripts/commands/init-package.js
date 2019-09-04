@@ -48,7 +48,8 @@ module.exports = async options => {
   if (packagesToInstall.length > 0) {
     console.log(chalk.cyan('\n  Packages are missing...'), chalk.gray(packagesToInstall.join(' ')))
     if (!process.env.ACURIS_ESLINT_RUN_ASYNC) {
-      if (getPackageManager() === 'yarn') {
+      const packageManager = getPackageManager()
+      if (packageManager === 'yarn') {
         if (await askConfirmation(`Can i run ${chalk.yellowBright('yarn')}?`)) {
           await runAsync('yarn', [])
         }

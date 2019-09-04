@@ -250,6 +250,7 @@ async function updateTextFileAsync({
       try {
         source = fs.readFileSync(f)
         exists = true
+        targetPath = f
         break
       } catch (error) {
         const code = error && error.code
@@ -267,6 +268,8 @@ async function updateTextFileAsync({
 
     if (throwIfNotFound) {
       fs.statSync(targetPath)
+    } else if (fs.existsSync(targetPath)) {
+      exists = true
     }
   }
 

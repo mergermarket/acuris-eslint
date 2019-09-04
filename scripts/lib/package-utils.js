@@ -461,12 +461,12 @@ function getPackageManager(cwd = path.dirname(getPackageJsonPath())) {
     packageLockDate = stats.isFile() && stats.mtimeMs
   } catch (_error) {}
 
-  if (yarnDate > packageLockDate) {
-    return 'yarn'
-  }
-
   if (packageLockDate > yarnDate) {
     return 'npm'
+  }
+
+  if (yarnDate > packageLockDate) {
+    return 'yarn'
   }
 
   return undefined
