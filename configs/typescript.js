@@ -86,6 +86,10 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/consistent-type-definitions': 0
   }
 
+  if (eslintSupport.hasEslintPluginReact) {
+    tsRules['react/prop-types'] = 0
+  }
+
   module.exports = {
     overrides: [
       {
