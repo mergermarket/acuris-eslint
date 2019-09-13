@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "eslint-config-prettier": "^6.2.0",
+    "eslint-config-prettier": "^6.3.0",
     "eslint-plugin-quick-prettier": "^0.0.26",
     "hjson": "^3.1.2",
     "inquirer": "^6.4.1",
@@ -63,7 +63,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/runtime": "^7.6.0",
-    "@types/node": "^12.7.4",
+    "@types/node": "^12.7.5",
     "@typescript-eslint/eslint-plugin": "^2.2.0",
     "@typescript-eslint/parser": "^2.2.0",
     "babel-eslint": "^10.0.3",
@@ -76,7 +76,7 @@
     "eslint-plugin-jest": "^22.17.0",
     "eslint-plugin-json": "^1.4.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-mocha": "^6.1.0",
+    "eslint-plugin-mocha": "^6.1.1",
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.14.3",
@@ -86,6 +86,6 @@
     "mocha": "^6.2.0",
     "mock-fs": "^4.10.1",
     "prettier": "^1.18.2",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.3"
   }
 }
