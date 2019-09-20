@@ -45,7 +45,7 @@ module.exports = async options => {
         filePath: resolveProjectFile('.gitignore'),
         async content(previousContent) {
           const target = new IgnoreFile(previousContent)
-          target.merge(new IgnoreFile('.elintcache'), false)
+          target.merge(new IgnoreFile('.eslintcache'), false)
           if (!target.changed) {
             return undefined
           }
