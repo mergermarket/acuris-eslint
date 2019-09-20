@@ -177,7 +177,7 @@ module.exports = {
         args: 'after-used',
         ignoreRestSiblings: true,
         vars: 'all',
-        argsIgnorePattern: '^_',
+        argsIgnorePattern: '(^_)|(^react$)|(^req$)|(^res$)|(^next$)',
         caughtErrorsIgnorePattern: '(^_)|(^react$)'
       }
     ],
