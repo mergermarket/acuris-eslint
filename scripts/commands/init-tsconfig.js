@@ -20,25 +20,17 @@ module.exports = async () => {
           return settings
         }
 
-        if (typeof settings.extends === 'string') {
-          settings.extends = settings.extends.length ? [settings.extends] : []
-        } else if (settings.extends === undefined || settings.extends === null) {
-          settings.extends = []
+        if (settings.extends && settings.extends !== packageName) {
+          emitImportant(
+            chalk.yellowBright(
+              `tsconfig.json already extends ${JSON.stringify(settings.extends)} instead of "${packageName}".`
+            )
+          )
+          return settings
         }
 
-        if (!Array.isArray(settings.extends)) {
-          throw new TypeError(`tsconfig.json extends property must be an array but is ${typeof settings.extends}`)
-        }
+        settings.extends = packageName
 
-        let hasEslintConfig = false
-        for (const item of settings.extends) {
-          if (typeof item === 'string' && item.includes(packageName)) {
-            hasEslintConfig = true
-          }
-        }
-        if (!hasEslintConfig) {
-          settings.extends.unshift(packageName)
-        }
         return settings
       }
     })
