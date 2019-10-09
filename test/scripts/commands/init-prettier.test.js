@@ -35,7 +35,11 @@ describe('commands/init-prettier', () => {
       new IgnoreFile(prettierIgnoreDefaultContent).toStringArray()
     )
 
-    expect(JSON.parse(fs.readFileSync('.prettierrc', 'utf8'))).to.deep.include({ semi: false })
+    const text = fs.readFileSync('.prettierrc', 'utf8')
+
+    expect(JSON.parse(text)).to.deep.include({ semi: false })
+
+    expect(text).to.deep.equal(`${JSON.stringify(JSON.parse(text), null, 2)}\n`)
 
     expect(fs.readFileSync('.editorconfig', 'utf8')).to.equal('hello=1\n')
   })
@@ -57,7 +61,7 @@ describe('commands/init-prettier', () => {
     )
   })
 
-  it('updates a .gitignore', async () => {
+  it('updates a .prettierignore', async () => {
     mockFs({
       myProject: {
         '.prettierignore': '# hello world\nxxxx.js\nyyyy.js'
