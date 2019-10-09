@@ -37,9 +37,9 @@ describe('commands/init-prettier', () => {
 
     const text = fs.readFileSync('.prettierrc', 'utf8')
 
-    expect(JSON.parse(fs.readFileSync('.prettierrc', 'utf8'))).to.deep.include({ semi: false })
+    expect(JSON.parse(text)).to.deep.include({ semi: false })
 
-    expect(text).to.deep.equal(`${JSON.stringify({ semi: false }, null, 2)}\n`)
+    expect(text).to.deep.equal(`${JSON.stringify(JSON.parse(text), null, 2)}\n`)
 
     expect(fs.readFileSync('.editorconfig', 'utf8')).to.equal('hello=1\n')
   })
