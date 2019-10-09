@@ -136,6 +136,7 @@ function stringify(obj, format, filename = null) {
       result = hjson.stringify(obj, {
         emitRootBraces: true,
         bracesSameLine: true,
+        colors: false,
         separator: true,
         quotes: 'all',
         multiline: 'std',

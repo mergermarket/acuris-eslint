@@ -54,7 +54,7 @@
     "chalk": "^2.4.2",
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-quick-prettier": "^0.0.26",
-    "hjson": "^3.2.0",
+    "hjson": "3.1.2",
     "inquirer": "^6.4.1",
     "mkdirp": "^0.5.1",
     "optionator": "^0.8.2",
