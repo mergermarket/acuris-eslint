@@ -8,10 +8,15 @@ let testOverrides = {
     '*.spec.*',
     '**/test/**/*',
     '**/tests/**/*',
-    '**/testUtils/**/*',
+    '**/*-test/**/*',
+    '**/*-tests/**/*',
     '**/__mocks__/**/*',
     '**/__specs__/**/*',
-    '**/__tests__/**/*'
+    '**/__tests__/**/*',
+    '**/__mock__/**/*',
+    '**/__spec__/**/*',
+    '**/__test__/**/*',
+    '**/testUtils/**/*'
   ],
   env: {
     mocha: true,
