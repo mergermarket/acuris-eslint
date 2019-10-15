@@ -177,8 +177,9 @@ module.exports = {
         args: 'after-used',
         ignoreRestSiblings: true,
         vars: 'all',
-        argsIgnorePattern: '(^_)|(^react$)|(^req$)|(^res$)|(^next$)',
-        caughtErrorsIgnorePattern: '(^_)|(^react$)'
+        argsIgnorePattern: '^_|^react$|^req$|^res$|^next$',
+        varsIgnorePattern: '^React$',
+        caughtErrorsIgnorePattern: '^_|^react$'
       }
     ],
     'no-use-before-define': [
