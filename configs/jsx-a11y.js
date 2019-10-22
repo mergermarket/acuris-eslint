@@ -21,17 +21,7 @@ if (eslintSupport.hasEslintPluginJsxA11y) {
         }
       ],
       'jsx-a11y/img-redundant-alt': 'error',
-      'jsx-a11y/label-has-for': [
-        1,
-        {
-          components: [],
-          required: {
-            every: ['nesting', 'id']
-          },
-          allowChildren: false
-        }
-      ],
-      'jsx-a11y/label-has-associated-control': 0,
+      'jsx-a11y/label-has-associated-control': 2,
       'jsx-a11y/mouse-events-have-key-events': 1,
       'jsx-a11y/no-access-key': 1,
       'jsx-a11y/no-onchange': 0,
