@@ -11,6 +11,7 @@ const optionator = require('optionator')
 
 const acurisEslintCommands = {
   init: 'initialises or updates a project',
+  update: 'updates acuris-eslint and all dependencies',
   'init-eslint': 'updates or creates eslint configuration',
   'init-gitignore': 'updates or creates .gitignore',
   'init-npmignore': 'updates or creates .npmignore',
