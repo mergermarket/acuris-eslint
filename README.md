@@ -14,6 +14,14 @@ npx @acuris/eslint-config@latest --init
 
 This will start an interactive initialisation script that will setup everything you need, including packages installation.
 
+# update @acuris/eslint-config
+
+Once installed, you can update to the latest version (including dependencies) executing
+
+```sh
+npx acuris-eslint --update
+```
+
 # lint your entire project
 
 You can lint your entire project running
