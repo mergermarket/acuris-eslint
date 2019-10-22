@@ -17,6 +17,7 @@ if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   Run ${chalk.yellow('acuris-eslint')} ${chalk.yellowBright('--help')} to get help.
   Run ${chalk.yellow('acuris-eslint')} ${chalk.yellowBright('--commands')} to list available commands.
   Run ${chalk.yellow('acuris-eslint')} ${chalk.yellowBright('--init')} to initialise a project.
+  Run ${chalk.yellow('acuris-eslint')} ${chalk.yellowBright('--update')} to update acuris-eslint and all dependencies.
 
   ${chalk.blue(homepage)}
   `
