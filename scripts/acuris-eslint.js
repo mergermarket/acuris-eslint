@@ -5,8 +5,6 @@
 const path = require('path')
 const fs = require('fs')
 
-const { defineProperty } = Reflect
-
 let debugEnabled = false
 
 // This must execute before everything else.
@@ -36,6 +34,10 @@ const eslintPath = getEslintPath()
 const programName = path.basename(process.argv[1], '.js')
 
 const chalk = require('chalk')
+
+if (!chalk.default) {
+  chalk.default = chalk
+}
 
 const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${chalk.blueBright(`v${packageVersion}`)}`
 
@@ -176,10 +178,10 @@ function printEslintResults(engine, results, format, outputFile) {
   }
 
   const rulesMetaProvider = {}
-  defineProperty(rulesMetaProvider, 'rulesMeta', {
+  Reflect.defineProperty(rulesMetaProvider, 'rulesMeta', {
     get() {
       const value = {}
-      defineProperty(this, 'rulesMeta', { value })
+      Reflect.defineProperty(this, 'rulesMeta', { value })
       for (const [k, rule] of engine.getRules()) {
         value[k] = rule.meta
       }
