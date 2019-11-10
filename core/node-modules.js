@@ -267,6 +267,34 @@ function eslintRequire(id) {
 
 eslintRequire.resolve = eslintResolve
 
+eslintRequire.update = function update(name) {
+  const id = eslintRequire.resolve(name)
+  if (!(id in require.cache)) {
+    const resolved = require.resolve(name)
+    if (id !== resolved) {
+      Object.defineProperty(require.cache, id, {
+        get() {
+          const m = new Module(id)
+          m.filename = id
+          m.exports = require(name)
+          this[id] = m
+          return m
+        },
+        set(value) {
+          Object.defineProperty(this, id, {
+            value,
+            configurable: true,
+            enumerable: true,
+            writable: true
+          })
+        },
+        configurable: true,
+        enumerable: true
+      })
+    }
+  }
+}
+
 exports.eslintRequire = eslintRequire
 
 function resolvePackageFolder(packageName) {

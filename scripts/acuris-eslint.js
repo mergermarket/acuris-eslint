@@ -5,33 +5,9 @@
 const path = require('path')
 const fs = require('fs')
 
+const { defineProperty } = Reflect
+
 let debugEnabled = false
-
-function preinit() {
-  const indexOfCwdOption = process.argv.indexOf('--cwd')
-  if (indexOfCwdOption > 1) {
-    process.chdir(process.argv[indexOfCwdOption + 1])
-  }
-  let cwdDir = null
-
-  const argv = process.argv
-  for (let i = 0, len = argv.length; i !== len; ++i) {
-    const arg = argv[i]
-    if (arg.startsWith('--cwd=')) {
-      cwdDir = arg.slice('--cwd='.length).trim()
-    } else if (arg === '--cwd') {
-      cwdDir = (process.argv[i + 1] || '').trim()
-    } else if (arg === '--debug') {
-      debugEnabled = true
-    } else if (arg === '--no-debug') {
-      debugEnabled = false
-    }
-  }
-
-  if (cwdDir) {
-    process.chdir(cwdDir)
-  }
-}
 
 // This must execute before everything else.
 preinit()
@@ -42,6 +18,8 @@ const {
   getEslintVersion,
   getMinimumSupportedEslintVersion
 } = require('../core/node-modules')
+
+eslintRequire.update('chalk', 'semver', 'inquirer', 'optionator', 'v8-compile-cache')
 
 try {
   eslintRequire('v8-compile-cache')
@@ -54,9 +32,10 @@ if (debugEnabled) {
 const { version: packageVersion } = require('../package.json')
 
 const eslintPath = getEslintPath()
-const chalk = require('chalk')
 
 const programName = path.basename(process.argv[1], '.js')
+
+const chalk = require('chalk')
 
 const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${chalk.blueBright(`v${packageVersion}`)}`
 
@@ -197,10 +176,10 @@ function printEslintResults(engine, results, format, outputFile) {
   }
 
   const rulesMetaProvider = {}
-  Object.defineProperty(rulesMetaProvider, 'rulesMeta', {
+  defineProperty(rulesMetaProvider, 'rulesMeta', {
     get() {
       const value = {}
-      Object.defineProperty(this, 'rulesMeta', { value })
+      defineProperty(this, 'rulesMeta', { value })
       for (const [k, rule] of engine.getRules()) {
         value[k] = rule.meta
       }
@@ -257,5 +236,31 @@ function handleEslintError(error) {
 
   if (!process.exitCode) {
     process.exitCode = 2
+  }
+}
+
+function preinit() {
+  const indexOfCwdOption = process.argv.indexOf('--cwd')
+  if (indexOfCwdOption > 1) {
+    process.chdir(process.argv[indexOfCwdOption + 1])
+  }
+  let cwdDir = null
+
+  const argv = process.argv
+  for (let i = 0, len = argv.length; i !== len; ++i) {
+    const arg = argv[i]
+    if (arg.startsWith('--cwd=')) {
+      cwdDir = arg.slice('--cwd='.length).trim()
+    } else if (arg === '--cwd') {
+      cwdDir = (process.argv[i + 1] || '').trim()
+    } else if (arg === '--debug') {
+      debugEnabled = true
+    } else if (arg === '--no-debug') {
+      debugEnabled = false
+    }
+  }
+
+  if (cwdDir) {
+    process.chdir(cwdDir)
   }
 }
