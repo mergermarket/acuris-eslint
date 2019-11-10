@@ -5,7 +5,7 @@ const {
   jsonUtils: { sortObjectKeys }
 } = require('../../core/node-modules')
 const { askConfirmation } = require('../lib/inquire')
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const fs = require('fs')
 const util = require('util')
 const { resolveProjectFile, resolveAcurisEslintFile, fileExists } = require('../lib/fs-utils')

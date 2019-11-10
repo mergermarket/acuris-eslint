@@ -1,6 +1,6 @@
 'use strict'
 
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const { notes, emitImportant } = require('../lib/notes')

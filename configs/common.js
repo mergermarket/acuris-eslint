@@ -246,7 +246,7 @@ module.exports = {
     ],
     'valid-jsdoc': 0,
     'valid-typeof': 2,
-    'vars-on-top': 1,
+    'vars-on-top': 0,
     yoda: 2
   }
 }

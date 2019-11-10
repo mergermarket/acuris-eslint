@@ -1,4 +1,4 @@
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const path = require('path')
 const { findUp, fileExists, directoryExists, resolveProjectFile } = require('./fs-utils')
 const { readProjectPackageJson, getPackagesToInstall, getPackageJsonPath } = require('./package-utils')

@@ -8,7 +8,7 @@ const mkdirp = require('mkdirp')
 const hjson = require('hjson')
 const fs = require('fs')
 const path = require('path')
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const inquire = require('./inquire')
 
 function parse(source, format, filename) {

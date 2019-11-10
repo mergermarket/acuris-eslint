@@ -3,7 +3,7 @@
 const path = require('path')
 const { eslintRequire } = require('../../core/node-modules')
 const eslintSupport = require('../../core/eslint-support')
-const chalk = require('chalk').default
+const chalk = require('chalk')
 
 const programName = path.basename(process.argv[1], '.js')
 

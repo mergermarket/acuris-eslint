@@ -9,7 +9,8 @@ if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
 } else {
   require('./lib/logo').printLogo()
 
-  const chalk = require('chalk').default
+  const chalk = require('chalk')
+
   const text = chalk.reset(
     chalk.gray(
       `${chalk.cyan(name)} ${chalk.blueBright(`v${version}`)}

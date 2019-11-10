@@ -1,6 +1,6 @@
 'use strict'
 
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const fs = require('fs')
 const eslintSupport = require('../../core/eslint-support')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')

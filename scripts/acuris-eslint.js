@@ -54,7 +54,7 @@ if (debugEnabled) {
 const { version: packageVersion } = require('../package.json')
 
 const eslintPath = getEslintPath()
-const chalk = require('chalk').default
+const chalk = require('chalk')
 
 const programName = path.basename(process.argv[1], '.js')
 
@@ -62,7 +62,7 @@ const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${ch
 
 console.time(appTitle)
 
-if (chalk.enabled && chalk.supportsColor.hasBasic) {
+if (chalk.level >= 1) {
   require('util').inspect.defaultOptions.colors = true
 }
 

@@ -1,5 +1,5 @@
 const { flushNotes } = require('./notes')
-const chalk = require('chalk').default
+const chalk = require('chalk')
 
 function runCommand(options, appTitle) {
   if (options.commandName.startsWith('init')) {

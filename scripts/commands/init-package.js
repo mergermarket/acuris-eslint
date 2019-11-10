@@ -2,7 +2,7 @@
 
 const referencePackageJson = require('../../package.json')
 
-const chalk = require('chalk').default
+const chalk = require('chalk')
 const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
@@ -141,7 +141,8 @@ module.exports = async options => {
         if (
           canAsk &&
           !neededDependencies.has('typescript') &&
-          (!hasDependency('typescript') && !hasLocalPackage('typescript'))
+          !hasDependency('typescript') &&
+          !hasLocalPackage('typescript')
         ) {
           if (await askConfirmation(`Would you like to add ${chalk.cyanBright('typescript')} support?`)) {
             neededDependencies.add('typescript')

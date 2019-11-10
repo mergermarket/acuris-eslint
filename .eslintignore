@@ -13,8 +13,9 @@ bundle.js
 *.bundle.js
 .serverless
 build/Release
-*.min.js
-*.min.json
+*.min.*
+*-min.*
+
 
 # Cache
 .cache

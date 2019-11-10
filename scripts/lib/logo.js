@@ -1,4 +1,4 @@
-const chalk = require('chalk').default
+const chalk = require('chalk')
 
 const os = require('os')
 
@@ -31,7 +31,7 @@ const logo = chalk.reset(
 module.exports = {
   logo,
   printLogo() {
-    if (!('CI' in process.env) && hasUnicode && chalk.enabled) {
+    if (!('CI' in process.env) && hasUnicode && chalk.level >= 2) {
       process.stdout.write(logo)
     }
   }
