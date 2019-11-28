@@ -1,4 +1,4 @@
-require('chai/register-expect')
+const { expect } = require('chai')
 
 const IgnoreFile = require('../../../scripts/lib/IgnoreFile')
 

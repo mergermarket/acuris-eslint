@@ -2,6 +2,10 @@
 
 const eslintSupport = require('../core/eslint-support')
 
+const env = {}
+
+const overrides = []
+
 let testOverrides = {
   files: [
     '*.test.*',
@@ -18,10 +22,7 @@ let testOverrides = {
     '**/__test__/**/*',
     '**/testUtils/**/*'
   ],
-  env: {
-    mocha: true,
-    jest: true
-  },
+  env,
   rules: {
     'global-require': 0,
     ...(eslintSupport.hasEslintPluginNode && {
@@ -33,6 +34,7 @@ let testOverrides = {
 }
 
 if (eslintSupport.hasEslintPluginJest) {
+  env.jest = true
   const eslintPluginJestConfigs = require('eslint-plugin-jest').configs
 
   testOverrides = eslintSupport.mergeEslintConfigs(
@@ -41,6 +43,7 @@ if (eslintSupport.hasEslintPluginJest) {
     eslintPluginJestConfigs.style,
     {
       plugins: ['jest'],
+      env,
       rules: {
         'jestno-jasmine-globals': 0,
         'jest/no-jest-import': 0,
@@ -53,18 +56,29 @@ if (eslintSupport.hasEslintPluginJest) {
         'jest/prefer-to-be-null': 1,
         'jest/prefer-to-be-undefined': 1,
         'jest/prefer-to-contain': 1,
-        'jest/no-test-callback': 1,
-        'jest/no-empty-title': 1
+        'jest/no-test-callback': 1
       }
     }
   )
+
+  testOverrides.files.push('*-jest-*.*')
+
+  overrides.push({
+    files: ['*-jest-*.*'],
+    rules: {
+      'no-console': 0
+    }
+  })
 }
 
 if (eslintSupport.hasEslintPluginMocha) {
+  env.mocha = true
+
   const eslintPluginMochaConfigs = require('eslint-plugin-mocha').configs
 
   testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, eslintPluginMochaConfigs.recommended, {
     plugins: ['mocha'],
+    env,
     rules: {
       'no-unused-expressions': 0, // for chai
 
@@ -103,6 +117,8 @@ if (eslintSupport.hasEslintPluginChaiExpect) {
   })
 }
 
+overrides.push(testOverrides)
+
 module.exports = {
-  overrides: [testOverrides]
+  overrides
 }

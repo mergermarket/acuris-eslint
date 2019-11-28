@@ -1,4 +1,5 @@
 const eslintSupport = require('../../core/eslint-support')
+const { expect } = require('chai')
 
 describe('core/eslint-support', () => {
   it('contains all packages for @acuris/eslint-config dev configuration', () => {

@@ -9,7 +9,7 @@ const {
   isPackageInstalled,
   getPackagesToInstall
 } = require('../../../scripts/lib/package-utils')
-require('chai/register-expect')
+const { expect } = require('chai')
 
 describe('package-utils', () => {
   describe('sanitisePackageJson', () => {

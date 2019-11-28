@@ -1,4 +1,5 @@
 const { prettierInterface } = require('../../core/node-modules')
+const { expect } = require('chai')
 
 describe('core/prettierInterface', () => {
   describe('loadDefaultPrettierConfig', () => {

@@ -4,6 +4,7 @@ const fs = require('fs')
 const fsUtils = require('../../../scripts/lib/fs-utils')
 
 const initPrettier = require('../../../scripts/commands/init-prettier')
+const { expect } = require('chai')
 
 describe('commands/init-prettier', () => {
   let originalCwd

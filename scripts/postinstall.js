@@ -26,7 +26,7 @@ if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   )
   console.log(text)
 
-  const eslintCachePath = path.resolve(process.cwd(), '.eslintcache')
+  const eslintCachePath = path.resolve(process.env.INIT_CWD || process.cwd(), '.eslintcache')
   if (fs.existsSync(eslintCachePath)) {
     const clearCache = require('./commands/clear-cache')
     clearCache({

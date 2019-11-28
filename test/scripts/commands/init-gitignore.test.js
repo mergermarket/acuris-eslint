@@ -2,6 +2,7 @@ const IgnoreFile = require('../../../scripts/lib/IgnoreFile')
 const mockFs = require('mock-fs')
 const fs = require('fs')
 const fsUtils = require('../../../scripts/lib/fs-utils')
+const { expect } = require('chai')
 
 const initGitignore = require('../../../scripts/commands/init-gitignore')
 
