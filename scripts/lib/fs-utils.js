@@ -18,6 +18,33 @@ function resolveProjectFile(...parts) {
 
 exports.resolveProjectFile = resolveProjectFile
 
+function mkdirSync(p) {
+  p = path.resolve(p)
+  if (p === '/' || path.dirname(p) === p) {
+    return
+  }
+
+  try {
+    fs.mkdirSync(p, 511 & ~process.umask())
+  } catch (err0) {
+    if (err0 && err0.code === 'ENOENT') {
+      mkdirSync(path.dirname(p))
+      return
+    }
+    let stat
+    try {
+      stat = fs.statSync(p)
+    } catch (err1) {
+      throw err0
+    }
+    if (!stat.isDirectory()) {
+      throw err0
+    }
+  }
+}
+
+exports.mkdirSync = mkdirSync
+
 class DeleteFileOrDirResult {
   constructor() {
     this.folders = 0

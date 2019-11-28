@@ -8,7 +8,8 @@ const distRules = {
   'global-require': 0,
   'no-func-assign': 0,
   'no-unused-expressions': 0,
-  'no-sequences': 0
+  'no-sequences': 0,
+  'no-prototype-builtins': 0
 }
 
 if (eslintSupport.hasEslintPluginNode) {
@@ -19,7 +20,7 @@ if (eslintSupport.hasEslintPluginNode) {
 module.exports = {
   overrides: [
     {
-      files: ['**/dist/**/*', '**/_dist/**/*', '**/out/**/*', '**/_out/**/*'],
+      files: ['**/dist/**/*', '**/out/**/*', '**/_dist/**/*', '**/_out/**/*', '**/.dist/**/*', '**/.out/**/*'],
       rules: distRules
     }
   ]

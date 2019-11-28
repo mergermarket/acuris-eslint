@@ -4,7 +4,7 @@ const {
   prettierInterface,
   jsonUtils: { jsonEqual, sortPackageJson }
 } = require('../../core/node-modules')
-const mkdirp = require('mkdirp')
+const { mkdirSync } = require('./fs-utils')
 const hjson = require('hjson')
 const fs = require('fs')
 const path = require('path')
@@ -301,7 +301,7 @@ async function updateTextFileAsync({
 
   if (shouldUpdate) {
     try {
-      mkdirp.sync(path.dirname(targetPath))
+      mkdirSync(path.dirname(targetPath))
 
       fs.writeFileSync(targetPath, stringify(content, format, targetPath), { encoding: 'utf8' })
 

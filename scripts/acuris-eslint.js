@@ -203,7 +203,7 @@ function printEslintResults(engine, results, format, outputFile) {
     }
 
     try {
-      require('mkdirp').sync(path.dirname(filePath))
+      require('./lib/fs-utils').mkdirSync(path.dirname(filePath))
       fs.writeFileSync(filePath, output)
     } catch (ex) {
       console.error(chalk.redBright('There was a problem writing the output file:\n%s'), ex)

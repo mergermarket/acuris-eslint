@@ -264,26 +264,32 @@ function extendOptionator(instance) {
 }
 
 function getBasicOptions() {
-  return {
-    options: [
-      { option: 'color', type: 'Boolean', alias: 'no-color', description: 'Force enabling/disabling of color' },
-      {
-        option: 'cache-file',
-        type: 'path::String',
-        description: 'Path to the cache file. Deprecated: use --cache-location'
-      },
-      { option: 'cache-location', type: 'path::String', description: 'Path to the cache file or directory' },
-      {
-        option: 'init',
-        type: 'Boolean',
-        default: 'false',
-        description: 'Run config initialization wizard'
-      },
-      { option: 'debug', type: 'Boolean', default: false, description: 'Output debugging information' },
-      { option: 'help', alias: 'h', type: 'Boolean', description: 'Show help' },
-      { option: 'commands', type: 'Boolean', description: 'Show commands help' }
-    ]
-  }
+  const options = [
+    {
+      option: 'init',
+      type: 'Boolean',
+      isCommand: true,
+      description: 'initialises or updates a project'
+    },
+    {
+      option: 'update',
+      type: 'Boolean',
+      isCommand: true,
+      description: 'updates acuris-eslint and all dependencies'
+    },
+    { option: 'color', type: 'Boolean', alias: 'no-color', description: 'Force enabling/disabling of color' },
+    {
+      option: 'cache-file',
+      type: 'path::String',
+      description: 'Path to the cache file. Deprecated: use --cache-location'
+    },
+    { option: 'cache-location', type: 'path::String', description: 'Path to the cache file or directory' },
+    { option: 'debug', type: 'Boolean', default: false, description: 'Output debugging information' },
+    { option: 'help', alias: 'h', type: 'Boolean', description: 'Show help' },
+    { option: 'commands', type: 'Boolean', description: 'Show commands help' }
+  ]
+
+  return { options }
 }
 
 function createEslintOptions() {
