@@ -140,7 +140,9 @@ if (eslintSupport.hasTypescript) {
 function mergeEslintPluginRules(baseRules, rules) {
   for (const key of Object.keys(rules)) {
     const value = rules[key]
-    if (value === 0 || value === 'off' || key.startsWith(baseKey)) {
+    if (value === 0 || value === 'off') {
+      baseRules[key] = 0
+    } else if (key.startsWith(baseKey)) {
       baseRules[key] = value
     }
   }
