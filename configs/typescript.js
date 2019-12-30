@@ -4,27 +4,48 @@ const eslintSupport = require('../core/eslint-support')
 
 const common = require('./common')
 
+const baseKey = '@typescript-eslint/'
+
 if (eslintSupport.hasTypescript) {
+  const parserOptions = {
+    ...common.parserOptions
+  }
+
+  let hasTypeCheck = false
+  if (eslintSupport.tsConfigPath) {
+    parserOptions.project = eslintSupport.tsConfigPath
+    hasTypeCheck = true
+  }
+
   const eslintPlugin = require('@typescript-eslint/eslint-plugin')
   const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
 
-  const baseRules = {
-    ...eslintPlugin.configs.recommended.rules,
-    ...eslintPlugin.configs['eslint-recommended'].overrides[0].rules,
-    ...require('eslint-config-prettier/@typescript-eslint').rules
+  const baseRules = {}
+  mergeEslintPluginRules(eslintPlugin.configs.recommended.rules, baseKey)
+
+  if (hasTypeCheck) {
+    mergeEslintPluginRules(baseRules, eslintPlugin.configs['recommended-requiring-type-checking'].rules, baseKey)
   }
+
+  Object.assign(baseRules, eslintPlugin.configs['eslint-recommended'].overrides[0].rules)
+  Object.assign(baseRules, require('eslint-config-prettier/@typescript-eslint').rules)
 
   const commonRules = common.rules
 
-  const baseKey = '@typescript-eslint/'
+  const rulesThatRequireTypeChecks = {
+    '@typescript-eslint/no-throw-literal': true
+  }
+
   for (const ruleKey of allRuleKeys) {
     if (ruleKey.startsWith(baseKey)) {
       const commonRuleKey = ruleKey.slice(baseKey.length)
       if (commonRuleKey in commonRules) {
-        const baseRule = commonRules[commonRuleKey]
-        if (baseRule !== undefined) {
-          baseRules[commonRuleKey] = 0
-          baseRules[ruleKey] = baseRule
+        if (hasTypeCheck || !rulesThatRequireTypeChecks[ruleKey]) {
+          const baseRule = commonRules[commonRuleKey]
+          if (baseRule !== undefined) {
+            baseRules[commonRuleKey] = 0
+            baseRules[ruleKey] = baseRule
+          }
         }
       }
     } else if (!(ruleKey in baseRules)) {
@@ -95,7 +116,7 @@ if (eslintSupport.hasTypescript) {
       {
         files: ['*.ts', '*.tsx'],
         parser: '@typescript-eslint/parser',
-        parserOptions: common.parserOptions,
+        parserOptions,
         plugins: ['@typescript-eslint'],
         rules: tsRules
       },
@@ -113,5 +134,14 @@ if (eslintSupport.hasTypescript) {
       module.exports,
       require('eslint-plugin-import').configs.typescript
     )
+  }
+}
+
+function mergeEslintPluginRules(baseRules, rules) {
+  for (const key of Object.keys(rules)) {
+    const value = rules[key]
+    if (value === 0 || value === 'off' || key.startsWith(baseKey)) {
+      baseRules[key] = value
+    }
   }
 }

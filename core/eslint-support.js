@@ -28,6 +28,14 @@ class EslintSupport {
       hasLocalPackage('@typescript-eslint/eslint-plugin') &&
       hasLocalPackage('typescript')
 
+    this.tsConfigPath = undefined
+    if (this.hasTypescript) {
+      const tsConfigPath = path.resolve('tsconfig.json')
+      if (fs.existsSync(tsConfigPath)) {
+        this.tsConfigPath = tsConfigPath
+      }
+    }
+
     this.hasEslintImportResolverParcel = hasLocalPackage('eslint-import-resolver-parcel')
 
     this.hasEslintPluginCssModules = hasLocalPackage('eslint-plugin-css-modules')
@@ -43,8 +51,7 @@ class EslintSupport {
     this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y') && hasPackage('@babel/runtime')
 
     this.hasEslintPluginJest =
-      hasPackage('eslint-plugin-jest') &&
-      (hasPackage('jest') || fs.existsSync(path.join(process.cwd(), 'jest.config.js')))
+      hasPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
 
     this.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
 
