@@ -89,7 +89,7 @@ function acurisEslintOptions(libOptions) {
   const errorOnUnmatchedPatternOption = optionsMap.get('error-on-unmatched-pattern')
   if (errorOnUnmatchedPatternOption) {
     errorOnUnmatchedPatternOption.default = false
-    errorOnUnmatchedPatternOption.description = 'Show errors when pattern is unmatched. Default false.'
+    errorOnUnmatchedPatternOption.description = 'Show errors when pattern is unmatched.'
   }
 
   const cacheLocationOption = optionsMap.get('cache-location')
@@ -106,7 +106,7 @@ function acurisEslintOptions(libOptions) {
     const cacheOption = optionsMap.get('cache')
     if (cacheOption) {
       cacheOption.default = 'true'
-      cacheOption.description = 'Only check changed files. Enabled by default, disable with --no-cache'
+      cacheOption.description = 'Disable cache and check also non changed files.'
     }
   }
 
