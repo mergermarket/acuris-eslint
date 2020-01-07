@@ -15,6 +15,8 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "files.eol": "\n",
+  "typescript.format.enable": true,
+  "typescript.format.semicolons": "remove",
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
