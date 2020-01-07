@@ -44,11 +44,9 @@ class EslintSupport {
 
     this.hasEslintPluginNode = hasLocalPackage('eslint-plugin-node')
 
-    this.hasBabelEslintParser = hasLocalPackage('babel-eslint') && hasLocalPackage('@babel/core')
-
     this.hasEslintPluginReact = hasLocalPackage('eslint-plugin-react')
 
-    this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y') && hasPackage('@babel/runtime')
+    this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
 
     this.hasEslintPluginJest =
       hasPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))

@@ -1,17 +1,17 @@
 'use strict'
 
-const eslintSupport = require('../core/eslint-support')
-
 module.exports = {
   parserOptions: {
     sourceType: 'module',
-    ecmaVersion: 2019,
+    ecmaVersion: 2020,
     ecmaFeatures: {
-      jsx: true
+      jsx: true,
+      impliedStrict: true,
+      globalReturn: false
     }
   },
   env: {
-    es6: true,
+    es2020: true,
     node: true
   },
   rules: {
@@ -249,10 +249,4 @@ module.exports = {
     'vars-on-top': 0,
     yoda: 2
   }
-}
-
-if (eslintSupport.hasBabelEslintParser) {
-  module.exports.parser = 'babel-eslint'
-
-  module.exports.parserOptions.requireConfigFile = false
 }

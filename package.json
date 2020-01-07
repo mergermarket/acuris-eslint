@@ -60,12 +60,9 @@
     "semver": "^7.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/runtime": "^7.7.7",
     "@types/node": "^13.1.4",
     "@typescript-eslint/eslint-plugin": "^2.15.0",
     "@typescript-eslint/parser": "^2.15.0",
-    "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "eslint": "^6.8.0",
     "eslint-import-resolver-parcel": "^1.10.1",

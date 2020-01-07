@@ -11,7 +11,6 @@ describe('core/eslint-support', () => {
       hasEslintPluginCssModules: true,
       hasEslintPluginImport: true,
       hasEslintPluginNode: true,
-      hasBabelEslintParser: true,
       hasEslintPluginReact: true,
       hasEslintPluginJsxA11y: true,
       hasEslintPluginJest: false,
