@@ -83,12 +83,18 @@ function acurisEslintOptions(libOptions) {
 
   const extOption = optionsMap.get('ext')
   if (extOption) {
-    optionsMap.get('ext').default = eslintSupport.extensions.join(',')
+    extOption.default = eslintSupport.extensions.join(',')
+  }
+
+  const errorOnUnmatchedPatternOption = optionsMap.get('error-on-unmatched-pattern')
+  if (errorOnUnmatchedPatternOption) {
+    errorOnUnmatchedPatternOption.default = false
+    errorOnUnmatchedPatternOption.description = 'Show errors when pattern is unmatched. Default false.'
   }
 
   const cacheLocationOption = optionsMap.get('cache-location')
   if (cacheLocationOption) {
-    optionsMap.get('cache-location').default = '.eslintcache'
+    cacheLocationOption.default = '.eslintcache'
   }
 
   const cacheFileOption = optionsMap.get('cache-file')
