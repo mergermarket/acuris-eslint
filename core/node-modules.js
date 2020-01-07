@@ -3,7 +3,7 @@
 /* eslint-disable global-require */
 
 if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 10) {
-  throw new Error(`Node 10.15.0 or greater is required. Current version is ${process && process.version}`)
+  throw new Error(`Node 12.0.0 or greater is required. Current version is ${process && process.version}`)
 }
 
 const Module = require('module')
@@ -447,56 +447,6 @@ function reloadNodeResolvePaths() {
     if (!_resolvePaths.has(parentParentNodeModules) && directoryExists(parentParentNodeModules)) {
       if (isInstalledGlobally || !isGlobalPath(parentParentNodeModules)) {
         _resolvePaths.add(parentParentNodeModules)
-      }
-    }
-  }
-
-  patchEslintScope()
-}
-
-/**
- * This is currently required to make babel-eslint with eslint >= 6.1
- * This can be removed once babel-eslint fix no-unused-var for for loops
- */
-function patchEslintScope() {
-  if (hasLocalPackage('babel-eslint')) {
-    const libFiles = [
-      'definition.js',
-      'pattern-visitor.js',
-      'referencer.js',
-      'scope.js',
-      'index.js',
-      'reference.js',
-      'scope-manager.js',
-      'variable.js'
-    ]
-
-    for (const libFile of libFiles) {
-      const subPath = `/lib/${libFile}`
-
-      let babelEslintEslintScope
-      try {
-        // eslint-disable-next-line node/no-unpublished-require
-        babelEslintEslintScope = require.resolve(`babel-eslint/node_modules/eslint-scope${subPath}`)
-      } catch (_error) {}
-
-      if (babelEslintEslintScope) {
-        let eslintScopePath
-        try {
-          eslintScopePath = eslintResolve(`eslint-scope${subPath}`)
-        } catch (_error) {}
-        try {
-          eslintScopePath = require.resolve(`eslint-scope${subPath}`)
-        } catch (_error) {}
-        if (eslintScopePath) {
-          try {
-            require(eslintScopePath)
-          } catch (_error) {}
-          const cached = require.cache[eslintScopePath]
-          if (cached) {
-            require.cache[babelEslintEslintScope] = cached
-          }
-        }
       }
     }
   }
