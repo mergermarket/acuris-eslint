@@ -1,12 +1,13 @@
 const { fork } = require('child_process')
 
-describe('eslint', () => {
+describe('eslint', function() {
+  this.timeout(8000)
+
   it('has working rules', () => {
     require('../index')
   })
 
-  it('can lint this file', function() {
-    this.timeout(5000)
+  it('can lint this file', () => {
     return new Promise((resolve, reject) => {
       fork(require.resolve('../scripts/acuris-eslint'), [__filename], {
         stdio: 'inherit'
