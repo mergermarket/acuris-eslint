@@ -29,7 +29,7 @@ module.exports = async () => {
           return settings
         }
 
-        settings.extends = packageName
+        settings.extends = `${packageName}/tsconfig.json`
 
         return settings
       }
