@@ -15,7 +15,7 @@ module.exports = {
     node: true
   },
   rules: {
-    curly: 1,
+    curly: [1, 'all'],
     'require-atomic-updates': 0,
     'global-require': 1,
     'no-process-exit': 2,
@@ -26,7 +26,7 @@ module.exports = {
     'callback-return': 0,
     'class-methods-use-this': 0,
     'consistent-return': [
-      'warn',
+      1,
       {
         treatUndefinedAsUnspecified: false
       }
@@ -48,7 +48,7 @@ module.exports = {
     'handle-callback-err': 2,
     'implicit-arrow-linebreak': 0,
     'lines-between-class-members': [
-      'warn',
+      1,
       'always',
       {
         exceptAfterSingleLine: true
@@ -65,12 +65,7 @@ module.exports = {
     'no-class-assign': 2,
     'no-compare-neg-zero': 2,
     'no-cond-assign': [2, 'always'],
-    'no-confusing-arrow': [
-      'warn',
-      {
-        allowParens: true
-      }
-    ],
+    'no-confusing-arrow': 0,
     'no-console': 1,
     'no-const-assign': 2,
     'no-constant-condition': 1,
@@ -114,8 +109,9 @@ module.exports = {
     'no-lone-blocks': 1,
     'no-lonely-if': 2,
     'no-loop-func': 2,
+    'no-tabs': [1, { allowIndentationTabs: true }],
     'no-mixed-operators': [
-      'warn',
+      1,
       {
         allowSamePrecedence: false,
         groups: [
@@ -144,7 +140,17 @@ module.exports = {
     'no-proto': 2,
     'no-prototype-builtins': 2,
     'no-redeclare': 2,
-    'no-restricted-syntax': [2, 'WithStatement'],
+    'no-restricted-syntax': [
+      2,
+      {
+        selector: 'WithStatement',
+        message: 'with statement is deprecated'
+      },
+      {
+        selector: 'SequenceExpression',
+        message: 'The comma operator is confusing and a common mistake.'
+      }
+    ],
     'no-return-assign': 0,
     'no-return-await': 2,
     'no-script-url': 2,
@@ -179,7 +185,7 @@ module.exports = {
         vars: 'all',
         argsIgnorePattern: '^_|^react$|^req$|^res$|^next$',
         varsIgnorePattern: '^React$',
-        caughtErrorsIgnorePattern: '^_|^react$'
+        caughtErrorsIgnorePattern: '^_'
       }
     ],
     'no-use-before-define': [
@@ -217,13 +223,15 @@ module.exports = {
     'one-var-declaration-per-line': [1, 'always'],
     'operator-assignment': [1, 'always'],
     'padding-line-between-statements': 0,
+    'default-param-last': 0,
     'prefer-arrow-callback': [
-      'warn',
+      1,
       {
         allowNamedFunctions: true,
         allowUnboundThis: true
       }
     ],
+    'prefer-regex-literals': 1,
     'prefer-const': [
       1,
       {

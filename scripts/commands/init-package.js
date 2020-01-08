@@ -94,11 +94,11 @@ module.exports = async options => {
                 )} ${chalk.yellow('not found in')} ${chalk.yellowBright('package.json')}.\n  ${chalk.yellow(
                   'Set'
                 )} ${chalk.yellowBright('private: ')}${chalk.greenBright('true')} ${chalk.yellow(
-                  `if you dont't want this package to be published.`
+                  "if you dont't want this package to be published."
                 )}\n  ${chalk.yellow('Set')} ${chalk.yellowBright('private: ')}${chalk.redBright(
                   'false'
                 )} ${chalk.yellow(
-                  `if this package can be published.`
+                  'if this package can be published.'
                 )}\n  The configured npm registry is ${await getNpmRegistry()}\n  ${chalk.blue(
                   'https://docs.npmjs.com/files/package.json#private'
                 )}`

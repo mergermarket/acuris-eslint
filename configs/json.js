@@ -4,6 +4,9 @@ const eslintSupport = require('../core/eslint-support')
 
 if (eslintSupport.hasEslintPluginJson) {
   module.exports = {
-    plugins: ['json']
+    plugins: ['json'],
+    rules: {
+      'json/*': [2, { allowComments: true }]
+    }
   }
 }

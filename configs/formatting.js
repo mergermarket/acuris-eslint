@@ -131,7 +131,6 @@ const rules = {
   'quick-prettier/prettier': [1, { 'prettify-package-json': true, rules: quickPrettierRules }],
   curly: 1,
   'max-len': [0, 120],
-  'no-confusing-arrow': [1, { allowParens: true }],
   'prefer-arrow-callback': [1, { allowNamedFunctions: true, allowUnboundThis: true }],
   'no-mixed-operators': [
     1,
@@ -145,6 +144,7 @@ const rules = {
       ]
     }
   ],
+  quotes: [1, 'single', { avoidEscape: true, allowTemplateLiterals: false }],
   indent: [
     0,
     2,

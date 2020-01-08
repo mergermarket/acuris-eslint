@@ -127,7 +127,7 @@ function validatePackage() {
     if (packagesToInstall.length > 0) {
       console.log(chalk.cyan('\n  Packages are missing...'), chalk.gray(packagesToInstall.join(' ')))
       emitImportant(
-        chalk.yellowBright(`You need to install packages before continuing.\n`) +
+        chalk.yellowBright('You need to install packages before continuing.\n') +
           chalk.yellow(
             `  Run ${['npm install', 'yarn', 'lerna bootstrap']
               .map(x => chalk.greenBright(x))
