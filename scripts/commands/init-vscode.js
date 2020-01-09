@@ -16,6 +16,7 @@ module.exports = async () => {
           settings = {}
         }
         settings = mergeConfigs(settings, defaultSettings)
+        delete settings['eslint.autoFixOnSave']
 
         settings['eslint.validate'] = mergeEslintValidate(
           settings['eslint.validate'],
@@ -87,27 +88,33 @@ function mergeConfigs(target, source) {
 }
 
 function mergeEslintValidate(target, source) {
-  if (!source) {
-    return target
-  }
-  if (!Array.isArray(target) || target.length === 0) {
-    return source
+  const lmap = new Map()
+  const result = []
+
+  if (Array.isArray(target)) {
+    for (let i = 0; i < target.length; ++i) {
+      let lang = target[i]
+      lang = lang && typeof lang.language === 'string' && lang.autoFix ? lang.language : lang
+      const lkey = (lang && typeof lang === 'object' && lang.language) || lang
+      let idx = lmap.get(lkey)
+      if (idx === undefined) {
+        idx = result.push(lang) - 1
+        lmap.set(lkey, idx)
+      } else {
+        result[i] = lang
+      }
+    }
   }
 
-  const languages = new Set()
-  for (let i = 0; i < target.length; ++i) {
-    if (typeof target[i] === 'string') {
-      target[i] = { language: target[i], autoFix: true }
-    }
-    if (typeof target[i] === 'object' && target[i] !== null && target[i].language) {
-      languages.add(target[i].language)
-    }
-  }
-
-  for (let i = 0; i < source.length; ++i) {
-    if (!languages.has(source[i].language)) {
-      languages.add(source[i].language)
-      target.push(typeof source[i] === 'string' ? { language: source[i], autoFix: true } : source[i])
+  if (Array.isArray(source)) {
+    for (let i = 0; i < source.length; ++i) {
+      let lang = source[i]
+      lang = lang && typeof lang.language === 'string' && lang.autoFix ? lang.language : lang
+      const lkey = (lang && typeof lang === 'object' && lang.language) || lang
+      if (!lmap.has(lkey)) {
+        lmap.set(lkey, -1)
+        result.push(lang)
+      }
     }
   }
 

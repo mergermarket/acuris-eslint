@@ -7,8 +7,9 @@
       "strings": true
     }
   },
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.validate": [{ "language": "javascript" }, "javascriptreact", "typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
+    "source.fixAll": true,
     "source.fixAll.eslint": true
   },
   "editor.detectIndentation": false,
