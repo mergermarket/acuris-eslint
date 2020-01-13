@@ -73,7 +73,6 @@ if (!cliOptions) {
 function eslint() {
   const { CLIEngine } = eslintRequire('./lib/cli-engine')
 
-  console.log(translateOptionsForCLIEngine(cliOptions))
   const engine = new CLIEngine(translateOptionsForCLIEngine(cliOptions))
 
   const report = options.stdin
