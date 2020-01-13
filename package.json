@@ -54,7 +54,6 @@
     "chalk": "^3.0.0",
     "eslint-plugin-quick-prettier": "^0.0.26",
     "hjson": "3.1.2",
-    "inquirer": "^7.0.3",
     "semver": "^7.1.1"
   },
   "devDependencies": {
