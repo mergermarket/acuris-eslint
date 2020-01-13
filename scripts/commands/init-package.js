@@ -20,7 +20,7 @@ const {
   getNpmRegistry
 } = require('../lib/package-utils')
 
-module.exports = async options => {
+module.exports = async cliOptions => {
   const packageJsonPath = resolveProjectFile('package.json')
 
   const foundPackageJsonPath = getPackageJsonPath()
@@ -62,16 +62,14 @@ module.exports = async options => {
     }
   }
 
-  if (options.initNpmignore !== false) {
-    if (!manifest.private && !Array.isArray(manifest.files)) {
-      emitSection('init-npmignore')
+  if (!manifest.private && !Array.isArray(manifest.files)) {
+    emitSection('init-npmignore')
 
-      if (!fileExists('.npmignore')) {
-        emitWarning(chalk.yellow(`File ${chalk.yellowBright('.npmignore')} does not exists on a public package`))
-      }
-
-      await require('./init-npmignore')({ ...options, askConfirmation: true })
+    if (!fileExists('.npmignore')) {
+      emitWarning(chalk.yellow(`File ${chalk.yellowBright('.npmignore')} does not exists on a public package`))
     }
+
+    await require('./init-npmignore')({ ...cliOptions, askConfirmation: true })
   }
 
   async function updatePackage(canAsk) {

@@ -3,7 +3,7 @@
 const eslintSupport = require('./core/eslint-support')
 
 const config = eslintSupport.mergeEslintConfigs(
-  require('eslint/conf/eslint-recommended'),
+  eslintSupport.eslintRequire('./conf/eslint-recommended'),
   require('./configs/import'),
   require('./configs/node'),
   require('./configs/json'),

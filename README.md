@@ -19,7 +19,7 @@ This will start an interactive initialisation script that will setup everything 
 Once installed, you can update to the latest version (including dependencies) executing
 
 ```sh
-npx acuris-eslint --update
+acuris-eslint --update
 ```
 
 # lint your entire project
@@ -27,23 +27,25 @@ npx acuris-eslint --update
 You can lint your entire project running
 
 ```sh
-npx acuris-eslint
+acuris-eslint
 ```
 
 You can fix the formatting for your entire project running
 
 ```sh
-npx acuris-eslint --fix
+acuris-eslint --fix
 ```
 
 You can also pass glob paths, folders or sinngle files to lint.
 
 ```sh
-npx acuris-eslint hello.js myFolder
+acuris-eslint hello.js myFolder
 ```
 
 For mor help on the list of available options and commands, run
 
 ```sh
-npx acuris-eslint --help
+acuris-eslint --help
 ```
+
+Note: If PATH does not resolve node binaries in node_modules/.bin, you can prepend all commands with `npx`.

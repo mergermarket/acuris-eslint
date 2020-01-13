@@ -2,8 +2,8 @@
 
 /* eslint-disable global-require */
 
-if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 10) {
-  throw new Error(`Node 12.0.0 or greater is required. Current version is ${process && process.version}`)
+if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 12) {
+  throw new Error(`Node 12.12.0 or greater is required. Current version is ${process && process.version}`)
 }
 
 const Module = require('module')
@@ -14,6 +14,10 @@ const { statSync, readFileSync } = require('fs')
 
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
+
+// Hides createRequireFromPath deprecation warning when used
+// eslint-disable-next-line node/no-deprecated-api
+Module.createRequireFromPath = Module.createRequire
 
 /** @type {{ (from: string): string[] }} */
 let legacyNodeModulePaths = Module._nodeModulePaths
@@ -209,6 +213,8 @@ function getEslintVersion() {
 
 exports.getEslintVersion = getEslintVersion
 
+exports.assertEslintVersion = assertEslintVersion
+
 let _minimumSupportedEslintVersion
 
 function getMinimumSupportedEslintVersion() {
@@ -296,6 +302,16 @@ eslintRequire.update = function update(name) {
 }
 
 exports.eslintRequire = eslintRequire
+
+exports.eslintTryRequire = eslintTryRequire
+
+function eslintTryRequire(id) {
+  try {
+    return eslintRequire(id)
+  } catch (_error) {
+    return undefined
+  }
+}
 
 function resolvePackageFolder(packageName) {
   try {
@@ -449,6 +465,16 @@ function reloadNodeResolvePaths() {
         _resolvePaths.add(parentParentNodeModules)
       }
     }
+  }
+}
+
+function assertEslintVersion() {
+  const minVersion = getMinimumSupportedEslintVersion()
+  const version = getEslintVersion()
+  if (parseFloat(version) < parseFloat(minVersion)) {
+    const err = new Error(`eslint version ${version} not supported. Minimum supported version is ${minVersion}.`)
+    err.showStack = false
+    throw err
   }
 }
 

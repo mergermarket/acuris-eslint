@@ -17,18 +17,22 @@ if (eslintSupport.hasTypescript) {
     hasTypeCheck = true
   }
 
-  const eslintPlugin = require('@typescript-eslint/eslint-plugin')
-  const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
+  const allRules = require('@typescript-eslint/eslint-plugin/dist/configs/all.json').rules
+  const pluginConfigRecommended = require('@typescript-eslint/eslint-plugin/dist/configs/recommended.json').rules
+  const pluginConfigRecommendedRequiringTypeChecking = require('@typescript-eslint/eslint-plugin/dist/configs/recommended-requiring-type-checking.json')
+    .rules
+
+  //const eslintPlugin = require('@typescript-eslint/eslint-plugin')
+  //const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
 
   const baseRules = {}
-  mergeEslintPluginRules(eslintPlugin.configs.recommended.rules, baseKey)
+  mergeEslintPluginRules(baseRules, pluginConfigRecommended)
 
   if (hasTypeCheck) {
-    mergeEslintPluginRules(baseRules, eslintPlugin.configs['recommended-requiring-type-checking'].rules, baseKey)
+    mergeEslintPluginRules(baseRules, pluginConfigRecommendedRequiringTypeChecking)
   }
 
-  Object.assign(baseRules, eslintPlugin.configs['eslint-recommended'].overrides[0].rules)
-  Object.assign(baseRules, require('eslint-config-prettier/@typescript-eslint').rules)
+  Object.assign(baseRules, pluginConfigRecommended, require('eslint-config-prettier/@typescript-eslint').rules)
 
   const commonRules = common.rules
 
@@ -36,7 +40,7 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/no-throw-literal': true
   }
 
-  for (const ruleKey of allRuleKeys) {
+  for (const ruleKey of Object.keys(allRules)) {
     if (ruleKey.startsWith(baseKey)) {
       const commonRuleKey = ruleKey.slice(baseKey.length)
       if (commonRuleKey in commonRules) {
@@ -130,10 +134,7 @@ if (eslintSupport.hasTypescript) {
   }
 
   if (eslintSupport.hasEslintPluginImport) {
-    module.exports = eslintSupport.mergeEslintConfigs(
-      module.exports,
-      require('eslint-plugin-import').configs.typescript
-    )
+    module.exports = eslintSupport.mergeEslintConfigs(module.exports, require('eslint-plugin-import/config/typescript'))
   }
 }
 

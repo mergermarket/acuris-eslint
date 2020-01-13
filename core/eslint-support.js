@@ -3,7 +3,7 @@
 /* eslint-disable node/no-missing-require */
 /* eslint-disable global-require */
 
-const { hasLocalPackage, hasPackage } = require('./node-modules')
+const { eslintRequire, hasLocalPackage, hasPackage } = require('./node-modules')
 
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
@@ -92,6 +92,8 @@ class EslintSupport {
     return result
   }
 }
+
+EslintSupport.prototype.eslintRequire = eslintRequire
 
 module.exports = new EslintSupport()
 

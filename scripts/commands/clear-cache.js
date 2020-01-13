@@ -4,8 +4,9 @@ const chalk = require('chalk')
 const path = require('path')
 const { deleteFileOrDir } = require('../lib/fs-utils')
 
-module.exports = options => {
+module.exports = cliOptions => {
   const pathsToDelete = new Set()
+  const options = cliOptions.options
   if (options.cacheLocation) {
     pathsToDelete.add(path.resolve(options.cacheLocation))
   }

@@ -1,148 +1,84 @@
 #!/usr/bin/env node
-
 'use strict'
 
 const path = require('path')
 const fs = require('fs')
 
-let debugEnabled = false
+let timerStarted = false
 
-// This must execute before everything else.
-preinit()
+const { tryParseAcurisEslintOptions, translateOptionsForCLIEngine } = require('./lib/acuris-eslint-options')
+
+const cliOptions = tryParseAcurisEslintOptions()
+
+const options = (cliOptions && cliOptions.options) || {}
+
+if (options.cwd) {
+  process.chdir(path.resolve(cliOptions.cwd))
+}
 
 const {
   eslintRequire,
+  eslintTryRequire,
   getEslintPath,
   getEslintVersion,
-  getMinimumSupportedEslintVersion
+  assertEslintVersion
 } = require('../core/node-modules')
 
-eslintRequire.update('chalk', 'semver', 'inquirer', 'optionator', 'v8-compile-cache')
-
-try {
-  eslintRequire('v8-compile-cache')
-} catch (_error) {}
-
-if (debugEnabled) {
-  eslintRequire('debug').enable('eslint:*,-eslint:code-path')
+if (options.debug) {
+  const eslintDebug = eslintTryRequire('debug')
+  if (eslintDebug) {
+    eslintDebug.enable('eslint:*,-eslint:code-path')
+  }
+} else {
+  eslintTryRequire('v8-compile-cache')
 }
 
 const { version: packageVersion } = require('../package.json')
 
-const eslintPath = getEslintPath()
-
-const programName = path.basename(process.argv[1], '.js')
-
 const chalk = require('chalk')
 
-if (!chalk.default) {
-  chalk.default = chalk
-}
+let _handledErrors
+process.on('uncaughtException', handleError)
 
-const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(programName)} ${chalk.blueBright(`v${packageVersion}`)}`
-
-console.time(appTitle)
-
-if (chalk.level >= 1) {
+if (chalk.level > 0) {
   require('util').inspect.defaultOptions.colors = true
 }
 
-const acurisEslintOptions = require('./lib/eslint-options')
-
-const options = acurisEslintOptions.tryParse(process.argv)
-
-if (!options) {
+if (!cliOptions) {
   if (!process.exitCode) {
     process.exitCode = 1
   }
-} else if (options.help || options.commands) {
-  require('./lib/logo').printLogo()
-  console.error(appTitle)
-  console.error(acurisEslintOptions.generateHelp({ showCommandsOnly: options.commands }))
-} else if (options.commandName) {
-  const runCommand = require('./lib/run-command')
-  runCommand(options, appTitle)
+} else if (cliOptions.command !== undefined) {
+  require('./lib/run-command')(cliOptions)
 } else {
-  process.once('uncaughtException', handleEslintError)
-  if (options.canLog) {
+  const appTitle = `${chalk.redBright('-')} ${chalk.greenBright(cliOptions.programName)} ${chalk.blueBright(
+    `v${packageVersion}`
+  )}`
+
+  if (cliOptions.canLog) {
     console.info(appTitle)
+    console.time(appTitle)
+    timerStarted = appTitle
   }
 
-  const eslintVersion = getEslintVersion()
-  const minimumSupportedEslintVersion = getMinimumSupportedEslintVersion()
+  assertEslintVersion()
 
-  if (parseFloat(eslintVersion) < parseFloat(minimumSupportedEslintVersion)) {
-    console.error(
-      chalk.redBright(
-        `\n[ERROR] eslint version ${eslintVersion} not supported. Minimum supported version is ${minimumSupportedEslintVersion}.\n`
-      )
-    )
-    if (!process.exitCode) {
-      process.exitCode = 3
-    }
-  } else {
-    let exitCode = 1
-    try {
-      exitCode = eslint()
-    } catch (error) {
-      handleEslintError(error)
-    } finally {
-      if (options.canLog) {
-        setTimeout(function timeEnd() {
-          console.timeEnd(appTitle)
-        }, 0)
-      }
-      if (exitCode && !process.exitCode) {
-        process.exitCode = exitCode
-      }
-    }
-  }
-}
-
-function filterEslintWarnings(report) {
-  let filtered = null
-  const results = report.results
-  for (let i = 0, len = results.length; i !== len; ++i) {
-    const item = results[i]
-    if (item.warningCount === 1 && item.errorCount === 0) {
-      const messages = item.messages
-      if (messages && messages.length === 1) {
-        const msg = messages[0]
-
-        const text = msg.message
-        // Filter out "file ignored" messages for husky/lint-staged + .eslintignore
-        if (
-          text === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.' ||
-          (typeof text === 'string' && text.startsWith('File ignored by default. '))
-        ) {
-          --report.warningCount
-          if (filtered === null) {
-            filtered = results.slice(0, i)
-            report.results = filtered
-          }
-          continue
-        }
-      }
-    }
-    if (filtered !== null) {
-      filtered.push(item)
-    }
+  const exitCode = eslint()
+  endTimeLog()
+  if (exitCode && !process.exitCode) {
+    process.exitCode = exitCode
   }
 }
 
 function eslint() {
   const { CLIEngine } = eslintRequire('./lib/cli-engine')
-  const engine = new CLIEngine(acurisEslintOptions.translateOptionsForCLIEngine(options))
 
-  if (options.printConfig) {
-    const fileConfig = engine.getConfigForFile(options.printConfig)
-    console.info(JSON.stringify(fileConfig, null, 2))
-    return 0
-  }
+  console.log(translateOptionsForCLIEngine(cliOptions))
+  const engine = new CLIEngine(translateOptionsForCLIEngine(cliOptions))
 
   const report = options.stdin
     ? engine.executeOnText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
-    : engine.executeOnFiles(options._)
+    : engine.executeOnFiles(cliOptions.list)
 
   if (options.fix) {
     // Fix mode enabled - applying fixes
@@ -153,7 +89,7 @@ function eslint() {
     // Quiet mode enabled - filtering out warnings
     report.results = CLIEngine.getErrorResults(report.results)
   } else {
-    filterEslintWarnings(report)
+    filterOutEslintWarnings(report)
   }
 
   if (printEslintResults(engine, report.results, options.format, options.outputFile)) {
@@ -216,53 +152,74 @@ function printEslintResults(engine, results, format, outputFile) {
   return true
 }
 
-function handleEslintError(error) {
-  if (!error) {
-    error = new Error(`${programName} failed`)
+function endTimeLog() {
+  const msg = timerStarted
+  if (msg) {
+    timerStarted = false
+    setImmediate(() => {
+      const exitCode = process.exitCode
+      console.timeLog(msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok'))
+    })
   }
+}
 
-  console.error(chalk.redBright('\nOops! Something went wrong! :('))
-
-  if (eslintPath && typeof error.messageTemplate === 'string' && error.messageTemplate.length > 0) {
-    try {
-      const template = eslintRequire('lodash').template(
-        fs.readFileSync(path.resolve(eslintPath, `./messages/${error.messageTemplate}.txt`), 'utf-8')
-      )
-      console.error(`\nESLint: ${getEslintVersion() || '<not found>'}.\n\n${template(error.messageData || {})}`)
-    } catch (_error) {
-      console.error(error.stack)
-    }
-  } else {
-    console.error(error)
+function handleError(error) {
+  if (!_handledErrors) {
+    _handledErrors = new WeakSet()
+  } else if (_handledErrors.has(error)) {
+    return
   }
+  _handledErrors.add(error)
 
   if (!process.exitCode) {
     process.exitCode = 2
   }
+  endTimeLog()
+  if (!error) {
+    error = new Error(`${cliOptions.programName} failed`)
+  }
+  console.error(chalk.redBright('\nOops! Something went wrong! :(\n'))
+  if (typeof error.messageTemplate === 'string' && error.messageTemplate.length > 0) {
+    try {
+      const eslintPath = getEslintPath()
+      const template = eslintRequire('lodash').template(
+        fs.readFileSync(path.resolve(eslintPath, `./messages/${error.messageTemplate}.txt`), 'utf-8')
+      )
+      console.error(`\nESLint: ${getEslintVersion() || '<not found>'}.\n\n${template(error.messageData || {})}`)
+      return
+    } catch (_error) {}
+  }
+  console.error(error.showStack === undefined || error.showStack === true ? error : `${error}`)
+  console.log()
 }
 
-function preinit() {
-  const indexOfCwdOption = process.argv.indexOf('--cwd')
-  if (indexOfCwdOption > 1) {
-    process.chdir(process.argv[indexOfCwdOption + 1])
-  }
-  let cwdDir = null
+function filterOutEslintWarnings(report) {
+  let filtered = null
+  const results = report.results
+  for (let i = 0, len = results.length; i !== len; ++i) {
+    const item = results[i]
+    if (item.warningCount === 1 && item.errorCount === 0) {
+      const messages = item.messages
+      if (messages && messages.length === 1) {
+        const msg = messages[0]
 
-  const argv = process.argv
-  for (let i = 0, len = argv.length; i !== len; ++i) {
-    const arg = argv[i]
-    if (arg.startsWith('--cwd=')) {
-      cwdDir = arg.slice('--cwd='.length).trim()
-    } else if (arg === '--cwd') {
-      cwdDir = (process.argv[i + 1] || '').trim()
-    } else if (arg === '--debug') {
-      debugEnabled = true
-    } else if (arg === '--no-debug') {
-      debugEnabled = false
+        const text = msg.message
+        // Filter out "file ignored" messages for husky/lint-staged + .eslintignore
+        if (
+          text === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.' ||
+          (typeof text === 'string' && text.startsWith('File ignored by default. '))
+        ) {
+          --report.warningCount
+          if (filtered === null) {
+            filtered = results.slice(0, i)
+            report.results = filtered
+          }
+          continue
+        }
+      }
     }
-  }
-
-  if (cwdDir) {
-    process.chdir(cwdDir)
+    if (filtered !== null) {
+      filtered.push(item)
+    }
   }
 }
