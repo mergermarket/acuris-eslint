@@ -9,10 +9,15 @@ module.exports = {
   printAcurisEslintOptionsParseError
 }
 
-function printLogo(postInstall) {
+function printLogo(reason) {
+  if (process.env.ACURIS_ESLINT_LOGO_PRINTED || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
+    return
+  }
+  process.env.ACURIS_ESLINT_LOGO_PRINTED = true
   const { name, version, homepage } = require('../package.json')
   const chalk = require('chalk')
-  if (chalk.level >= 2 && canPrintLogo()) {
+
+  if (chalk.level >= 2 && canPrintUtf8Logo()) {
     const logo = chalk.redBright(`
   ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣶⡄
   ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣾⣿⣿⡄
@@ -32,7 +37,7 @@ function printLogo(postInstall) {
   console.log(`${chalk.redBright('-')} ${chalk.greenBright(name)} ${chalk.blueBright(`v${version}`)}`)
   console.log(`  ${chalk.underline.blue(homepage)}\n`)
 
-  if (postInstall) {
+  if (reason === 'postinstall') {
     const text = chalk.reset(
       chalk.gray(`
   Run ${chalk.yellow('acuris-eslint')} ${chalk.yellowBright('--help')} to get help.
@@ -43,6 +48,30 @@ function printLogo(postInstall) {
     )
     console.log(text)
   }
+}
+
+function canPrintUtf8Logo() {
+  if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
+    return false
+  }
+
+  const columns = (process.stdout && process.stdout.isTTY && process.stdout.columns) || 0
+  if (columns < 34) {
+    return false
+  }
+
+  const os = require('os')
+  if (os.type() === 'Windows_NT') {
+    return false
+  }
+
+  const isUTF8 = /UTF-?8$/i
+  const ctype = process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG
+  if (!isUTF8.test(ctype)) {
+    return false
+  }
+
+  return true
 }
 
 function printAcurisEslintOptionsParseError(error, programName) {
@@ -81,30 +110,6 @@ function printAcurisEslintCommands() {
   const { acurisEslintOptions } = require('./lib/acuris-eslint-options')
   acurisEslintOptions(optHelp)
   console.log(optHelp.getCommandsHelp())
-}
-
-function canPrintLogo() {
-  if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
-    return false
-  }
-
-  const columns = (process.stdout && process.stdout.columns) || 0
-  if (columns < 34) {
-    return false
-  }
-
-  const os = require('os')
-  if (os.type() === 'Windows_NT') {
-    return false
-  }
-
-  const isUTF8 = /UTF-?8$/i
-  const ctype = process.env.LC_ALL || process.env.LC_CTYPE || process.env.LANG
-  if (!isUTF8.test(ctype)) {
-    return false
-  }
-
-  return true
 }
 
 function printVersion() {

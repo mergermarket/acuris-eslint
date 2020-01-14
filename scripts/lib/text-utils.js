@@ -9,7 +9,22 @@ const hjson = require('hjson')
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
-const inquire = require('./inquire')
+
+exports.askConfirmation = async function askConfirmation(message) {
+  if (!process.stdin || !process.stdout || !process.stdout.isTTY) {
+    return true
+  }
+  return new Promise(resolve => {
+    const rl = require('readline').createInterface(process.stdin, process.stdout)
+    const question = `${chalk.greenBright('?')} ${chalk.whiteBright(message)} ${chalk.gray('(Y/n)')} `
+    rl.question(question, answer => {
+      const confirm = /^[yY]/.test((answer || '').trim())
+      console.log(confirm ? chalk.greenBright('  Yes') : chalk.redBright('  No'))
+      rl.close()
+      resolve(confirm)
+    })
+  })
+}
 
 function parse(source, format, filename) {
   if (source === null || source === undefined) {
@@ -292,9 +307,10 @@ async function updateTextFileAsync({
   }
 
   if (shouldUpdate && askConfirmation) {
-    if (
-      !(await inquire.askConfirmation(`Can I ${exists ? 'update' : 'create'} file ${chalk.yellowBright(targetName)}?`))
-    ) {
+    const confirmed = await exports.askConfirmation(
+      `Can I ${exists ? 'update' : 'create'} file ${chalk.yellowBright(targetName)}?`
+    )
+    if (!confirmed) {
       shouldUpdate = false
     }
   }

@@ -6,10 +6,9 @@ const chalk = require('chalk')
 const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
-const { askConfirmation } = require('../lib/inquire')
 const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
 const { reloadNodeResolvePaths, hasLocalPackage } = require('../../core/node-modules')
-const { updateTextFileAsync } = require('../lib/text-utils')
+const { askConfirmation, updateTextFileAsync } = require('../lib/text-utils')
 const {
   getPackageJsonPath,
   sanitisePackageJson,

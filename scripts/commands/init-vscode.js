@@ -88,35 +88,24 @@ function mergeConfigs(target, source) {
 }
 
 function mergeEslintValidate(target, source) {
-  const lmap = new Map()
-  const result = []
+  const map = new Map()
+  eslintValidateLanguages(source)
+  eslintValidateLanguages(target)
+  return Array.from(map.values())
 
-  if (Array.isArray(target)) {
-    for (let i = 0; i < target.length; ++i) {
-      let lang = target[i]
-      lang = lang && typeof lang.language === 'string' && lang.autoFix ? lang.language : lang
-      const lkey = (lang && typeof lang === 'object' && lang.language) || lang
-      let idx = lmap.get(lkey)
-      if (idx === undefined) {
-        idx = result.push(lang) - 1
-        lmap.set(lkey, idx)
-      } else {
-        result[i] = lang
+  function eslintValidateLanguages(x) {
+    if (Array.isArray(x)) {
+      for (const item of x) {
+        if (typeof item === 'string') {
+          map.set(item, item)
+          continue
+        }
+        if (typeof item === 'object' && item !== null && item.language && !Array.isArray(item)) {
+          map.set(item.language, item.autoFix ? item.language : item)
+          continue
+        }
+        map.set(map.size, item)
       }
     }
   }
-
-  if (Array.isArray(source)) {
-    for (let i = 0; i < source.length; ++i) {
-      let lang = source[i]
-      lang = lang && typeof lang.language === 'string' && lang.autoFix ? lang.language : lang
-      const lkey = (lang && typeof lang === 'object' && lang.language) || lang
-      if (!lmap.has(lkey)) {
-        lmap.set(lkey, -1)
-        result.push(lang)
-      }
-    }
-  }
-
-  return target
 }

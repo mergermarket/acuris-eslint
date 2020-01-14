@@ -7,7 +7,7 @@
       "strings": true
     }
   },
-  "eslint.validate": [{ "language": "javascript" }, "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
     "source.fixAll": true,
     "source.fixAll.eslint": true

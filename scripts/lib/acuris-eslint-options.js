@@ -64,6 +64,7 @@ function acurisEslintOptions(factory) {
     .opt({ option: 'commands', type: 'help', desc: 'Show commands help' })
     .opt({ option: 'sys-info', type: 'help', desc: 'Print system info, packages versions and supported features' })
     .opt({ option: 'version', type: 'help', desc: 'Print @acuris/eslint-config version' })
+    .opt({ option: 'logo', type: 'help', desc: 'Print acuris-eslint logo' })
     .line()
     .opt({ option: 'clear-cache', desc: 'Deletes eslint cache from disk' })
     .opt({ option: 'print-config', type: 'path', value: '.', desc: 'Print the eslint configuration' })

@@ -7,6 +7,8 @@ const { updateTextFileAsync } = require('../lib/text-utils')
 const IgnoreFile = require('../lib/IgnoreFile')
 
 module.exports = async cliOptions => {
+  require('../acuris-eslint-help').printLogo('init')
+
   let prettierInitialised = false
   try {
     if (prettierInterface.tryGetPrettier()) {

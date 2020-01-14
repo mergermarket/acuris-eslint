@@ -2,13 +2,11 @@ const { flushNotes } = require('./notes')
 const chalk = require('chalk')
 
 module.exports = function runCommand(cliOptions) {
-  const { key: commandName, option: commandOption } = cliOptions.command
+  const { key: commandName } = cliOptions.command
 
-  if (cliOptions.command.value) {
-    if (commandName === 'help') {
-      require('../acuris-eslint-help').printAcurisEslintHelp()
-      return
-    }
+  if (commandName === 'help') {
+    require('../acuris-eslint-help').printAcurisEslintHelp()
+    return
   }
 
   if (commandName === 'commands') {
@@ -26,13 +24,14 @@ module.exports = function runCommand(cliOptions) {
     return
   }
 
-  if (commandName.startsWith('init')) {
-    console.log(
-      `\n${chalk.redBright('-')} ${chalk.bold(
-        `${chalk.whiteBright(cliOptions.programName)} ${chalk.cyanBright(`--${commandOption}`)}`
-      )}`
-    )
-    require('../acuris-eslint-help').printLogo()
+  if (commandName === 'logo') {
+    require('../acuris-eslint-help').printLogo(cliOptions)
+    return
+  }
+
+  if ((commandName.startsWith('init') || commandName === 'update') && !cliOptions.options.lintStaged) {
+    const s = `${chalk.whiteBright(cliOptions.programName)} ${chalk.cyanBright(` --${cliOptions.command.option}`)}`
+    console.log(`\n${chalk.redBright('-')} ${chalk.bold(s)}`)
   }
 
   try {

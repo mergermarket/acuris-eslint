@@ -26,8 +26,8 @@
     "lint": "node scripts/acuris-eslint.js",
     "help": "node scripts/acuris-eslint.js --help",
     "acuris-eslint": "node scripts/acuris-eslint.js",
-    "test": "mocha \"test/**/*.test.js\"",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "test": "mocha \"test/**/*.test.js\""
   },
   "husky": {
     "hooks": {
@@ -47,7 +47,6 @@
     "eslint-plugin-json": ">=2.0.1",
     "eslint-plugin-node": ">=11.0.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "eslint-scope": ">=5.0.0",
     "prettier": ">=1.19.1"
   },
   "dependencies": {
@@ -58,8 +57,9 @@
   },
   "devDependencies": {
     "@types/node": "^13.1.6",
-    "@typescript-eslint/eslint-plugin": "^2.15.0",
-    "@typescript-eslint/parser": "^2.15.0",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "eslint": "^6.8.0",
     "eslint-import-resolver-parcel": "^1.10.1",

@@ -2,6 +2,7 @@
 
 const chalk = require('chalk')
 const fs = require('fs')
+const path = require('path')
 const eslintSupport = require('../../core/eslint-support')
 const { resolveProjectFile, resolveAcurisEslintFile } = require('../lib/fs-utils')
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
@@ -88,6 +89,9 @@ async function initEslintrc(packageJsonEslintConfig) {
     format: 'json',
     filePath: ['.eslintrc', '.eslintrc.json'],
     async content(content, targetPath) {
+      if (!path.relative(resolveAcurisEslintFile(), path.dirname(targetPath))) {
+        return content
+      }
       if (typeof content !== 'object' || content === null) {
         content = {}
       }
