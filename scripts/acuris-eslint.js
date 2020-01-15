@@ -97,7 +97,7 @@ function eslint() {
     const tooManyWarnings = options.maxWarnings >= 0 && report.warningCount > options.maxWarnings
 
     if (!report.errorCount && tooManyWarnings) {
-      console.error(chalk.redBright('ESLint found too many warnings (maximum: %s).\n'), options.maxWarnings)
+      console.error(chalk.redBright(`ESLint found too many warnings (maximum: ${options.maxWarnings}).\n)`))
     }
 
     return report.errorCount || tooManyWarnings ? 1 : 0
