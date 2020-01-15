@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict'
 
 module.exports = {
   printLogo,
@@ -117,7 +118,7 @@ function printVersion() {
 }
 
 function printSysInfo() {
-  const { eslintRequire } = require('../core/node-modules')
+  const { getEslintVersion } = require('../core/node-modules')
   const eslintSupport = require('../core/eslint-support')
   const manifest = require('../package.json')
   const os = require('os')
@@ -137,7 +138,7 @@ function printSysInfo() {
   }
 
   try {
-    versions.eslint = eslintRequire('./package.json').version
+    versions.eslint = getEslintVersion()
   } catch (_error1) {}
 
   const names = new Set()
@@ -174,17 +175,15 @@ function printSysInfo() {
   console.log(JSON.stringify(info, null, 2))
 }
 
-if (module === process.mainModule) {
-  const argv = process.argv || []
-  if (argv.indexOf('--commands') > 0) {
-    printAcurisEslintCommands()
-  } else if (argv.indexOf('--logo') > 0) {
-    printLogo()
-  } else if (argv.indexOf('--sys-info') > 0) {
-    printSysInfo()
-  } else if (argv.indexOf('--version') > 0) {
-    printVersion()
-  } else {
-    printAcurisEslintHelp()
-  }
+const argv = process.argv || []
+if (argv.indexOf('--commands') > 0) {
+  printAcurisEslintCommands()
+} else if (argv.indexOf('--logo') > 0) {
+  printLogo()
+} else if (argv.indexOf('--sys-info') > 0) {
+  printSysInfo()
+} else if (argv.indexOf('--version') > 0) {
+  printVersion()
+} else {
+  printAcurisEslintHelp()
 }

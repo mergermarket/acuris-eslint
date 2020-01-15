@@ -1,4 +1,4 @@
-const { prettierInterface } = require('../../core/node-modules')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { expect } = require('chai')
 
 describe('core/prettierInterface', () => {

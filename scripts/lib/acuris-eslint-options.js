@@ -1,3 +1,6 @@
+'use strict'
+
+const path = require('path')
 const { createCmdOptionsParser, getProgramName } = require('./cmd-options-parser')
 
 module.exports = {
@@ -136,7 +139,7 @@ function acurisEslintOptions(factory) {
       option: 'max-warnings',
       key: 'maxWarnings',
       type: 'int',
-      value: false,
+      value: -1,
       desc: 'Number of warnings to trigger nonzero exit code'
     })
     .opt({
@@ -225,8 +228,8 @@ function translateOptionsForCLIEngine(cliOptions) {
     configFile: options.config,
     rulePaths: options.rulePaths,
     cache: options.cache,
-    cacheFile: options.cacheFile,
-    cacheLocation: options.cacheLocation,
+    cacheFile: options.cacheFile && path.resolve(options.cacheFile),
+    cacheLocation: options.cacheLocation && path.resolve(options.cacheLocation),
     fix: options.fix || options.fixDryRun,
     reportUnusedDisableDirectives: options.reportUnusedDisableDirectives,
     resolvePluginsRelativeTo: options.resolvePluginsRelativeTo

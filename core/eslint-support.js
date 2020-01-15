@@ -49,7 +49,7 @@ class EslintSupport {
     this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
 
     this.hasEslintPluginJest =
-      hasPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
+      hasLocalPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
 
     this.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
 

@@ -11,7 +11,9 @@ if (eslintSupport.hasEslintPluginImport) {
     'import/core-modules': ['electron', 'aws-sdk'],
     'import/extensions': extensions,
     'import/resolver': {
-      node: { extensions }
+      node: {
+        extensions: ['.cjs', '.mjs', '.js', '.json', '.ts', '.tsx']
+      }
     }
   }
 

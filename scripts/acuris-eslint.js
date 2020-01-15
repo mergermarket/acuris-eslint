@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict'
 
+if (!global.__v8__compile__cache) {
+  require('v8-compile-cache')
+}
+
 const path = require('path')
 const fs = require('fs')
 
@@ -16,24 +20,16 @@ if (options.cwd) {
   process.chdir(path.resolve(cliOptions.cwd))
 }
 
-const {
-  eslintRequire,
-  eslintTryRequire,
-  getEslintPath,
-  getEslintVersion,
-  assertEslintVersion
-} = require('../core/node-modules')
+const { eslintRequire, eslintTryRequire, getEslintVersion, assertEslintVersion } = require('../core/node-modules')
+
+const { version: packageVersion } = require('../package.json')
 
 if (options.debug) {
   const eslintDebug = eslintTryRequire('debug')
   if (eslintDebug) {
     eslintDebug.enable('eslint:*,-eslint:code-path')
   }
-} else {
-  eslintTryRequire('v8-compile-cache')
 }
-
-const { version: packageVersion } = require('../package.json')
 
 const chalk = require('chalk')
 
@@ -61,8 +57,6 @@ if (!cliOptions) {
     timerStarted = appTitle
   }
 
-  assertEslintVersion()
-
   const exitCode = eslint()
   endTimeLog()
   if (exitCode && !process.exitCode) {
@@ -71,13 +65,21 @@ if (!cliOptions) {
 }
 
 function eslint() {
+  const stopFsCache = require('./lib/fs-cache').startFsCache().stop
+
+  assertEslintVersion()
   const { CLIEngine } = eslintRequire('./lib/cli-engine')
 
   const engine = new CLIEngine(translateOptionsForCLIEngine(cliOptions))
 
-  const report = options.stdin
-    ? engine.executeOnText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
-    : engine.executeOnFiles(cliOptions.list)
+  let report
+  try {
+    report = options.stdin
+      ? engine.executeOnText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
+      : engine.executeOnFiles(cliOptions.list)
+  } finally {
+    stopFsCache()
+  }
 
   if (options.fix) {
     // Fix mode enabled - applying fixes
@@ -180,7 +182,7 @@ function handleError(error) {
   console.error(chalk.redBright('\nOops! Something went wrong! :(\n'))
   if (typeof error.messageTemplate === 'string' && error.messageTemplate.length > 0) {
     try {
-      const eslintPath = getEslintPath()
+      const eslintPath = path.dirname(require.resolve('eslint/package.json'))
       const template = eslintRequire('lodash').template(
         fs.readFileSync(path.resolve(eslintPath, `./messages/${error.messageTemplate}.txt`), 'utf-8')
       )

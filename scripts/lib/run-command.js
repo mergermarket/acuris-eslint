@@ -1,3 +1,5 @@
+'use strict'
+
 const { flushNotes } = require('./notes')
 const chalk = require('chalk')
 

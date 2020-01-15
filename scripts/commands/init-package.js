@@ -57,6 +57,8 @@ module.exports = async cliOptions => {
       }
 
       reloadNodeResolvePaths()
+      require('eslint-plugin-quick-prettier/prettier-interface').reloadPrettier()
+
       manifest = await updatePackage(false)
     }
   }

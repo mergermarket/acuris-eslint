@@ -53,10 +53,11 @@
     "chalk": "^3.0.0",
     "eslint-plugin-quick-prettier": "^0.0.26",
     "hjson": "3.1.2",
-    "semver": "^7.1.1"
+    "semver": "^7.1.1",
+    "v8-compile-cache": "2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^13.1.6",
+    "@types/node": "^13.1.7",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
     "babel-eslint": "^10.0.3",
@@ -74,11 +75,14 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.17.0",
     "eslint-scope": "^5.0.0",
-    "husky": "^4.0.7",
+    "husky": "^4.0.10",
     "lint-staged": "^9.5.0",
     "mocha": "^7.0.0",
     "mock-fs": "^4.10.4",
     "prettier": "^1.19.1",
     "typescript": "^3.7.4"
-  }
+  },
+  "bundledDependencies": [
+    "v8-compile-cache"
+  ]
 }

@@ -1,9 +1,8 @@
 'use strict'
 
-const {
-  prettierInterface,
-  jsonUtils: { sortObjectKeys }
-} = require('../../core/node-modules')
+const { sortObjectKeys } = require('eslint-plugin-quick-prettier/json-utils')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
+
 const chalk = require('chalk')
 const fs = require('fs')
 const util = require('util')

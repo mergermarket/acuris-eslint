@@ -1,7 +1,7 @@
 'use strict'
 
 const { fileExists, resolveProjectFile } = require('../lib/fs-utils')
-const { prettierInterface } = require('../../core/node-modules')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { emitSection, emitInitComplete } = require('../lib/notes')
 const { updateTextFileAsync } = require('../lib/text-utils')
 const IgnoreFile = require('../lib/IgnoreFile')

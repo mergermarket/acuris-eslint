@@ -1,9 +1,7 @@
 'use strict'
 
-const {
-  prettierInterface,
-  jsonUtils: { jsonEqual, sortPackageJson }
-} = require('../../core/node-modules')
+const { jsonEqual, sortPackageJson } = require('eslint-plugin-quick-prettier/json-utils')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { mkdirSync } = require('./fs-utils')
 const hjson = require('hjson')
 const fs = require('fs')
