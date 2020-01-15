@@ -1,11 +1,11 @@
-const createCmdOptionsParser = require('../../../scripts/lib/cmd-options-parser')
+const { createCmdOptionsParser } = require('../../../scripts/lib/cmd-options-parser')
 const { expect } = require('chai')
 
 describe('cmd-options', () => {
   describe('parser', () => {
     it('parses a simple list of arguments with no options', () => {
       const parsed = createCmdOptionsParser().parse(['aaa.a', 'bbb.b', 'ccc.c', 'd-'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: {},
         list: ['aaa.a', 'bbb.b', 'ccc.c', 'd-']
@@ -21,7 +21,7 @@ describe('cmd-options', () => {
         .opt({ option: 'cc', value: true, type: 'boolean' })
         .opt({ option: 'dd', value: false, type: 'boolean' })
         .parse(['xx'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: { aa: 'hello', ap: './xxx', bb: 123, cc: true, dd: false },
         list: ['xx']
@@ -38,7 +38,7 @@ describe('cmd-options', () => {
         .opt({ option: 'yyy', alias: 'y', type: 'string' })
         .opt({ option: 'x', alias: 'kkk', key: 'K', type: 'string' })
         .parse(['-a=www', '-b', '--no-c', '-y', 'yyy', 'a', '--kkk', 'k!'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: { A: 'www', b: true, c: false, d: undefined, yyy: 'yyy', K: 'k!' },
         list: ['a']
@@ -53,7 +53,7 @@ describe('cmd-options', () => {
         .opt({ option: 'yyy', value: 'def3', type: 'string' })
         .opt({ option: 'zzz', value: 'def4', type: 'string' })
         .parse(['--test', '--xxx', 'b', 'c', '--yyy'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: { test: 'def1', xxx: 'b', yyy: 'def3', zzz: 'def4' },
         list: ['c']
@@ -70,7 +70,7 @@ describe('cmd-options', () => {
         .opt({ option: 'bool1', value: false })
         .opt({ option: 'bool2', value: true })
         .parse(['--string', 's1', 'xx', '--stringEq=s2', '--int', '123', '--intEq=45', '--bool1', 'yy', '--no-bool2'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: {
           int: 123,
@@ -93,49 +93,49 @@ describe('cmd-options', () => {
         .opt({ option: 'bool1', type: 'boolean' })
         .opt({ option: 'boolHelp', type: 'help' })
 
-      expect(parser.parse(['--string', 's1', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--string', 's1', 'xx'])).to.deep.include({
         command: { option: 'string', key: 'string', type: 'string', value: 's1' },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--stringEq', 's123', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--stringEq', 's123', 'xx'])).to.deep.include({
         command: { option: 'stringEq', key: 'string', type: 'path', value: 's123' },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--int', '123', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--int', '123', 'xx'])).to.deep.include({
         command: { option: 'int', key: 'int', type: 'int', value: 123 },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--intEq=123', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--intEq=123', 'xx'])).to.deep.include({
         command: { option: 'intEq', key: 'intEq', type: 'int', value: 123 },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--bool1', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--bool1', 'xx'])).to.deep.include({
         command: { option: 'bool1', key: 'bool1', type: 'boolean', value: true },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--bool1', '--boolHelp', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--bool1', '--boolHelp', 'xx'])).to.deep.include({
         command: { option: 'boolHelp', key: 'boolHelp', type: 'help', value: true },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--boolHelp', '--no-bool1', 'xx'])).to.deep.equal({
+      expect(parser.parse(['--boolHelp', '--no-bool1', 'xx'])).to.deep.include({
         command: { option: 'boolHelp', key: 'boolHelp', type: 'help', value: true },
         options: {},
         list: ['xx']
       })
 
-      expect(parser.parse(['--boolHelp', '--boolHelp', '--no-bool1', 'xx', '--boolHelp'])).to.deep.equal({
+      expect(parser.parse(['--boolHelp', '--boolHelp', '--no-bool1', 'xx', '--boolHelp'])).to.deep.include({
         command: { option: 'boolHelp', key: 'boolHelp', type: 'help', value: true },
         options: {},
         list: ['xx']
@@ -148,7 +148,7 @@ describe('cmd-options', () => {
         .opt({ option: 'xa', type: 'string' })
         .opt({ option: 'xb', value: '', type: 'string' })
         .parse(['aaa', '--xa=abc', '--', '--xb', '-c', 'ddd', 'd'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: {
           xa: 'abc',
@@ -164,7 +164,7 @@ describe('cmd-options', () => {
         .opt({ option: 'xxx', value: 'x' })
         .opt({ option: 'mm', value: 'x', type: 'string' })
         .parse(['--=xxx', '--mm=1'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: {
           xxx: 'x',
@@ -179,7 +179,7 @@ describe('cmd-options', () => {
         .grp('opts')
         .opt({ option: 'xxx', value: 'x', type: 'string' })
         .parse(['--:xxx'])
-      expect(parsed).to.deep.equal({
+      expect(parsed).to.deep.include({
         command: undefined,
         options: {
           xxx: 'x'
