@@ -175,15 +175,17 @@ function printSysInfo() {
   console.log(JSON.stringify(info, null, 2))
 }
 
-const argv = process.argv || []
-if (argv.indexOf('--commands') > 0) {
-  printAcurisEslintCommands()
-} else if (argv.indexOf('--logo') > 0) {
-  printLogo()
-} else if (argv.indexOf('--sys-info') > 0) {
-  printSysInfo()
-} else if (argv.indexOf('--version') > 0) {
-  printVersion()
-} else {
-  printAcurisEslintHelp()
+if (process.mainModule === module) {
+  const argv = process.argv || []
+  if (argv.indexOf('--commands') > 0) {
+    printAcurisEslintCommands()
+  } else if (argv.indexOf('--logo') > 0) {
+    printLogo()
+  } else if (argv.indexOf('--sys-info') > 0) {
+    printSysInfo()
+  } else if (argv.indexOf('--version') > 0) {
+    printVersion()
+  } else {
+    printAcurisEslintHelp()
+  }
 }

@@ -41,6 +41,11 @@
       "git add"
     ]
   },
+  "bundledDependencies": [
+    "eslint-plugin-quick-prettier",
+    "hjson",
+    "v8-compile-cache"
+  ],
   "peerDependencies": {
     "eslint": ">=6.8.0",
     "eslint-plugin-import": ">=2.20.0",
@@ -51,7 +56,7 @@
   },
   "dependencies": {
     "chalk": "^3.0.0",
-    "eslint-plugin-quick-prettier": "^0.0.26",
+    "eslint-plugin-quick-prettier": "^0.0.27",
     "hjson": "3.1.2",
     "semver": "^7.1.1",
     "v8-compile-cache": "2.1.0"
@@ -81,8 +86,5 @@
     "mock-fs": "^4.10.4",
     "prettier": "^1.19.1",
     "typescript": "^3.7.4"
-  },
-  "bundledDependencies": [
-    "v8-compile-cache"
-  ]
+  }
 }
