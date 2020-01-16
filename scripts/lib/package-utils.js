@@ -1,3 +1,5 @@
+'use strict'
+
 const path = require('path')
 const nodeModules = require('../../core/node-modules')
 const { getRepositoryFromGitConfig, fileExists, findUp, runAsync } = require('./fs-utils')

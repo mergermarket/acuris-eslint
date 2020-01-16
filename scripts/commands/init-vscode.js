@@ -16,6 +16,7 @@ module.exports = async () => {
           settings = {}
         }
         settings = mergeConfigs(settings, defaultSettings)
+        delete settings['eslint.autoFixOnSave']
 
         settings['eslint.validate'] = mergeEslintValidate(
           settings['eslint.validate'],
@@ -87,29 +88,24 @@ function mergeConfigs(target, source) {
 }
 
 function mergeEslintValidate(target, source) {
-  if (!source) {
-    return target
-  }
-  if (!Array.isArray(target) || target.length === 0) {
-    return source
-  }
+  const map = new Map()
+  eslintValidateLanguages(source)
+  eslintValidateLanguages(target)
+  return Array.from(map.values())
 
-  const languages = new Set()
-  for (let i = 0; i < target.length; ++i) {
-    if (typeof target[i] === 'string') {
-      target[i] = { language: target[i], autoFix: true }
-    }
-    if (typeof target[i] === 'object' && target[i] !== null && target[i].language) {
-      languages.add(target[i].language)
-    }
-  }
-
-  for (let i = 0; i < source.length; ++i) {
-    if (!languages.has(source[i].language)) {
-      languages.add(source[i].language)
-      target.push(typeof source[i] === 'string' ? { language: source[i], autoFix: true } : source[i])
+  function eslintValidateLanguages(x) {
+    if (Array.isArray(x)) {
+      for (const item of x) {
+        if (typeof item === 'string') {
+          map.set(item, item)
+          continue
+        }
+        if (typeof item === 'object' && item !== null && item.language && !Array.isArray(item)) {
+          map.set(item.language, item.autoFix ? item.language : item)
+          continue
+        }
+        map.set(map.size, item)
+      }
     }
   }
-
-  return target
 }

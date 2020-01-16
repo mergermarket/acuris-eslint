@@ -1,15 +1,13 @@
 'use strict'
 
-const {
-  prettierInterface,
-  jsonUtils: { sortObjectKeys }
-} = require('../../core/node-modules')
-const { askConfirmation } = require('../lib/inquire')
+const { sortObjectKeys } = require('eslint-plugin-quick-prettier/json-utils')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
+
 const chalk = require('chalk')
 const fs = require('fs')
 const util = require('util')
 const { resolveProjectFile, resolveAcurisEslintFile, fileExists } = require('../lib/fs-utils')
-const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
+const { askConfirmation, readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const { emitWarning } = require('../lib/notes')
 const IgnoreFile = require('../lib/IgnoreFile')
 

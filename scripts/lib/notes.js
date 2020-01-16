@@ -1,3 +1,5 @@
+'use strict'
+
 const chalk = require('chalk')
 const path = require('path')
 const { findUp, fileExists, directoryExists, resolveProjectFile } = require('./fs-utils')

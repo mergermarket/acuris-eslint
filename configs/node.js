@@ -4,9 +4,8 @@ const eslintSupport = require('../core/eslint-support')
 const common = require('./common')
 
 if (eslintSupport.hasEslintPluginNode) {
-  const configs = require('eslint-plugin-node').configs
-  const nodeScript = configs['recommended-script']
-  const nodeModule = configs['recommended-module']
+  const nodeScript = require('eslint-plugin-node/lib/configs/recommended-script')
+  const nodeModule = require('eslint-plugin-node/lib/configs/recommended-module')
 
   const rules = {
     'no-process-exit': 2,

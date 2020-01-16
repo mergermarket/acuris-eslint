@@ -35,31 +35,36 @@ let testOverrides = {
 
 if (eslintSupport.hasEslintPluginJest) {
   env.jest = true
-  const eslintPluginJestConfigs = require('eslint-plugin-jest').configs
+  env['jest/globals'] = true
 
-  testOverrides = eslintSupport.mergeEslintConfigs(
-    testOverrides,
-    eslintPluginJestConfigs.recommended,
-    eslintPluginJestConfigs.style,
-    {
-      plugins: ['jest'],
-      env,
-      rules: {
-        'jestno-jasmine-globals': 0,
-        'jest/no-jest-import': 0,
-        'jest/no-disabled-tests': 1,
-        'jest/no-focused-tests': 1,
-        'jest/no-identical-title': 0,
-        'jest/no-test-prefixes': 0,
-        'jest/prefer-to-have-length': 1,
-        'jest/valid-expect': 2,
-        'jest/prefer-to-be-null': 1,
-        'jest/prefer-to-be-undefined': 1,
-        'jest/prefer-to-contain': 1,
-        'jest/no-test-callback': 1
-      }
+  testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, {
+    plugins: ['jest'],
+    env,
+    rules: {
+      'jest/expect-expect': 'warn',
+      'jest/no-commented-out-tests': 'warn',
+      'jest/no-disabled-tests': 1,
+      'jest/no-export': 'error',
+      'jest/no-focused-tests': 1,
+      'jest/no-identical-title': 0,
+      'jest/no-jest-import': 0,
+      'jest/no-mocks-import': 'error',
+      'jest/no-jasmine-globals': 'warn',
+      'jest/no-standalone-expect': 'error',
+      'jest/no-test-callback': 1,
+      'jest/no-test-prefixes': 0,
+      'jest/no-try-expect': 'error',
+      'jest/valid-describe': 'error',
+      'jest/valid-expect': 2,
+      'jest/valid-expect-in-promise': 'error',
+      'jest/no-alias-methods': 'warn',
+      'jest/prefer-to-be-null': 1,
+      'jest/prefer-to-be-undefined': 1,
+      'jest/prefer-to-contain': 1,
+      'jest/prefer-to-have-length': 1,
+      'jestno-jasmine-globals': 0
     }
-  )
+  })
 
   testOverrides.files.push('*-jest-*.*')
 
@@ -74,14 +79,11 @@ if (eslintSupport.hasEslintPluginJest) {
 if (eslintSupport.hasEslintPluginMocha) {
   env.mocha = true
 
-  const eslintPluginMochaConfigs = require('eslint-plugin-mocha').configs
-
-  testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, eslintPluginMochaConfigs.recommended, {
+  testOverrides = eslintSupport.mergeEslintConfigs(testOverrides, {
     plugins: ['mocha'],
     env,
     rules: {
       'no-unused-expressions': 0, // for chai
-
       'mocha/no-exclusive-tests': 1,
       'mocha/no-pending-tests': 1,
       'mocha/no-skipped-tests': 0,

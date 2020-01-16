@@ -1,6 +1,10 @@
 #!/usr/bin/env node
-
 'use strict'
+
+try {
+  require('v8-compile-cache')
+  global.__v8__compile__cache = true
+} catch (_error) {}
 
 let resolved
 try {

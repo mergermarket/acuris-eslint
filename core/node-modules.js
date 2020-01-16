@@ -2,18 +2,19 @@
 
 /* eslint-disable global-require */
 
-if (!process || !process.version || process.version.match(/v(\d+)\./)[1] < 10) {
-  throw new Error(`Node 12.0.0 or greater is required. Current version is ${process && process.version}`)
-}
+assertNodeVersion()
 
 const Module = require('module')
 const path = require('path')
 const os = require('os')
-const fs = require('fs')
-const { statSync, readFileSync } = require('fs')
+const { statSync } = require('fs')
 
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
+
+// Hides createRequireFromPath deprecation warning when used
+// eslint-disable-next-line node/no-deprecated-api
+Module.createRequireFromPath = Module.createRequire
 
 /** @type {{ (from: string): string[] }} */
 let legacyNodeModulePaths = Module._nodeModulePaths
@@ -30,7 +31,7 @@ legacyNodeModulePaths = legacyNodeModulePaths.bind(Module)
 
 exports.legacyNodeModulePaths = legacyNodeModulePaths
 
-let _eslintPath
+let _cwdNodeModules
 
 /** @type {Set<string>} */
 const _resolvePackageNames = new Set()
@@ -47,8 +48,6 @@ _nonLocalPathsSet.add(pathResolve('/'))
 _nonLocalPathsSet.add(pathResolve('/node_modules'))
 _nonLocalPathsSet.add(pathResolve(os.homedir() || '/', 'node_modules'))
 
-const cwdNodeModules = path.join(process.cwd(), 'node_modules')
-
 /**
  * Gets the node modules paths to use to resolve a module.
  * @param {string} from The initial path.
@@ -58,6 +57,7 @@ function nodeModulePaths(from = process.cwd()) {
   let customAdded = false
   const set = new Set()
   const defaults = legacyNodeModulePaths(from)
+  const cwdNodeModules = _cwdNodeModules || (_cwdNodeModules = path.resolve('node_modules'))
   for (let i = 0, defaultsLen = defaults.length; i !== defaultsLen; ++i) {
     const value = defaults[i]
     if (!customAdded && value === cwdNodeModules) {
@@ -164,31 +164,6 @@ function isGlobalPath(filepath) {
 
 exports.isGlobalPath = isGlobalPath
 
-/**
- * Gets the path of the eslint module.
- * Returns null if not found.
- * @returns {string|null} The path of eslint module or null if not found.
- */
-function getEslintPath() {
-  if (_eslintPath === undefined) {
-    try {
-      _eslintPath = path.dirname(require.resolve('eslint'))
-    } catch (_error) {}
-  }
-  for (const p of nodeModulePaths(__dirname)) {
-    try {
-      const resolved = path.resolve(p, 'eslint', 'package.json')
-      if (fs.statSync(resolved).isFile()) {
-        _eslintPath = path.dirname(resolved)
-        return _eslintPath
-      }
-    } catch (_error) {}
-  }
-  return _eslintPath
-}
-
-exports.getEslintPath = getEslintPath
-
 let _eslintVersion = null
 
 /**
@@ -208,6 +183,8 @@ function getEslintVersion() {
 }
 
 exports.getEslintVersion = getEslintVersion
+
+exports.assertEslintVersion = assertEslintVersion
 
 let _minimumSupportedEslintVersion
 
@@ -234,72 +211,25 @@ function getMinimumSupportedEslintVersion() {
 
 exports.getMinimumSupportedEslintVersion = getMinimumSupportedEslintVersion
 
-function eslintResolve(id) {
-  if (id.startsWith('eslint/')) {
-    id = `.${id.slice('eslint'.length)}`
-  }
-  const eslintPath = getEslintPath()
-  if (eslintPath) {
-    try {
-      if (id.startsWith('.')) {
-        return require.resolve(pathResolve(eslintPath, id), { paths: nodeModulePaths(eslintPath) })
-      }
-      return require.resolve(id, { paths: nodeModulePaths(eslintPath) })
-    } catch (error) {
-      if (!error || error.code !== 'MODULE_NOT_FOUND') {
-        throw error
-      }
-    }
-  }
-  if (id.startsWith('./')) {
-    return require.resolve(`eslint${id.slice(1)}`)
-  }
-  return require.resolve(id)
-}
+let _eslintRequire
+
+exports.eslintRequire = eslintRequire
+
+exports.eslintTryRequire = eslintTryRequire
 
 /**
  * Requires a module from the point of view of eslint.
  * @param {string} id The module to require.
  */
 function eslintRequire(id) {
-  return require(eslintResolve(id))
+  const r = _eslintRequire || Module.createRequire(require.resolve('eslint/package.json'))
+  return r(id)
 }
 
-eslintRequire.resolve = eslintResolve
-
-eslintRequire.update = function update(name) {
-  const id = eslintRequire.resolve(name)
-  if (!(id in require.cache)) {
-    const resolved = require.resolve(name)
-    if (id !== resolved) {
-      Object.defineProperty(require.cache, id, {
-        get() {
-          const m = new Module(id)
-          m.filename = id
-          m.exports = require(name)
-          this[id] = m
-          return m
-        },
-        set(value) {
-          Object.defineProperty(this, id, {
-            value,
-            configurable: true,
-            enumerable: true,
-            writable: true
-          })
-        },
-        configurable: true,
-        enumerable: true
-      })
-    }
-  }
-}
-
-exports.eslintRequire = eslintRequire
-
-function resolvePackageFolder(packageName) {
+function eslintTryRequire(id) {
   try {
-    return path.dirname(require.resolve(`${packageName}/package.json`))
+    const r = _eslintRequire || Module.createRequire(require.resolve('eslint/package.json'))
+    return r(id)
   } catch (_error) {
     return undefined
   }
@@ -310,23 +240,7 @@ Module._nodeModulePaths = nodeModulePaths
 
 reloadNodeResolvePaths()
 
-const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
-
-prettierInterface.loadDefaultPrettierConfig = function loadDefaultPrettierConfig() {
-  try {
-    return JSON.parse(readFileSync(path.join(path.dirname(__dirname), '.prettierrc')))
-  } catch (error) {
-    if (!error || error.code !== 'ENOENT') {
-      throw error
-    }
-  }
-  return {}
-}
-
-module.exports.prettierInterface = prettierInterface
-
 function reloadNodeResolvePaths() {
-  _eslintPath = undefined
   _eslintVersion = undefined
   _resolvePaths.clear()
   _hasLocalPackageCache.clear()
@@ -339,10 +253,10 @@ function reloadNodeResolvePaths() {
   addNodeResolvePath(path.dirname(__dirname))
   addNodeResolvePath(path.dirname(path.dirname(__dirname)))
 
-  addNodeResolvePath(resolvePackageFolder('eslint'))
-  addNodeResolvePath(resolvePackageFolder('eslint-plugin-quick-prettier'))
-
-  const sharedComponentToolsPath = resolvePackageFolder('acuris-shared-component-tools')
+  let sharedComponentToolsPath
+  try {
+    sharedComponentToolsPath = path.dirname(require.resolve('acuris-shared-component-tools/package.json'))
+  } catch (_error) {}
   if (sharedComponentToolsPath) {
     addNodeResolvePath(sharedComponentToolsPath)
     for (const relative of _resolvePackageNames) {
@@ -350,13 +264,15 @@ function reloadNodeResolvePaths() {
     }
   }
 
+  try {
+    addNodeResolvePath(path.dirname(require.resolve('eslint/package.json')))
+  } catch (_error) {}
+
   for (const p of legacyNodeModulePaths(path.dirname(process.cwd()))) {
     addNodeResolvePath(p)
   }
 
-  _resolvePaths.add(path.resolve(process.cwd(), 'node_modules'))
-
-  require('eslint-plugin-quick-prettier/prettier-interface').reloadPrettier()
+  _resolvePaths.add(path.resolve('node_modules'))
 
   function directoryExists(directory) {
     if (typeof directory !== 'string' || directory.length === 0) {
@@ -427,7 +343,7 @@ function reloadNodeResolvePaths() {
       _resolvePackageNames.add(packageName)
     }
 
-    if (directoryExists(folder)) {
+    if (!_resolvePaths.has(folder) && directoryExists(folder)) {
       if (!isInstalledGlobally && isGlobalPath(folder)) {
         return
       }
@@ -452,6 +368,25 @@ function reloadNodeResolvePaths() {
   }
 }
 
-module.exports.reloadNodeResolvePaths = reloadNodeResolvePaths
+function assertNodeVersion() {
+  let nodeVersion = `${process && process.version}`
+  if (nodeVersion.startsWith('v')) {
+    nodeVersion = nodeVersion.slice(1)
+  }
+  const parsed = parseFloat(nodeVersion)
+  if (parsed < 12.12) {
+    throw new Error(`Node 12.12.0 or greater is required. Current version is ${nodeVersion}`)
+  }
+}
 
-module.exports.jsonUtils = require('eslint-plugin-quick-prettier/json-utils')
+function assertEslintVersion() {
+  const minVersion = getMinimumSupportedEslintVersion()
+  const version = getEslintVersion()
+  if (parseFloat(version) < parseFloat(minVersion)) {
+    const err = new Error(`eslint version ${version} not supported. Minimum supported version is ${minVersion}.`)
+    err.showStack = false
+    throw err
+  }
+}
+
+module.exports.reloadNodeResolvePaths = reloadNodeResolvePaths

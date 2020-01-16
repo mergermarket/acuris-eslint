@@ -17,18 +17,33 @@ if (eslintSupport.hasTypescript) {
     hasTypeCheck = true
   }
 
-  const eslintPlugin = require('@typescript-eslint/eslint-plugin')
-  const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
+  const allRules = require('@typescript-eslint/eslint-plugin/dist/configs/all.json').rules
+  const pluginConfigRecommended = require('@typescript-eslint/eslint-plugin/dist/configs/recommended.json').rules
+  const pluginConfigRecommendedRequiringTypeChecking = require('@typescript-eslint/eslint-plugin/dist/configs/recommended-requiring-type-checking.json')
+    .rules
+
+  //const eslintPlugin = require('@typescript-eslint/eslint-plugin')
+  //const allRuleKeys = Object.keys(eslintPlugin.configs.all.rules)
 
   const baseRules = {}
-  mergeEslintPluginRules(eslintPlugin.configs.recommended.rules, baseKey)
+  mergeEslintPluginRules(baseRules, pluginConfigRecommended)
 
   if (hasTypeCheck) {
-    mergeEslintPluginRules(baseRules, eslintPlugin.configs['recommended-requiring-type-checking'].rules, baseKey)
+    mergeEslintPluginRules(baseRules, pluginConfigRecommendedRequiringTypeChecking)
   }
 
-  Object.assign(baseRules, eslintPlugin.configs['eslint-recommended'].overrides[0].rules)
-  Object.assign(baseRules, require('eslint-config-prettier/@typescript-eslint').rules)
+  Object.assign(baseRules, pluginConfigRecommended, {
+    '@typescript-eslint/quotes': 0,
+    '@typescript-eslint/brace-style': 'off',
+    '@typescript-eslint/func-call-spacing': 'off',
+    '@typescript-eslint/indent': 'off',
+    '@typescript-eslint/member-delimiter-style': 'off',
+    '@typescript-eslint/no-extra-parens': 'off',
+    '@typescript-eslint/no-extra-semi': 'off',
+    '@typescript-eslint/semi': 'off',
+    '@typescript-eslint/space-before-function-paren': 'off',
+    '@typescript-eslint/type-annotation-spacing': 'off'
+  })
 
   const commonRules = common.rules
 
@@ -36,7 +51,7 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/no-throw-literal': true
   }
 
-  for (const ruleKey of allRuleKeys) {
+  for (const ruleKey of Object.keys(allRules)) {
     if (ruleKey.startsWith(baseKey)) {
       const commonRuleKey = ruleKey.slice(baseKey.length)
       if (commonRuleKey in commonRules) {
@@ -130,10 +145,7 @@ if (eslintSupport.hasTypescript) {
   }
 
   if (eslintSupport.hasEslintPluginImport) {
-    module.exports = eslintSupport.mergeEslintConfigs(
-      module.exports,
-      require('eslint-plugin-import').configs.typescript
-    )
+    module.exports = eslintSupport.mergeEslintConfigs(module.exports, require('eslint-plugin-import/config/typescript'))
   }
 }
 

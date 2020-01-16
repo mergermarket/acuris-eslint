@@ -16,7 +16,7 @@
     "url": "https://github.com/mergermarket/acuris-eslint.git"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=12.12.0"
   },
   "main": "index.js",
   "bin": {
@@ -26,8 +26,8 @@
     "lint": "node scripts/acuris-eslint.js",
     "help": "node scripts/acuris-eslint.js --help",
     "acuris-eslint": "node scripts/acuris-eslint.js",
-    "test": "mocha \"test/**/*.test.js\"",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "test": "mocha \"test/**/*.test.js\""
   },
   "husky": {
     "hooks": {
@@ -41,35 +41,38 @@
       "git add"
     ]
   },
+  "bundledDependencies": [
+    "eslint-plugin-quick-prettier",
+    "hjson",
+    "v8-compile-cache"
+  ],
   "peerDependencies": {
     "eslint": ">=6.8.0",
-    "eslint-plugin-import": ">=2.19.1",
+    "eslint-plugin-import": ">=2.20.0",
     "eslint-plugin-json": ">=2.0.1",
     "eslint-plugin-node": ">=11.0.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "eslint-scope": ">=5.0.0",
     "prettier": ">=1.19.1"
   },
   "dependencies": {
     "chalk": "^3.0.0",
-    "eslint-config-prettier": "^6.9.0",
-    "eslint-plugin-quick-prettier": "^0.0.26",
+    "eslint-plugin-quick-prettier": "^0.0.27",
     "hjson": "3.1.2",
-    "inquirer": "^7.0.3",
-    "optionator": "^0.8.3",
-    "semver": "^7.1.1"
+    "semver": "^7.1.1",
+    "v8-compile-cache": "2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^13.1.4",
-    "@typescript-eslint/eslint-plugin": "^2.15.0",
-    "@typescript-eslint/parser": "^2.15.0",
+    "@types/node": "^13.1.7",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "babel-eslint": "^10.0.3",
     "chai": "^4.2.0",
     "eslint": "^6.8.0",
     "eslint-import-resolver-parcel": "^1.10.1",
     "eslint-plugin-chai-expect": "^2.1.0",
     "eslint-plugin-css-modules": "^2.11.0",
-    "eslint-plugin-import": "^2.19.1",
-    "eslint-plugin-jest": "^23.3.0",
+    "eslint-plugin-import": "^2.20.0",
+    "eslint-plugin-jest": "^23.6.0",
     "eslint-plugin-json": "^2.0.1",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-mocha": "^6.2.2",
@@ -77,7 +80,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.17.0",
     "eslint-scope": "^5.0.0",
-    "husky": "^4.0.1",
+    "husky": "^4.0.10",
     "lint-staged": "^9.5.0",
     "mocha": "^7.0.0",
     "mock-fs": "^4.10.4",

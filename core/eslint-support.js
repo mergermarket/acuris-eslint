@@ -3,7 +3,7 @@
 /* eslint-disable node/no-missing-require */
 /* eslint-disable global-require */
 
-const { hasLocalPackage, hasPackage } = require('./node-modules')
+const { eslintRequire, hasLocalPackage, hasPackage } = require('./node-modules')
 
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
@@ -49,7 +49,7 @@ class EslintSupport {
     this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
 
     this.hasEslintPluginJest =
-      hasPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
+      hasLocalPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
 
     this.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
 
@@ -92,6 +92,8 @@ class EslintSupport {
     return result
   }
 }
+
+EslintSupport.prototype.eslintRequire = eslintRequire
 
 module.exports = new EslintSupport()
 

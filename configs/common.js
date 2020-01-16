@@ -224,6 +224,8 @@ module.exports = {
     'operator-assignment': [1, 'always'],
     'padding-line-between-statements': 0,
     'default-param-last': 0,
+    'prefer-exponentiation-operator': 1,
+    'no-setter-return': 1,
     'prefer-arrow-callback': [
       1,
       {

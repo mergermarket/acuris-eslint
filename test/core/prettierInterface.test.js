@@ -1,18 +1,7 @@
-const { prettierInterface } = require('../../core/node-modules')
+const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { expect } = require('chai')
 
 describe('core/prettierInterface', () => {
-  describe('loadDefaultPrettierConfig', () => {
-    it('returns default prettier config', () => {
-      expect(prettierInterface.loadDefaultPrettierConfig()).to.deep.include({
-        endOfLine: 'lf',
-        printWidth: 120,
-        semi: false,
-        singleQuote: true
-      })
-    })
-  })
-
   describe('getPrettier', () => {
     it('returns prettier', () => {
       expect(prettierInterface.getPrettier()).to.equal(require('prettier'))
