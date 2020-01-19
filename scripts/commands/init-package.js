@@ -127,7 +127,7 @@ module.exports = async cliOptions => {
                 }
               }
               pkg['lint-staged'] = {
-                '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --lint-staged --fix --max-warnings=0', 'git add']
+                '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --lint-staged --fix --max-warnings=0']
               }
             }
           }
