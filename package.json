@@ -62,7 +62,7 @@
     "v8-compile-cache": "2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^13.1.7",
+    "@types/node": "^13.1.8",
     "@typescript-eslint/eslint-plugin": "^2.16.0",
     "@typescript-eslint/parser": "^2.16.0",
     "babel-eslint": "^10.0.3",
@@ -81,10 +81,10 @@
     "eslint-plugin-react": "^7.18.0",
     "eslint-scope": "^5.0.0",
     "husky": "^4.0.10",
-    "lint-staged": "^9.5.0",
+    "lint-staged": "^10.0.0",
     "mocha": "^7.0.0",
     "mock-fs": "^4.10.4",
     "prettier": "^1.19.1",
-    "typescript": "^3.7.4"
+    "typescript": "^3.7.5"
   }
 }

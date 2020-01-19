@@ -12,8 +12,9 @@ if (eslintSupport.hasTypescript) {
   }
 
   let hasTypeCheck = false
-  if (eslintSupport.tsConfigPath) {
-    parserOptions.project = eslintSupport.tsConfigPath
+  const tsConfigPath = eslintSupport.tsConfigPath
+  if (tsConfigPath) {
+    parserOptions.project = tsConfigPath
     hasTypeCheck = true
   }
 

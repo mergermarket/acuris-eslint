@@ -30,10 +30,7 @@ class EslintSupport {
 
     this.tsConfigPath = undefined
     if (this.hasTypescript) {
-      const tsConfigPath = path.resolve('tsconfig.json')
-      if (fs.existsSync(tsConfigPath)) {
-        this.tsConfigPath = tsConfigPath
-      }
+      this.tsConfigPath = findFileUp('tsconfig.json')
     }
 
     this.hasEslintImportResolverParcel = hasLocalPackage('eslint-import-resolver-parcel')
@@ -166,4 +163,23 @@ function eslintConfigsDeepMerge(target, src, combine, isRule) {
   }
 
   return dst
+}
+
+function findFileUp(filename) {
+  let result
+  let p = process.cwd()
+  for (;;) {
+    const resolvedPath = path.resolve(p, filename)
+    try {
+      if (fs.statSync(resolvedPath).isFile()) {
+        return resolvedPath
+      }
+    } catch (_error) {}
+    const parent = path.dirname(p) || ''
+    if (parent.length === p.length) {
+      break
+    }
+    p = parent
+  }
+  return result
 }
