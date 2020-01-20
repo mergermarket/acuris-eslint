@@ -37,7 +37,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,json,ts,tsx}": [
-      "acuris-eslint --lint-staged --fix --max-warnings=0"
+      "node scripts/acuris-eslint.js --lint-staged --fix --max-warnings=0"
     ]
   },
   "bundledDependencies": [
