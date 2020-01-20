@@ -14,25 +14,16 @@ module.exports = async () => {
 
         if (typeof settings !== 'object' || settings === null) {
           settings = {}
-        } else {
-          settings = { ...settings }
         }
 
         settings = mergeConfigs(settings, defaultSettings)
 
-        // Have to be done twice for a bug with hjson package
-        delete settings['eslint.autoFixOnSave']
         delete settings['eslint.autoFixOnSave']
 
-        const eslintValidateValue = mergeEslintValidate(settings['eslint.validate'], defaultSettings['eslint.validate'])
-        console.log(settings)
-        if (!eslintValidateValue) {
-          // Have to be done twice for a bug with hjson package
-          delete settings['eslint.validate']
-          delete settings['eslint.validate']
-        } else {
-          settings['eslint.validate'] = eslintValidateValue
-        }
+        settings['eslint.validate'] = mergeEslintValidate(
+          settings['eslint.validate'],
+          defaultSettings['eslint.validate']
+        )
 
         if (defaultSettings['search.exclude']) {
           settings['search.exclude'] = { ...defaultSettings['search.exclude'], ...settings['search.exclude'] }

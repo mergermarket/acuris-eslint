@@ -3,7 +3,7 @@
 const { jsonEqual, sortPackageJson } = require('eslint-plugin-quick-prettier/json-utils')
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { mkdirSync } = require('./fs-utils')
-const hjson = require('hjson')
+const CJSON = require('comment-json')
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
@@ -52,13 +52,13 @@ function parse(source, format, filename) {
           return JSON.parse(source)
         } catch (error) {
           try {
-            return hjson.parse(source, { keepWsc: false })
+            return CJSON.parse(source)
           } catch (_error) {
             throw error
           }
         }
       } else {
-        return hjson.parse(source, { keepWsc: true })
+        return CJSON.parse(source)
       }
     }
 
@@ -148,17 +148,8 @@ function stringify(obj, format, filename = null) {
       }
       result = JSON.stringify(obj, null, 2)
     } else if (format === 'json') {
-      result = hjson.stringify(obj, {
-        emitRootBraces: true,
-        bracesSameLine: true,
-        colors: false,
-        separator: true,
-        quotes: 'all',
-        multiline: 'std',
-        space: 2,
-        eol: '\n',
-        keepWsc: true
-      })
+      result = CJSON.stringify(obj, null, 2)
+      console.log('CJSON STRINGIFY', obj, result)
     }
 
     if (format !== 'text') {
