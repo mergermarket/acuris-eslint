@@ -14,14 +14,25 @@ module.exports = async () => {
 
         if (typeof settings !== 'object' || settings === null) {
           settings = {}
+        } else {
+          settings = { ...settings }
         }
+
         settings = mergeConfigs(settings, defaultSettings)
+
+        // Have to be done twice for a bug with hjson package
+        delete settings['eslint.autoFixOnSave']
         delete settings['eslint.autoFixOnSave']
 
-        settings['eslint.validate'] = mergeEslintValidate(
-          settings['eslint.validate'],
-          defaultSettings['eslint.validate']
-        )
+        const eslintValidateValue = mergeEslintValidate(settings['eslint.validate'], defaultSettings['eslint.validate'])
+        console.log(settings)
+        if (!eslintValidateValue) {
+          // Have to be done twice for a bug with hjson package
+          delete settings['eslint.validate']
+          delete settings['eslint.validate']
+        } else {
+          settings['eslint.validate'] = eslintValidateValue
+        }
 
         if (defaultSettings['search.exclude']) {
           settings['search.exclude'] = { ...defaultSettings['search.exclude'], ...settings['search.exclude'] }
@@ -91,7 +102,17 @@ function mergeEslintValidate(target, source) {
   const map = new Map()
   eslintValidateLanguages(source)
   eslintValidateLanguages(target)
-  return Array.from(map.values())
+  const result = Array.from(map.values())
+
+  if (result.every(x => typeof x === 'string')) {
+    result.sort()
+    // Remove default value
+    if (['javascript', 'javascriptreact', 'typescript', 'typescriptreact'].join() === result.join()) {
+      return undefined
+    }
+  }
+
+  return result
 
   function eslintValidateLanguages(x) {
     if (Array.isArray(x)) {

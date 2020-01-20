@@ -133,6 +133,18 @@ module.exports = async cliOptions => {
           }
         }
 
+        if (
+          typeof pkg['lint-staged'] === 'object' &&
+          !Array.isArray(pkg['lint-staged']) &&
+          pkg['lint-staged'] !== null
+        ) {
+          for (const v of Object.values(pkg['lint-staged'])) {
+            if (Array.isArray(v) && v[v.length - 1] === 'git add') {
+              v.pop()
+            }
+          }
+        }
+
         const hasDependency = name =>
           !!((pkg.devDependencies && pkg.devDependencies[name]) || (pkg.dependencies && pkg.dependencies[name]))
 
