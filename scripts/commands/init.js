@@ -32,8 +32,8 @@ module.exports = async cliOptions => {
   emitSection('init-vscode')
   await require('./init-vscode')(cliOptions)
 
-  emitSection('gitignore')
   if (fileExists(resolveProjectFile('.gitignore'))) {
+    emitSection('gitignore')
     await updateTextFileAsync({
       filePath: resolveProjectFile('.gitignore'),
       async content(previousContent) {
@@ -46,6 +46,9 @@ module.exports = async cliOptions => {
       }
     })
     console.log('      You can also run `acuris-eslint --init-gitignore` to update all defaults')
+  } else {
+    emitSection('init-gitignore')
+    await require('./init-gitignore')(cliOptions)
   }
 
   emitInitComplete()

@@ -125,7 +125,7 @@ if (eslintSupport.hasEslintPluginImport) {
   quickPrettierRules['import/newline-after-import'] = 1
 }
 
-const rules = {
+const formattingRules = {
   'arrow-body-style': 0,
   'lines-around-comment': 0,
   'no-confusing-arrow': 0,
@@ -243,5 +243,5 @@ const rules = {
 
 module.exports = {
   plugins: ['quick-prettier'],
-  rules
+  rules: formattingRules
 }
