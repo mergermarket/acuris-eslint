@@ -149,7 +149,6 @@ function stringify(obj, format, filename = null) {
       result = JSON.stringify(obj, null, 2)
     } else if (format === 'json') {
       result = CJSON.stringify(obj, null, 2)
-      console.log('CJSON STRINGIFY', obj, result)
     }
 
     if (format !== 'text') {
