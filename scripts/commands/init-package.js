@@ -21,15 +21,7 @@ const {
 
 module.exports = async cliOptions => {
   const packageJsonPath = resolveProjectFile('package.json')
-
   const foundPackageJsonPath = getPackageJsonPath()
-
-  if (!findUp('.git', { directories: true, files: false })) {
-    if (await askConfirmation(`.git not found. Do you want to run ${chalk.yellow('git init')}?`)) {
-      await runAsync('git', ['init'])
-    }
-  }
-
   if (foundPackageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
     throw new Error(
       `Cannot initialize a sub package. Run this command in the root project. Root project found at ${foundPackageJsonPath}.`
@@ -109,11 +101,7 @@ module.exports = async cliOptions => {
             }
           }
 
-          if (
-            !pkg.husky &&
-            !pkg['lint-staged'] &&
-            findUp(resolveProjectFile('.git'), { directories: true, files: false })
-          ) {
+          if (!pkg.husky && !pkg['lint-staged'] && findUp('.git', { directories: true, files: false })) {
             if (
               await askConfirmation(
                 `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
