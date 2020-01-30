@@ -49,7 +49,8 @@ if (eslintSupport.hasTypescript) {
   const commonRules = common.rules
 
   const rulesThatRequireTypeChecks = {
-    '@typescript-eslint/no-throw-literal': true
+    '@typescript-eslint/no-throw-literal': true,
+    '@typescript-eslint/no-implied-eval': true
   }
 
   for (const ruleKey of Object.keys(allRules)) {
@@ -88,6 +89,9 @@ if (eslintSupport.hasTypescript) {
 
     // TODO: this would be a useful thing, but at the moment is buggy with overloads.
     'no-dupe-class-members': 0,
+
+    // This gives false positives
+    '@typescript-eslint/unbound-method': 0,
 
     '@typescript-eslint/prefer-includes': 0,
     '@typescript-eslint/adjacent-overload-signatures': 1,
