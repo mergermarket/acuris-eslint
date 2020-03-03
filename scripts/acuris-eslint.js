@@ -199,11 +199,10 @@ function filterOutEslintWarnings(report) {
   const results = report.results
   for (let i = 0, len = results.length; i !== len; ++i) {
     const item = results[i]
-    if (item.warningCount === 1 && item.errorCount === 0) {
+    if (report.warningCount > 0 && item.warningCount === 1 && item.errorCount === 0) {
       const messages = item.messages
       if (messages && messages.length === 1) {
         const msg = messages[0]
-
         const text = msg.message
         // Filter out "file ignored" messages for husky/lint-staged + .eslintignore
         if (

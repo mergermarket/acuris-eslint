@@ -58,6 +58,10 @@ function parseAcurisEslintOptions(args) {
     }
   }
 
+  if (options.ignore === false) {
+    options.ignorePath = undefined
+  }
+
   return result
 }
 
@@ -107,6 +111,13 @@ function acurisEslintOptions(factory) {
       desc: 'Use additional rules from this directory'
     })
     .grp('Ignoring files')
+    .opt({
+      option: 'ignore',
+      key: 'ignore',
+      type: 'boolean',
+      value: true,
+      desc: 'Disable use of ignore files and patterns'
+    })
     .opt({
       option: 'ignore-path',
       key: 'ignorePath',
