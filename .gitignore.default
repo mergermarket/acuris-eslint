@@ -83,6 +83,9 @@ ehthumbs_vista.db
 $RECYCLE.BIN
 *.lnk
 
+.history
+.eslintcache
+
 # some projects still requires yarn-packages-cache to be published
 !**/yarn-packages-cache/*.tgz
 

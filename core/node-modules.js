@@ -44,7 +44,8 @@ class ProjectConfig {
         'Gulpfile.js',
         '**/gulp/**/*',
         '**/grunt/**/*',
-        '*-jest-*.*'
+        '*-jest-*.*',
+        '**/.mocharc.*'
       ],
       tests: [
         '*.test.*',
@@ -60,7 +61,8 @@ class ProjectConfig {
         '**/__spec__/**/*',
         '**/__test__/**/*',
         '**/testUtils/**/*',
-        '*-jest-*.*'
+        '*-jest-*.*',
+        '**/.mocharc.*'
       ]
     }
   }
