@@ -5,6 +5,7 @@
     "pflannery.vscode-versionlens",
     "visualstudioexptteam.vscodeintellicode",
     "donjayamanne.githistory",
-    "eamodio.gitlens"
+    "eamodio.gitlens",
+    "clinyong.vscode-css-modules"
   ]
 }

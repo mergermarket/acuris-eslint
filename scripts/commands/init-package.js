@@ -7,7 +7,7 @@ const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
 const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
-const { reloadNodeResolvePaths, hasLocalPackage } = require('../../core/node-modules')
+const { reloadNodeResolvePaths, hasLocalPackage, projectConfig } = require('../../core/node-modules')
 const { askConfirmation, updateTextFileAsync } = require('../lib/text-utils')
 const {
   getPackageJsonPath,
@@ -139,6 +139,7 @@ module.exports = async cliOptions => {
         let neededDependencies = getNeededDependencies(pkg)
         if (
           canAsk &&
+          !projectConfig.ignoredPackages.has('typescript') &&
           !neededDependencies.has('typescript') &&
           !hasDependency('typescript') &&
           !hasLocalPackage('typescript')

@@ -91,7 +91,12 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-css-modules')
     }
   }
-  return new Set(Array.from(result).sort())
+  const ignoredPackages = nodeModules.projectConfig.ignoredPackages
+  return new Set(
+    Array.from(result)
+      .filter(x => !ignoredPackages.has(x))
+      .sort()
+  )
 }
 
 exports.getNeededDependencies = getNeededDependencies

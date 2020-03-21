@@ -1,3 +1,5 @@
+'use strict'
+
 const eslintSupport = require('../core/eslint-support')
 
 const quickPrettierRules = {

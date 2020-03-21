@@ -49,8 +49,7 @@ if (eslintSupport.hasTypescript) {
   const commonRules = common.rules
 
   const rulesThatRequireTypeChecks = {
-    '@typescript-eslint/no-throw-literal': true,
-    '@typescript-eslint/no-implied-eval': true
+    '@typescript-eslint/no-throw-literal': true
   }
 
   for (const ruleKey of Object.keys(allRules)) {
@@ -124,7 +123,8 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/prefer-namespace-keyword': 1,
     '@typescript-eslint/type-annotation-spacing': 1,
     '@typescript-eslint/triple-slash-reference': 0,
-    '@typescript-eslint/consistent-type-definitions': 0
+    '@typescript-eslint/consistent-type-definitions': 0,
+    '@typescript-eslint/no-implied-eval': 0
   }
 
   if (eslintSupport.hasEslintPluginReact) {
@@ -134,14 +134,14 @@ if (eslintSupport.hasTypescript) {
   module.exports = {
     overrides: [
       {
-        files: ['*.ts', '*.tsx'],
+        files: eslintSupport.projectConfig.filePatterns.typescript,
         parser: '@typescript-eslint/parser',
         parserOptions,
         plugins: ['@typescript-eslint'],
         rules: tsRules
       },
       {
-        files: ['*.d.ts'],
+        files: eslintSupport.projectConfig.filePatterns.typescriptDefinition,
         rules: {
           '@typescript-eslint/explicit-member-accessibility': 0
         }

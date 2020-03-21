@@ -7,10 +7,146 @@ assertNodeVersion()
 const Module = require('module')
 const path = require('path')
 const os = require('os')
-const { statSync } = require('fs')
+const { existsSync, statSync } = require('fs')
 
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
+
+class ProjectConfig {
+  constructor() {
+    this.reactVersion = ''
+    this.tsConfigPath = ''
+
+    /** @type {Set<string>} */
+    this.ignoredPackages = new Set()
+
+    this.filePatterns = {
+      mjs: ['*.mjs'],
+      typescript: ['*.ts', '*.tsx'],
+      typescriptDefinition: ['*.d.ts'],
+      bin: ['**/bin/**/*', '**/.bin/**/*'],
+      server: ['**/server/**/*', '**/dev-server/**/*'],
+      dist: ['**/dist/**/*', '**/out/**/*', '**/_dist/**/*', '**/_out/**/*', '**/.dist/**/*', '**/.out/**/*'],
+      scripts: [
+        '**/dev-server/**/*',
+        '**/scripts/**/*',
+        '**/bin/**/*',
+        '**/.bin/**/*',
+        '**/build/**/*',
+        '.eslintrc.js',
+        'webpack.config.*',
+        'webpack.*.config.*',
+        'jest-*.*',
+        '**/testUtils/**/*',
+        '**/__mocks__/**/*',
+        'Gruntfile.js',
+        'gulpfile.js',
+        'Gulpfile.js',
+        '**/gulp/**/*',
+        '**/grunt/**/*',
+        '*-jest-*.*'
+      ],
+      tests: [
+        '*.test.*',
+        '*.spec.*',
+        '**/test/**/*',
+        '**/tests/**/*',
+        '**/*-test/**/*',
+        '**/*-tests/**/*',
+        '**/__mocks__/**/*',
+        '**/__specs__/**/*',
+        '**/__tests__/**/*',
+        '**/__mock__/**/*',
+        '**/__spec__/**/*',
+        '**/__test__/**/*',
+        '**/testUtils/**/*',
+        '*-jest-*.*'
+      ]
+    }
+  }
+
+  addCfg(cfg) {
+    for (const [k, v] of Object.keys(this)) {
+      const t = typeof v
+      if (t === typeof cfg[k] && (t === 'number' || t === 'string' || t === 'boolean')) {
+        this[k] = cfg[k]
+      }
+    }
+
+    const ignPkgs = cfg['ignored-packages']
+    if (typeof ignPkgs === 'object' && ignPkgs !== null) {
+      if (Array.isArray(ignPkgs)) {
+        for (const v of ignPkgs) {
+          this.ignoredPackages.add(v)
+        }
+      } else {
+        for (const [k, v] of ignPkgs) {
+          if (v) {
+            this.ignoredPackages.add(k)
+          } else {
+            this.ignoredPackages.remove(k)
+          }
+        }
+      }
+    }
+
+    const fp = cfg['file-patterns']
+    if (typeof fp === 'object' && fp !== null && !Array.isArray(fp)) {
+      for (const key of Object.keys(this.filePatterns)) {
+        const v = fp[key]
+        if (typeof v === 'object' && v !== null) {
+          const set = new Set(fp[key])
+          if (Array.isArray(v)) {
+            for (const item of v) {
+              if (typeof item === 'string') {
+                if (v.startsWith('!')) {
+                  set.delete(v)
+                } else {
+                  set.add(v)
+                }
+              }
+            }
+          } else {
+            for (const [pattern, enabled] of Object.entries(fp[key])) {
+              if (enabled) {
+                set.add(pattern)
+              } else {
+                set.delete(pattern)
+              }
+            }
+          }
+          fp[key] = Array.from(set)
+        }
+      }
+    }
+  }
+
+  load(directory = process.cwd()) {
+    for (;;) {
+      const packageJson = path.join(directory, 'package.json')
+      if (existsSync(packageJson)) {
+        let pkg
+        try {
+          pkg = require(packageJson)
+        } catch (_error) {}
+        const cfg = pkg && pkg['acuris-eslint']
+        if (cfg) {
+          this.addCfg(cfg)
+        }
+      }
+      const parent = path.dirname(directory)
+      if (parent.length >= directory.length) {
+        break
+      }
+      directory = parent
+    }
+    return this
+  }
+}
+
+exports.ProjectConfig = ProjectConfig
+
+exports.projectConfig = new ProjectConfig().load()
 
 // Hides createRequireFromPath deprecation warning when used
 // eslint-disable-next-line node/no-deprecated-api
@@ -105,10 +241,12 @@ function getPackageLocalState(id) {
   let result = _hasLocalPackageCache.get(id)
   if (result === undefined) {
     result = 0
-    try {
-      const resolved = require.resolve(id.endsWith('/package.json') ? id : `${id}/package.json`)
-      result = isGlobalPath(resolved) ? 2 : 1
-    } catch (_error) {}
+    if (!exports.projectConfig.ignoredPackages.has(id)) {
+      try {
+        const resolved = require.resolve(id.endsWith('/package.json') ? id : `${id}/package.json`)
+        result = isGlobalPath(resolved) ? 2 : 1
+      } catch (_error) {}
+    }
     _hasLocalPackageCache.set(id, result)
   }
   return result

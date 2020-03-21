@@ -34,7 +34,7 @@ if (eslintSupport.hasEslintPluginNode) {
     globals: nodeScript.globals,
     overrides: [
       {
-        files: ['*.mjs'],
+        files: eslintSupport.projectConfig.filePatterns.mjs,
         globals: nodeModule.globals,
         parserOptions: {
           ...common.parserOptions,

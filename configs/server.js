@@ -1,10 +1,7 @@
 'use strict'
 
+const { getMergedOverridesRules } = require('../core/eslint-support')
+
 module.exports = {
-  overrides: {
-    files: ['**/server/**/*'],
-    rules: {
-      'global-require': 0
-    }
-  }
+  rules: getMergedOverridesRules(require('../rules/server'))
 }

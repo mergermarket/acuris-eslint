@@ -1,27 +1,7 @@
 'use strict'
 
-const eslintSupport = require('../core/eslint-support')
-
-const distRules = {
-  'no-empty': 0,
-  'no-shadow': 0,
-  'global-require': 0,
-  'no-func-assign': 0,
-  'no-unused-expressions': 0,
-  'no-sequences': 0,
-  'no-prototype-builtins': 0
-}
-
-if (eslintSupport.hasEslintPluginNode) {
-  distRules['node/exports-style'] = 0
-  distRules['node/no-extraneous-require'] = 0
-}
+const { getMergedOverridesRules } = require('../core/eslint-support')
 
 module.exports = {
-  overrides: [
-    {
-      files: ['**/dist/**/*', '**/out/**/*', '**/_dist/**/*', '**/_out/**/*', '**/.dist/**/*', '**/.out/**/*'],
-      rules: distRules
-    }
-  ]
+  rules: getMergedOverridesRules(require('../rules/dist'))
 }

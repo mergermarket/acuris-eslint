@@ -3,96 +3,107 @@
 /* eslint-disable node/no-missing-require */
 /* eslint-disable global-require */
 
-const { eslintRequire, hasLocalPackage, hasPackage } = require('./node-modules')
+const { eslintRequire, hasLocalPackage, hasPackage, projectConfig } = require('./node-modules')
+const fs = require('fs')
+const path = require('path')
 
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
 
-const fs = require('fs')
-const path = require('path')
+const defaultReactVersion = '16.13.1'
 
-const defaultReactVersion = '16.8.6'
+exports.projectConfig = projectConfig
 
-class EslintSupport {
-  constructor() {
-    /** Is running in a continous integration server? */
-    this.isCI = 'CI' in process.env
+/** Is running in a continous integration server? */
+exports.isCI = 'CI' in process.env
 
-    /** @type {string} The react version supported by the project */
-    this.reactVersion = getReactVersion()
+/** @type {string} The react version supported by the project */
+exports.reactVersion = projectConfig.reactVersion || getReactVersion()
 
-    this.hasEslint = hasPackage('eslint')
+exports.hasEslint = hasPackage('eslint')
 
-    this.hasTypescript =
-      hasLocalPackage('@typescript-eslint/parser') &&
-      hasLocalPackage('@typescript-eslint/eslint-plugin') &&
-      hasLocalPackage('typescript')
+exports.hasTypescript =
+  hasLocalPackage('@typescript-eslint/parser') &&
+  hasLocalPackage('@typescript-eslint/eslint-plugin') &&
+  hasLocalPackage('typescript')
 
-    this.tsConfigPath = undefined
-    if (this.hasTypescript) {
-      this.tsConfigPath = findFileUp('tsconfig.json')
-    }
+exports.tsConfigPath = projectConfig.tsConfigPath || findFileUp('tsconfig.json') || undefined
 
-    this.hasEslintImportResolverParcel = hasLocalPackage('eslint-import-resolver-parcel')
+exports.hasEslintImportResolverParcel = hasLocalPackage('eslint-import-resolver-parcel')
 
-    this.hasEslintPluginCssModules = hasLocalPackage('eslint-plugin-css-modules')
+exports.hasEslintPluginCssModules = hasLocalPackage('eslint-plugin-css-modules')
 
-    this.hasEslintPluginImport = hasLocalPackage('eslint-plugin-import')
+exports.hasEslintPluginImport = hasLocalPackage('eslint-plugin-import')
 
-    this.hasEslintPluginNode = hasLocalPackage('eslint-plugin-node')
+exports.hasEslintPluginNode = hasLocalPackage('eslint-plugin-node')
 
-    this.hasEslintPluginReact = hasLocalPackage('eslint-plugin-react')
+exports.hasEslintPluginReact = hasLocalPackage('eslint-plugin-react')
 
-    this.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
+exports.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
 
-    this.hasEslintPluginJest =
-      hasLocalPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
+exports.hasEslintPluginJest =
+  hasLocalPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
 
-    this.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
+exports.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
 
-    this.hasEslintPluginChaiExpect = hasLocalPackage('eslint-plugin-chai-expect') && hasLocalPackage('chai')
+exports.hasEslintPluginChaiExpect = hasLocalPackage('eslint-plugin-chai-expect') && hasLocalPackage('chai')
 
-    this.hasEslintPluginPromise = hasLocalPackage('eslint-plugin-promise')
+exports.hasEslintPluginPromise = hasLocalPackage('eslint-plugin-promise')
 
-    this.hasEslintPluginJson = hasLocalPackage('eslint-plugin-json')
+exports.hasEslintPluginJson = hasLocalPackage('eslint-plugin-json')
 
-    const extensions = ['.js', '.jsx', '.mjs', '.cjs']
-    this.extensions = extensions
+const extensions = ['.js', '.jsx', '.mjs', '.cjs']
 
-    if (this.hasTypescript) {
-      extensions.push('.ts', '.tsx')
-    }
-    if (this.hasEslintPluginJson) {
-      extensions.push('.json')
-    }
-  }
-
-  /**
-   * Merges multiple eslint configurations together or clones the given one.
-   * @template T
-   * @param  {...readonly T?} sources The sources to merge
-   * @returns {Required<T>} A new merged configuration
-   */
-  mergeEslintConfigs(...sources) {
-    let result = {}
-    for (let i = 0; i < sources.length; ++i) {
-      const source = sources[i]
-      if (source !== null && source !== undefined) {
-        if (typeof source !== 'object') {
-          throw new TypeError(`eslint configuration ${i} must be an object but is a ${typeof source}`)
-        }
-        result = isArray(source)
-          ? this.mergeEslintConfigs(result, ...source)
-          : eslintConfigsDeepMerge(result, source, true)
-      }
-    }
-    return result
-  }
+if (this.hasTypescript) {
+  extensions.push('.ts', '.tsx')
+}
+if (this.hasEslintPluginJson) {
+  extensions.push('.json')
 }
 
-EslintSupport.prototype.eslintRequire = eslintRequire
+exports.extensions = extensions
 
-module.exports = new EslintSupport()
+/**
+ * Merges multiple eslint configurations together or clones the given one.
+ * @template T
+ * @param  {...readonly T?} sources The sources to merge
+ * @returns {Required<T>} A new merged configuration
+ */
+function mergeEslintConfigs(...sources) {
+  let result = {}
+  for (let i = 0; i < sources.length; ++i) {
+    const source = sources[i]
+    if (source !== null && source !== undefined) {
+      if (typeof source !== 'object') {
+        throw new TypeError(`eslint configuration ${i} must be an object but is a ${typeof source}`)
+      }
+      result = isArray(source) ? mergeEslintConfigs(result, ...source) : eslintConfigsDeepMerge(result, source, true)
+    }
+  }
+  return result
+}
+
+exports.eslintRequire = eslintRequire
+
+exports.mergeEslintConfigs = mergeEslintConfigs
+
+exports.getMergedOverridesRules = getMergedOverridesRules
+
+function getMergedOverridesRules(...configs) {
+  const result = {}
+  for (const config of configs) {
+    const overrides = config.overrides
+    if (isArray(overrides)) {
+      for (const override of overrides) {
+        const rules = override && override.rules
+        if (typeof rules === 'object') {
+          objectAssign(result, rules)
+        }
+      }
+    }
+  }
+  return result
+}
 
 function getReactVersion() {
   let version = defaultReactVersion

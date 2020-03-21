@@ -5,7 +5,7 @@ describe('core/eslint-support', () => {
   it('contains all packages for @acuris/eslint-config dev configuration', () => {
     expect(eslintSupport).to.deep.include({
       isCI: 'CI' in process.env,
-      reactVersion: '16.8.6',
+      reactVersion: '16.13.1',
       hasEslint: true,
       hasTypescript: true,
       hasEslintPluginCssModules: true,
