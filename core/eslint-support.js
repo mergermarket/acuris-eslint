@@ -52,16 +52,16 @@ exports.hasEslintPluginPromise = hasLocalPackage('eslint-plugin-promise')
 
 exports.hasEslintPluginJson = hasLocalPackage('eslint-plugin-json')
 
-const extensions = ['.js', '.jsx', '.mjs', '.cjs']
-
 if (this.hasTypescript) {
-  extensions.push('.ts', '.tsx')
-}
-if (this.hasEslintPluginJson) {
-  extensions.push('.json')
+  projectConfig.addExtension('.ts')
+  projectConfig.addExtension('.tsx')
 }
 
-exports.extensions = extensions
+if (this.hasEslintPluginJson) {
+  projectConfig.addExtension('.json')
+}
+
+exports.extensions = projectConfig.extensionsToArray()
 
 /**
  * Merges multiple eslint configurations together or clones the given one.

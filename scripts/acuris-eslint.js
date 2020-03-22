@@ -17,7 +17,7 @@ const cliOptions = tryParseAcurisEslintOptions()
 const options = (cliOptions && cliOptions.options) || {}
 
 if (options.cwd) {
-  process.chdir(path.resolve(cliOptions.cwd))
+  process.chdir(path.resolve(options.cwd))
 }
 
 const { eslintRequire, eslintTryRequire, getEslintVersion, assertEslintVersion } = require('../core/node-modules')

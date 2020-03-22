@@ -1,6 +1,6 @@
 const { fork } = require('child_process')
 
-describe('eslint', function() {
+describe('eslint', function () {
   this.timeout(8000)
 
   it('has working rules', () => {

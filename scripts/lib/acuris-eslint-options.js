@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const projectConfig = require('../../core/project-config').projectConfig
 const { createCmdOptionsParser, getProgramName } = require('./cmd-options-parser')
 
 module.exports = {
@@ -26,6 +27,10 @@ function parseAcurisEslintOptions(args) {
 
   const options = result.options
   const command = result.command
+
+  if (options.cwd) {
+    options.cwd = path.resolve(options.cwd)
+  }
 
   if (command) {
     result.canLog = command.type !== 'help'
@@ -96,6 +101,7 @@ function acurisEslintOptions(factory) {
       option: 'config',
       alias: 'c',
       type: 'path',
+      value: projectConfig.eslintrc || undefined,
       desc: 'Use this eslint configuration, overriding .eslintrc.* config options if present'
     })
     .opt({
@@ -177,20 +183,20 @@ function acurisEslintOptions(factory) {
     .opt({
       option: 'cache',
       type: 'boolean',
-      value: true,
+      value: projectConfig.eslintCache,
       desc: 'Disable cache and check also non changed files'
     })
     .opt({
       option: 'cache-location',
       key: 'cacheLocation',
       type: 'path',
-      value: '.eslintcache',
+      value: projectConfig.eslintCacheLocation,
       desc: 'Path to the cache file or directory'
     })
     .opt({
       option: 'cache-file',
       key: 'cacheFile',
-      value: '.eslintcache',
+      value: projectConfig.eslintCacheLocation,
       type: 'path'
     })
     .grp('Output')
@@ -204,8 +210,8 @@ function acurisEslintOptions(factory) {
     .opt({
       option: 'format',
       alias: 'f',
-      type: 'path',
-      value: 'stylish',
+      type: 'string',
+      value: projectConfig.eslintOutputFormat,
       desc: 'Use a specific output format'
     })
     .opt({ option: 'color', desc: 'Force enabling/disabling of color' })
@@ -228,6 +234,7 @@ function acurisEslintOptions(factory) {
 function translateOptionsForCLIEngine(cliOptions) {
   const eslintSupport = require('../../core/eslint-support')
   const options = cliOptions.options
+  const cwd = options.cwd || process.cwd()
   return {
     useEslintrc: true,
     allowInlineConfig: true,
@@ -239,8 +246,8 @@ function translateOptionsForCLIEngine(cliOptions) {
     configFile: options.config,
     rulePaths: options.rulePaths,
     cache: options.cache,
-    cacheFile: options.cacheFile && path.resolve(options.cacheFile),
-    cacheLocation: options.cacheLocation && path.resolve(options.cacheLocation),
+    cacheFile: options.cacheFile && path.resolve(cwd, options.cacheFile),
+    cacheLocation: options.cacheLocation && path.resolve(cwd, options.cacheLocation),
     fix: options.fix || options.fixDryRun,
     reportUnusedDisableDirectives: options.reportUnusedDisableDirectives,
     resolvePluginsRelativeTo: options.resolvePluginsRelativeTo

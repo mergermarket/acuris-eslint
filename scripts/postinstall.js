@@ -8,8 +8,8 @@ if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   console.log(`\n- ${name} v${version}\n`)
 } else {
   require('./acuris-eslint-help').printLogo('postinstall')
-  const eslintCachePath = path.resolve(process.env.INIT_CWD || process.cwd(), '.eslintcache')
-  if (fs.existsSync(eslintCachePath)) {
+  const eslintCacheLocation = path.resolve(process.env.INIT_CWD || process.cwd(), '.eslintcache')
+  if (fs.existsSync(eslintCacheLocation)) {
     const clearCache = require('./commands/clear-cache')
     clearCache({ cacheLocation: '.eslintcache' })
   }

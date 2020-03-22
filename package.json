@@ -51,7 +51,7 @@
     "eslint-plugin-json": ">=2.1.1",
     "eslint-plugin-node": ">=11.0.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "prettier": ">=1.19.1"
+    "prettier": ">=2.0.1"
   },
   "dependencies": {
     "chalk": "^3.0.0",
@@ -83,7 +83,7 @@
     "lint-staged": "^10.0.8",
     "mocha": "^7.1.1",
     "mock-fs": "^4.11.0",
-    "prettier": "^1.19.1",
+    "prettier": "^2.0.1",
     "typescript": "^3.8.3"
   }
 }
