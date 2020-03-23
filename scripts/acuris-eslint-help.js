@@ -169,10 +169,32 @@ function printSysInfo() {
     versions,
     dependencies,
     env,
-    support: JSON.parse(JSON.stringify(eslintSupport))
+    support: eslintSupport
   }
 
-  console.log(JSON.stringify(info, null, 2))
+  console.log(
+    JSON.stringify(
+      info,
+      (_key, value) => {
+        if (value instanceof Set) {
+          return Array.from(value)
+        }
+
+        if (value instanceof Map) {
+          const t = {}
+          for (const [k, v] of value) {
+            if (typeof k === 'string' || typeof k === 'number') {
+              t[k] = v
+            }
+          }
+          return t
+        }
+
+        return value
+      },
+      2
+    )
+  )
 }
 
 if (process.mainModule === module) {

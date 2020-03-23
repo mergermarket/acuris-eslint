@@ -91,6 +91,7 @@ function acurisEslintOptions(factory) {
     .opt({ option: 'init-prettier', desc: 'Updates or creates prettier configuration' })
     .opt({ option: 'init-tsconfig', desc: 'Updates or creates typescript tsconfig.json' })
     .opt({ option: 'init-vscode', desc: 'updates Visual Studio Code workspace settings' })
+    .opt({ option: 'init-clang-format', desc: 'writes .clang-format file for c++ projects' })
     .grp('Configuration')
     .opt({
       option: 'cwd',
