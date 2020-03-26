@@ -27,6 +27,7 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/.eslintcache": true,
+    "**/.prettiercache": true,
     "**/.cache": true,
     "**/.fuse_hidden*": true
   },
@@ -38,6 +39,7 @@
     "**/package-lock.json": true,
     "**/yarn.lock": true,
     "**/.fusebox/**/*": true,
+    "**/.webpack": true,
     "**/.dynamodb/**/*": true,
     "**/*.tsbuildinfo": true,
     "**/.yarn-integrity": true,

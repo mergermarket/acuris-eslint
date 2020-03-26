@@ -4,7 +4,7 @@ const chalk = require('chalk')
 const path = require('path')
 const { deleteFileOrDir } = require('../lib/fs-utils')
 
-module.exports = cliOptions => {
+module.exports = (cliOptions) => {
   const pathsToDelete = new Set()
   const options = cliOptions && cliOptions.options
   if (options) {
@@ -17,7 +17,8 @@ module.exports = cliOptions => {
   } else {
     pathsToDelete.add(path.resolve('.eslintcache'))
   }
-  console.log(chalk.yellow(`\ndeleting eslint cache:\n${[...pathsToDelete].map(p => `  - ${p}\n`).join('')}`))
+  pathsToDelete.add(path.resolve('.prettiercache'))
+  console.log(chalk.yellow(`\ndeleting eslint cache:\n${[...pathsToDelete].map((p) => `  - ${p}\n`).join('')}`))
   const deletedFilesResult = deleteFileOrDir(pathsToDelete)
   console.log(
     deletedFilesResult.count > 0

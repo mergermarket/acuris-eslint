@@ -31,7 +31,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && pretty-quick --staged && xxxxxx",
+      "pre-commit": "lint-staged",
       "pre-push": "npm test"
     }
   },
@@ -51,12 +51,13 @@
     "eslint-plugin-json": ">=2.1.1",
     "eslint-plugin-node": ">=11.0.0",
     "eslint-plugin-promise": ">=4.2.1",
-    "prettier": ">=2.0.1"
+    "prettier": ">=2.0.2"
   },
   "dependencies": {
     "chalk": "^3.0.0",
-    "comment-json": "3.0.2",
-    "eslint-plugin-quick-prettier": "0.0.27",
+    "comment-json": "^3.0.2",
+    "eslint-plugin-quick-prettier": "0.0.28",
+    "glob-intersection": "^0.1.3",
     "semver": "^7.1.3",
     "v8-compile-cache": "2.1.0"
   },
@@ -80,11 +81,10 @@
     "eslint-plugin-react": "^7.19.0",
     "eslint-scope": "^5.0.0",
     "husky": "^4.2.3",
-    "lint-staged": "^10.0.8",
+    "lint-staged": "^10.0.9",
     "mocha": "^7.1.1",
     "mock-fs": "^4.11.0",
-    "prettier": "^2.0.1",
-    "pretty-quick": "^2.0.1",
+    "prettier": "^2.0.2",
     "typescript": "^3.8.3"
   }
 }

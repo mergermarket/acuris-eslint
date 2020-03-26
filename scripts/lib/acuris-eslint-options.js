@@ -5,6 +5,7 @@ const projectConfig = require('../../core/project-config').projectConfig
 const { createCmdOptionsParser, getProgramName } = require('./cmd-options-parser')
 
 module.exports = {
+  projectConfig,
   acurisEslintOptions,
   parseAcurisEslintOptions,
   tryParseAcurisEslintOptions,

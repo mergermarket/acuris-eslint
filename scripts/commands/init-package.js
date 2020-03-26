@@ -19,7 +19,7 @@ const {
   getNpmRegistry
 } = require('../lib/package-utils')
 
-module.exports = async cliOptions => {
+module.exports = async (cliOptions) => {
   const packageJsonPath = resolveProjectFile('package.json')
   const foundPackageJsonPath = getPackageJsonPath()
   if (foundPackageJsonPath && path.relative(packageJsonPath, foundPackageJsonPath) !== '') {
@@ -133,7 +133,7 @@ module.exports = async cliOptions => {
           }
         }
 
-        const hasDependency = name =>
+        const hasDependency = (name) =>
           !!((pkg.devDependencies && pkg.devDependencies[name]) || (pkg.dependencies && pkg.dependencies[name]))
 
         let neededDependencies = getNeededDependencies(pkg)

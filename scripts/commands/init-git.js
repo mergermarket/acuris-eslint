@@ -7,7 +7,7 @@ const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-
 const { askConfirmation, updateTextFileAsync } = require('../lib/text-utils')
 const { getPackageJsonPath } = require('../lib/package-utils')
 
-module.exports = async cliOptions => {
+module.exports = async (cliOptions) => {
   let hasGit = findUp('.git', { directories: true, files: false })
   if (!hasGit) {
     const packageJsonPath = resolveProjectFile('package.json')
@@ -29,7 +29,7 @@ module.exports = async cliOptions => {
       filePath: resolveProjectFile('.gitignore'),
       async content(previousContent) {
         const target = new IgnoreFile(previousContent)
-        target.merge(new IgnoreFile('.eslintcache'), false)
+        target.merge(new IgnoreFile('.eslintcache\n.prettiercache'), false)
         if (!target.changed) {
           return undefined
         }

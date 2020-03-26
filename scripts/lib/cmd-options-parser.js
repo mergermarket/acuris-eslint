@@ -42,7 +42,6 @@ function createCmdOptionsParser(programName = getProgramName()) {
     const options = {}
     let command
     let multipleCommands
-
     for (const entry of map.values()) {
       if (!entry.isCommand) {
         options[entry.key] = entry.value
