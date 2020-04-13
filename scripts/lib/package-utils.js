@@ -27,7 +27,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
   addObjectKeysToSet(allDeps, manifest.bundledDependencies)
   addObjectKeysToSet(allDeps, manifest.optionalDependencies)
 
-  const hasDep = name => {
+  const hasDep = (name) => {
     if (allDeps.has(name)) {
       return true
     }
@@ -94,7 +94,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
   const ignoredPackages = nodeModules.projectConfig.ignoredPackages
   return new Set(
     Array.from(result)
-      .filter(x => !ignoredPackages.has(x))
+      .filter((x) => !ignoredPackages.has(x))
       .sort()
   )
 }
@@ -204,8 +204,12 @@ function semverToVersion(version) {
   } catch (_error) {}
 
   const parsed = minVer || semver.parse(version, { loose: true, includePrerelease: true }) || semver.coerce(version)
+  let v = parsed && parsed.version
+  if (v.endsWith('-0')) {
+    v = v.slice(0, v.length - 2).trim()
+  }
 
-  return parsed && parsed.version
+  return v
 }
 
 exports.semverToVersion = semverToVersion
