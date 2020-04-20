@@ -17,6 +17,8 @@ build/Release
 *-min.*
 
 # Cache
+.tmp
+.temp
 .cache
 .fuse_hidden*
 .temp

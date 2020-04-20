@@ -6,6 +6,7 @@
     "visualstudioexptteam.vscodeintellicode",
     "donjayamanne.githistory",
     "eamodio.gitlens",
-    "clinyong.vscode-css-modules"
+    "clinyong.vscode-css-modules",
+    "jpoissonnier.vscode-styled-components"
   ]
 }

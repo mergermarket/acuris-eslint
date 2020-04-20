@@ -9,7 +9,8 @@ const distRules = {
   'no-func-assign': 0,
   'no-unused-expressions': 0,
   'no-sequences': 0,
-  'no-prototype-builtins': 0
+  'no-prototype-builtins': 0,
+  'no-multi-assign': 0
 }
 
 if (eslintSupport.hasEslintPluginNode) {

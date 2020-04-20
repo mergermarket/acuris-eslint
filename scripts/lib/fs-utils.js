@@ -174,7 +174,7 @@ function getRepositoryFromGitConfig(cwd = process.cwd()) {
         }
         if (repo) {
           return {
-            repository: 'git',
+            type: 'git',
             url: repo
           }
         }
@@ -204,17 +204,17 @@ async function runAsync(command, args = [], options) {
       let result
       const child = spawn(command, args, opt)
       child
-        .on('exit', code => {
+        .on('exit', (code) => {
           if (code !== 0) {
             reject(new Error(`${command} ${args.join(' ')} failed with code ${code}`))
           } else {
             resolve(result)
           }
         })
-        .on('error', error => {
+        .on('error', (error) => {
           reject(error || new Error(`${command} failed`))
         })
-        .on('data', d => {
+        .on('data', (d) => {
           result += d
         })
     })

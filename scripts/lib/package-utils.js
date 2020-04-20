@@ -67,6 +67,16 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('@typescript-eslint/eslint-plugin')
       result.add('@typescript-eslint/parser')
       result.add('typescript')
+
+      if (hasDep('mocha')) {
+        result.add('@types/chai')
+      }
+      if (hasDep('chai')) {
+        result.add('@types/chai')
+      }
+      if (hasDep('jest')) {
+        result.add('@jest/types')
+      }
     }
 
     if (hasDep('jest')) {
@@ -91,6 +101,7 @@ function getNeededDependencies(manifest, cwd = process.cwd()) {
       result.add('eslint-plugin-css-modules')
     }
   }
+
   const ignoredPackages = nodeModules.projectConfig.ignoredPackages
   return new Set(
     Array.from(result)

@@ -18,6 +18,8 @@ build/Release
 
 
 # Cache
+.tmp
+.temp
 .cache
 .fuse_hidden*
 .temp
