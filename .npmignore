@@ -1,5 +1,3 @@
-# <@acuris/eslint-config>
-
 # excluded files for security
 .npmrc
 .env
@@ -105,5 +103,3 @@ ehthumbs_vista.db
 [Dd]esktop.ini
 $RECYCLE.BIN
 *.lnk
-
-# </@acuris/eslint-config>

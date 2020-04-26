@@ -8,17 +8,19 @@ const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
 
-exports.askConfirmation = async function askConfirmation(message) {
+exports.askConfirmation = async function askConfirmation(message, defaultValue = true) {
   if (!process.stdin || !process.stdout || !process.stdout.isTTY) {
     return true
   }
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const rl = require('readline').createInterface(process.stdin, process.stdout)
-    const question = `${chalk.greenBright('?')} ${chalk.whiteBright(message)} ${chalk.gray('(Y/n)')} `
-    rl.question(question, answer => {
+    const question = `${chalk.greenBright('?')} ${chalk.whiteBright(message)} ${chalk.gray(
+      defaultValue ? '(Y/n)' : '(N/y)'
+    )} `
+    rl.question(question, (answer) => {
       rl.close()
       answer = (answer || '').trim()
-      const confirm = !answer || /^[yY]/.test(answer)
+      const confirm = /^[yY]/.test(answer || (defaultValue ? 'Y' : 'N'))
       console.log(confirm ? chalk.greenBright('  Yes') : chalk.redBright('  No'))
       console.log()
       resolve(confirm)

@@ -9,7 +9,10 @@ module.exports = async () => {
     async content(previousContent) {
       const content = readTextFile(resolveAcurisEslintFile('.clang-format'))
       if (content !== previousContent) {
-        if (!previousContent || (await askConfirmation('.clang-format already exists, would you like to overwrite?'))) {
+        if (
+          !previousContent ||
+          (await askConfirmation('.clang-format already exists, would you like to overwrite?', false))
+        ) {
           return content
         }
       }
