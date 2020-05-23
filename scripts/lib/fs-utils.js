@@ -154,6 +154,12 @@ function findUp(filename, { directories = true, files = true, cwd = process.cwd(
 
 exports.findUp = findUp
 
+function findFileUp(filename) {
+  return findUp(filename, { directories: false, files: false })
+}
+
+exports.findFileUp = findFileUp
+
 function getRepositoryFromGitConfig(cwd = process.cwd()) {
   let gitConfig
   try {
