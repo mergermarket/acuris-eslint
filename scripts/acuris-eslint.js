@@ -40,6 +40,10 @@ if (chalk.level > 0) {
   require('util').inspect.defaultOptions.colors = true
 }
 
+if (options.fix) {
+  options.projectConfig.addPrettier()
+}
+
 if (!cliOptions) {
   if (!process.exitCode) {
     process.exitCode = 1

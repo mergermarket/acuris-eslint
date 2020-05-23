@@ -68,6 +68,8 @@ function parseAcurisEslintOptions(args) {
     options.ignorePath = undefined
   }
 
+  options.projectConfig = projectConfig
+
   return result
 }
 

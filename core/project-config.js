@@ -31,6 +31,7 @@ module.exports = class ProjectConfig {
     this.addExtension('.cjs')
 
     this.filePatterns = {
+      prettier: [],
       mjs: ['*.mjs'],
       typescript: ['*.ts', '*.tsx'],
       typescriptDefinition: ['*.d.ts'],
@@ -114,6 +115,29 @@ module.exports = class ProjectConfig {
 
     updateFilePatterns(this.filePatterns, cfg['file-patterns'])
     updateFilePatterns(this.filePatterns, cfg.filePatterns)
+  }
+
+  addPrettier() {
+    const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
+    const prettier = prettierInterface.tryGetPrettier()
+    const patterns = new Set(this.filePatterns.prettier)
+    if (prettier) {
+      const supportInfo = prettier.getSupportInfo()
+      for (const language of supportInfo.languages) {
+        if (language.extensions) {
+          for (const extension of language.extensions) {
+            this.addExtension(extension)
+            patterns.add(`*${extension}`)
+          }
+        }
+        if (language.filenames) {
+          for (const filename of language.filenames) {
+            patterns.add(filename)
+          }
+        }
+      }
+      this.filePatterns.prettier = Array.from(patterns)
+    }
   }
 
   extensionsToArray() {
