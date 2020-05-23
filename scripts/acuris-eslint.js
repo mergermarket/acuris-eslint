@@ -76,7 +76,6 @@ async function eslint() {
   const stopFsCache = require('./lib/fs-cache').startFsCache().stop
 
   assertEslintVersion()
-  //const { CLIEngine } = eslintRequire('./lib/cli-engine')
   const { ESLint } = eslintRequire('./lib/eslint')
 
   const engine = new ESLint(translateOptionsForCLIEngine(cliOptions))

@@ -1,5 +1,5 @@
-const { defaultConfig } = require('./lint-staged')
+const { acurisEslintPatterns, acurisEslintPath } = require('./lint-staged')
 
 module.exports = {
-  ...defaultConfig
+  [acurisEslintPatterns]: `${acurisEslintPath} --lint-staged --fix --max-warnings=0`
 }

@@ -67,6 +67,9 @@ You can add `acuris-eslint` in package.json root to pass additional options.
      * Override patterns used to apply different eslint rules.
      */
     filePatterns: {
+      /** patterns that should be prettified when running --fix, but not validated using eslint parsers */
+      prettier: string[] | { [pattern: string]: boolean },
+
       /** mjs module patterns */
       mjs: string[] | { [pattern: string]: boolean },
 
