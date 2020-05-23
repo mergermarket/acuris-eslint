@@ -13,7 +13,7 @@ module.exports = {
   acurisEslintPatterns,
   acurisEslintPath,
 
-  default: {
+  defaultConfig: {
     [acurisEslintPatterns]: `node ${acurisEslintPath} --lint-staged --fix --max-warnings=0`
   }
 }

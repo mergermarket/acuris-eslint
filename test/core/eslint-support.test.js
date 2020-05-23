@@ -17,8 +17,14 @@ describe('core/eslint-support', () => {
       hasEslintPluginMocha: true,
       hasEslintPluginChaiExpect: true,
       hasEslintPluginPromise: true,
-      hasEslintPluginJson: true,
-      extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.json']
+      hasEslintPluginJson: true
     })
+    expect(eslintSupport.extensions).to.include('.js')
+    expect(eslintSupport.extensions).to.include('.jsx')
+    expect(eslintSupport.extensions).to.include('.mjs')
+    expect(eslintSupport.extensions).to.include('.cjs')
+    expect(eslintSupport.extensions).to.include('.ts')
+    expect(eslintSupport.extensions).to.include('.tsx')
+    expect(eslintSupport.extensions).to.include('.json')
   })
 })

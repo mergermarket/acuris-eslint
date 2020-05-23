@@ -1,5 +1,7 @@
 # <@acuris/eslint-config>
 
+!.*
+
 # Dependencies and vendor
 vendor
 typings
