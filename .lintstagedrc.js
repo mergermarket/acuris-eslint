@@ -1,12 +1,5 @@
-const eslintSupport = require('./core/eslint-support')
-
-eslintSupport.projectConfig.addPrettier()
+const { acurisEslintPatterns, acurisEslintPath } = require('./lint-staged')
 
 module.exports = {
-  ['*.{' +
-  eslintSupport.projectConfig
-    .extensionsToArray()
-    .map((x) => x.slice(1))
-    .join(',') +
-  '}']: 'acuris-eslint --lint-staged --fix --max-warnings=0'
+  [acurisEslintPatterns]: 'node ' + acurisEslintPath + ' --lint-staged --fix --max-warnings=0'
 }

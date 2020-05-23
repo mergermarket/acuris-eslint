@@ -12,10 +12,6 @@ const { existsSync, statSync } = require('fs')
 const { resolve: pathResolve } = path
 const { from: arrayFrom } = Array
 
-const projectConfig = require('./project-config').projectConfig
-
-exports.projectConfig = projectConfig
-
 // Hides createRequireFromPath deprecation warning when used
 // eslint-disable-next-line node/no-deprecated-api
 Module.createRequireFromPath = Module.createRequire
@@ -244,6 +240,8 @@ function eslintTryRequire(id) {
 // Overrides Module._nodeModulePaths so eslint is able to resolve plugin modules in the right places
 Module._nodeModulePaths = nodeModulePaths
 
+exports.projectConfig = require('./project-config').projectConfig
+
 reloadNodeResolvePaths()
 
 function reloadNodeResolvePaths() {
@@ -255,7 +253,7 @@ function reloadNodeResolvePaths() {
 
   // Register additional paths
 
-  for (const nodeResolvePaths of projectConfig.nodeResolvePaths) {
+  for (const nodeResolvePaths of exports.projectConfig.nodeResolvePaths) {
     addNodeResolvePath(nodeResolvePaths)
   }
 
