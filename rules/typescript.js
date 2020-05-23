@@ -18,9 +18,9 @@ if (eslintSupport.hasTypescript) {
     hasTypeCheck = true
   }
 
-  const allRules = require('@typescript-eslint/eslint-plugin/dist/configs/all.json').rules
-  const pluginConfigRecommended = require('@typescript-eslint/eslint-plugin/dist/configs/recommended.json').rules
-  const pluginConfigRecommendedRequiringTypeChecking = require('@typescript-eslint/eslint-plugin/dist/configs/recommended-requiring-type-checking.json')
+  const allRules = require('@typescript-eslint/eslint-plugin/dist/configs/all').rules
+  const pluginConfigRecommended = require('@typescript-eslint/eslint-plugin/dist/configs/recommended').rules
+  const pluginConfigRecommendedRequiringTypeChecking = require('@typescript-eslint/eslint-plugin/dist/configs/recommended-requiring-type-checking')
     .rules
 
   //const eslintPlugin = require('@typescript-eslint/eslint-plugin')
@@ -34,6 +34,7 @@ if (eslintSupport.hasTypescript) {
   }
 
   Object.assign(baseRules, pluginConfigRecommended, {
+    '@typescript-eslint/explicit-module-boundary-types': 0,
     '@typescript-eslint/quotes': 0,
     '@typescript-eslint/brace-style': 'off',
     '@typescript-eslint/func-call-spacing': 'off',
