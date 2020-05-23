@@ -132,7 +132,7 @@ function validatePackage() {
         chalk.yellowBright('You need to install packages before continuing.\n') +
           chalk.yellow(
             `  Run ${['npm install', 'yarn', 'lerna bootstrap']
-              .map(x => chalk.greenBright(x))
+              .map((x) => chalk.greenBright(x))
               .join(' or ')} (depending on your project setup).`
           )
       )

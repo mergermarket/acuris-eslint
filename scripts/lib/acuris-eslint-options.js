@@ -239,22 +239,24 @@ function translateOptionsForCLIEngine(cliOptions) {
   const eslintSupport = require('../../core/eslint-support')
   const options = cliOptions.options
   const cwd = options.cwd || process.cwd()
-  return {
+  const result = {
     useEslintrc: true,
     allowInlineConfig: true,
     errorOnUnmatchedPattern: false,
     extensions: eslintSupport.extensions,
     ignore: options.ignore,
-    ignorePattern: options.ignorePattern,
     ignorePath: options.ignorePath,
-    configFile: options.config,
     rulePaths: options.rulePaths,
     cache: options.cache,
-    cacheFile: options.cacheFile && path.resolve(cwd, options.cacheFile),
-    cacheLocation: options.cacheLocation && path.resolve(cwd, options.cacheLocation),
+    cacheLocation:
+      (options.cacheLocation && path.resolve(cwd, options.cacheLocation)) ||
+      (options.cacheFile && path.resolve(cwd, options.cacheFile)),
     fix: options.fix || options.fixDryRun,
-    reportUnusedDisableDirectives: options.reportUnusedDisableDirectives,
+    reportUnusedDisableDirectives: options.reportUnusedDisableDirectives || 'off',
     resolvePluginsRelativeTo: options.resolvePluginsRelativeTo
+
+    // TODO: options.ignorePattern - Please use the 'overrideConfig.ignorePatterns' option instead
+    // TODO: configFile: options.config - Please use the 'overrideConfigFile' option instead.
 
     //parser: undefined,
     //envs: undefined,
@@ -264,4 +266,6 @@ function translateOptionsForCLIEngine(cliOptions) {
     //parserOptions: undefined,
     //fixTypes: undefined,
   }
+
+  return result
 }

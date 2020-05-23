@@ -6,6 +6,8 @@ const os = require('os')
 const path = require('path')
 const { existsSync } = require('fs')
 
+const baseExtensions = new Set(['.js', '._js', '.jsx', '.mjs', '.cjs', '.es', '.es6', '.assetgen'])
+
 module.exports = class ProjectConfig {
   constructor() {
     this.projectPath = ''
@@ -17,22 +19,21 @@ module.exports = class ProjectConfig {
     this.reactVersion = ''
     this.tsConfigPath = ''
 
+    /** Used when running acuris-eslint --fix */
+    this.fixWithPrettier = false
+
     /** @type {Set<string>} */
     this.ignoredPackages = new Set()
 
     /** @type {Set<string>} */
     this.nodeResolvePaths = new Set()
 
+    /** @type {Map<string, boolean>} */
     this.extensions = new Map()
-
-    this.addExtension('.js')
-    this.addExtension('.jsx')
-    this.addExtension('.mjs')
-    this.addExtension('.cjs')
 
     this.filePatterns = {
       prettier: [],
-      mjs: ['*.mjs'],
+      mjs: ['*.mjs', '*.es', '*.es6'],
       typescript: ['*.ts', '*.tsx'],
       typescriptDefinition: ['*.d.ts'],
       bin: ['**/bin/**/*', '**/.bin/**/*'],
@@ -75,6 +76,10 @@ module.exports = class ProjectConfig {
         '*-jest-*.*',
         '**/.mocharc.*'
       ]
+    }
+
+    for (const extension of baseExtensions) {
+      this.addExtension(extension)
     }
   }
 
@@ -121,22 +126,46 @@ module.exports = class ProjectConfig {
     const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
     const prettier = prettierInterface.tryGetPrettier()
     const patterns = new Set(this.filePatterns.prettier)
+
+    const allPatterns = new Set()
+    for (const ps of Object.values(this.filePatterns)) {
+      for (const p of ps) {
+        allPatterns.add(p)
+      }
+    }
+    for (const ext of this.extensions.keys()) {
+      allPatterns.add(`*${ext}`)
+    }
+
     if (prettier) {
       const supportInfo = prettier.getSupportInfo()
       for (const language of supportInfo.languages) {
         if (language.extensions) {
           for (const extension of language.extensions) {
-            this.addExtension(extension)
-            patterns.add(`*${extension}`)
+            if (this.addExtension(extension)) {
+              const pattern = `*${extension}`
+              if (!allPatterns.has(pattern)) {
+                patterns.add(pattern)
+              }
+            }
           }
         }
         if (language.filenames) {
           for (const filename of language.filenames) {
-            patterns.add(filename)
+            const ext = path.extname(filename)
+            if (!baseExtensions.has(ext)) {
+              patterns.add(filename)
+              if (filename.startsWith('.')) {
+                this.addExtension(filename)
+              }
+            }
           }
         }
       }
-      this.filePatterns.prettier = Array.from(patterns)
+      if (patterns.size > 0) {
+        this.filePatterns.prettier = Array.from(patterns)
+        this.fixWithPrettier = true
+      }
     }
   }
 
@@ -151,9 +180,11 @@ module.exports = class ProjectConfig {
   }
 
   addExtension(extension) {
-    if (!this.extensions.has(extension)) {
-      this.extensions.set(extension, true)
+    if (this.extensions.has(extension)) {
+      return false
     }
+    this.extensions.set(extension, true)
+    return true
   }
 
   load(directory = process.cwd()) {
@@ -188,6 +219,19 @@ module.exports = class ProjectConfig {
     }
 
     return this
+  }
+
+  toJSON() {
+    const extentionsObj = {}
+    for (const [k, v] of this.extensions) {
+      extentionsObj[k] = v
+    }
+    return {
+      ...this,
+      ignoredPackages: Array.from(this.ignoredPackages),
+      nodeResolvePaths: Array.from(this.nodeResolvePaths),
+      extensions: extentionsObj
+    }
   }
 
   static get projectConfig() {

@@ -3,7 +3,7 @@
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
 const { emitSection, emitInitComplete } = require('../lib/notes')
 
-module.exports = async cliOptions => {
+module.exports = async (cliOptions) => {
   require('../acuris-eslint-help').printLogo('init')
 
   emitSection('init git')

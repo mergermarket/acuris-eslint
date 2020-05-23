@@ -102,4 +102,9 @@ ehthumbs_vista.db
 $RECYCLE.BIN
 *.lnk
 
+.clang-format
+.lintstagedrc
+.lintstagedrc.*
+lint-staged.config.js
+
 # </@acuris/eslint-config>

@@ -2,7 +2,19 @@
 
 const eslintSupport = require('./core/eslint-support')
 
+const baseConfig = {}
+
+if (eslintSupport.projectConfig.fixWithPrettier) {
+  baseConfig.overrides = [
+    {
+      files: eslintSupport.projectConfig.filePatterns.prettier,
+      parser: require.resolve('./core/no-parser.js')
+    }
+  ]
+}
+
 const config = eslintSupport.mergeEslintConfigs(
+  baseConfig,
   eslintSupport.eslintRequire('./conf/eslint-recommended'),
   require('./rules/import'),
   require('./rules/node'),
