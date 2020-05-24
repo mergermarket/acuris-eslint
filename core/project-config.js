@@ -33,7 +33,8 @@ module.exports = class ProjectConfig {
 
     this.filePatterns = {
       prettier: [],
-      mjs: ['*.mjs', '*.es', '*.es6'],
+      js: ['*.js', '*._js', '*.cjs'],
+      mjs: ['*.mjs', '*.es', '*.es6', '*.jsx'],
       typescript: ['*.ts', '*.tsx'],
       typescriptDefinition: ['*.d.ts'],
       bin: ['**/bin/**/*', '**/.bin/**/*'],

@@ -236,14 +236,13 @@ function acurisEslintOptions(factory) {
 }
 
 function translateOptionsForCLIEngine(cliOptions) {
-  const eslintSupport = require('../../core/eslint-support')
   const options = cliOptions.options
   const cwd = options.cwd || process.cwd()
   const result = {
     useEslintrc: true,
     allowInlineConfig: true,
+    baseConfig: require('../../index.js'),
     errorOnUnmatchedPattern: false,
-    extensions: eslintSupport.extensions,
     ignore: options.ignore,
     ignorePath: options.ignorePath,
     rulePaths: options.rulePaths,

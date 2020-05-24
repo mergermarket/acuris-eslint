@@ -8,15 +8,11 @@ if (!global.__v8__compile__cache) {
 const path = require('path')
 const fs = require('fs')
 
-let timerStarted = null
-let fixedFiles = 0
-
 const { tryParseAcurisEslintOptions, translateOptionsForCLIEngine } = require('./lib/acuris-eslint-options')
 
 const cliOptions = tryParseAcurisEslintOptions()
 
-const options = (cliOptions && cliOptions.options) || {}
-
+const options = cliOptions.options || {}
 if (options.cwd) {
   process.chdir(path.resolve(options.cwd))
 }
@@ -35,15 +31,16 @@ if (options.debug) {
 const chalk = require('chalk')
 
 let _handledErrors
+let timerStarted = null
+let fixedFiles = 0
+
 process.on('uncaughtException', handleError)
 
 if (chalk.level > 0) {
   require('util').inspect.defaultOptions.colors = true
 }
 
-if (options.fix) {
-  options.projectConfig.addPrettier()
-}
+const fix = options.fix && !options.fixDryRun && !options.stdin
 
 if (!cliOptions) {
   if (!process.exitCode) {
@@ -73,30 +70,50 @@ if (!cliOptions) {
 }
 
 async function eslint() {
-  const stopFsCache = require('./lib/fs-cache').startFsCache().stop
-
-  assertEslintVersion()
-  const { ESLint } = eslintRequire('./lib/eslint')
-
-  const engine = new ESLint(translateOptionsForCLIEngine(cliOptions))
-
+  let stopFsCache
+  let endEslintPrettier
+  let endEslintPrettierPromise
+  let endIterateFileSpeedup
   let results
+  let ESLint
+  let engine
+
   try {
+    stopFsCache = require('./lib/fs-cache').startFsCache().stop
+
+    const prettierService = require('./lib/eslint-prettier/prettier-service')
+
+    endIterateFileSpeedup = prettierService.startIterateFileSpeedup()
+    endEslintPrettier = fix && prettierService.startEslintPrettier()
+
+    assertEslintVersion()
+
+    ESLint = eslintRequire('./lib/eslint/eslint.js').ESLint
+
+    engine = new ESLint(translateOptionsForCLIEngine(cliOptions))
+
     results = options.stdin
       ? await engine.lintText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
       : await engine.lintFiles(cliOptions.list)
   } finally {
     stopFsCache()
+    if (endIterateFileSpeedup) {
+      endIterateFileSpeedup()
+    }
+    if (endEslintPrettier) {
+      endEslintPrettierPromise = endEslintPrettier()
+      endEslintPrettier = null
+    }
   }
 
-  if (options.fix) {
+  if (fix) {
+    const isAbsolute = path.isAbsolute
+    const writeFile = fs.promises.writeFile
     await Promise.all(
       results
-        .filter((result) => {
-          return result && typeof result.output === 'string' && path.isAbsolute(result.filePath)
-        })
+        .filter((r) => r && typeof r.output === 'string' && isAbsolute(r.filePath))
         .map(async (r) => {
-          await fs.promises.writeFile(r.filePath, r.output)
+          await writeFile(r.filePath, r.output)
           ++fixedFiles
         })
     )
@@ -107,6 +124,12 @@ async function eslint() {
     results = ESLint.getErrorResults(results)
   } else {
     results = filterOutEslintWarnings(results)
+  }
+
+  const prettierResult = await endEslintPrettierPromise
+  if (prettierResult) {
+    fixedFiles += prettierResult.prettified
+    results.push(...prettierResult.errors)
   }
 
   if (await printEslintResults(engine, results, options.format, options.outputFile)) {
@@ -186,20 +209,18 @@ function endTimeLog() {
   const msg = timerStarted
   if (msg) {
     timerStarted = null
-    setImmediate(() => {
-      const exitCode = process.exitCode
-      const args = [msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok')]
-      if (options && options.fix) {
-        if (fixedFiles > 0) {
-          args.push(
-            chalk.gray('- ') + chalk.cyanBright(fixedFiles) + chalk.cyan(` file${fixedFiles === 1 ? '' : 's'} written`)
-          )
-        } else {
-          args.push(chalk.gray(`- ${fixedFiles} files written`))
-        }
+    const exitCode = process.exitCode
+    const args = [msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok')]
+    if (fix) {
+      if (fixedFiles > 0) {
+        args.push(
+          chalk.gray('- ') + chalk.cyanBright(fixedFiles) + chalk.cyan(` file${fixedFiles === 1 ? '' : 's'} fixed`)
+        )
+      } else {
+        args.push(chalk.gray(`- ${fixedFiles} files fixed`))
       }
-      console.timeLog(...args)
-    })
+    }
+    console.timeLog(...args)
   }
 }
 
