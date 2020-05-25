@@ -19,10 +19,6 @@ const {
   getNpmRegistry
 } = require('../lib/package-utils')
 
-const packageJsonLintStageDefault = {
-  '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --lint-staged --fix --max-warnings=0']
-}
-
 module.exports = async (cliOptions) => {
   const packageJsonPath = resolveProjectFile('package.json')
   const foundPackageJsonPath = getPackageJsonPath()
@@ -71,32 +67,12 @@ module.exports = async (cliOptions) => {
 
   async function updatePackage(canAsk) {
     let resultManifest
-    let shouldCreateLintStagedConfigFile = false
     await updateTextFileAsync({
       format: 'json-stringify',
       filePath: packageJsonPath,
       throwIfNotFound: true,
       async content(pkg) {
         pkg = sanitisePackageJson(pkg)
-
-        const hasLintStagedConfigFile =
-          findFileUp('.lintstagedrc') || findFileUp('lint-staged.config.js') || findFileUp('.lintstagedrc.js')
-
-        if (pkg['lint-staged']) {
-          if (JSON.stringify(pkg['lint-staged']) !== JSON.stringify(packageJsonLintStageDefault)) {
-            throw new Error(
-              `Project cannot have both ${chalk.redBright('"lint-staged"')} in package.json and ${chalk.redBright(
-                (fileExists('.lintstagedrc') && '.lintstagedrc') ||
-                  (fileExists('lint-staged.config.js') && 'lint-staged.config.js') ||
-                  (fileExists('.lintstagedrc.js') && '.lintstagedrc.js')
-              )} lint-staged configuration file. ${chalk.yellow(
-                `Is adviced to remove "lint-staged" from package.json and let ${chalk.yellowBright(
-                  'acuris-eslint'
-                )} create the configuration file.`
-              )}`
-            )
-          }
-        }
 
         if (canAsk) {
           if (pkg.private !== true && pkg.private !== false) {
@@ -125,19 +101,20 @@ module.exports = async (cliOptions) => {
             }
           }
 
-          const hasHusky =
+          const hasLintStagedConfig =
+            !!pkg['lint-staged'] ||
+            findFileUp('.lintstagedrc') ||
+            findFileUp('lint-staged.config.js') ||
+            findFileUp('.lintstagedrc.js')
+
+          const hasHuskyConfig =
             !!pkg.husky ||
             findFileUp('.huskyrc') ||
             findFileUp('.huskyrc.json') ||
             findFileUp('.huskyrc.js') ||
             findFileUp('husky.config.js')
 
-          if (
-            !hasHusky &&
-            !pkg['lint-staged'] &&
-            !hasLintStagedConfigFile &&
-            findUp('.git', { directories: true, files: false })
-          ) {
+          if (!hasLintStagedConfig && !hasHuskyConfig && findUp('.git', { directories: true, files: false })) {
             if (
               await askConfirmation(
                 `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
@@ -150,7 +127,31 @@ module.exports = async (cliOptions) => {
                   'pre-commit': 'lint-staged'
                 }
               }
-              pkg['lint-staged'] = packageJsonLintStageDefault
+              pkg['lint-staged'] = {
+                '*': ['acuris-eslint --lint-staged --fix --max-warnings=0']
+              }
+            }
+          }
+        }
+
+        if (pkg['lint-staged']) {
+          // acuris-eslint < 0.0.* was using '*.{js,jsx,json,ts,tsx}' as lint-staged filter. Replace with '*' instead.
+          const legacyLintStaged = pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
+          if (typeof legacyLintStaged === 'string' && legacyLintStaged.startsWith('acuris-eslint --lint-staged')) {
+            const oldStar = pkg['lint-staged']['*']
+            let newStar
+            if (oldStar) {
+              if (Array.isArray(pkg['lint-staged']['*'])) {
+                newStar = [legacyLintStaged, ...oldStar]
+              } else if (typeof oldStar === 'string') {
+                newStar = [legacyLintStaged, oldStar]
+              }
+            } else {
+              newStar = [legacyLintStaged]
+            }
+            if (newStar) {
+              pkg['lint-staged']['*'] = newStar
+              delete pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
             }
           }
         }
@@ -163,39 +164,6 @@ module.exports = async (cliOptions) => {
           for (const v of Object.values(pkg['lint-staged'])) {
             if (Array.isArray(v) && v[v.length - 1] === 'git add') {
               v.pop()
-            }
-          }
-        }
-
-        if (pkg['lint-staged']) {
-          if (JSON.stringify(pkg['lint-staged']) === JSON.stringify(packageJsonLintStageDefault)) {
-            delete pkg['lint-staged']
-            if (!hasLintStagedConfigFile) {
-              shouldCreateLintStagedConfigFile = true
-            }
-          } else {
-            emitWarning(
-              chalk.yellow(
-                `Is adviced to not use lint-staged in package.json but instead provide a configuration file named ${chalk.yellowBright(
-                  '.lintstagedrc.js'
-                )}. The recommended config is: \n${chalk.white(lintStagedCode())}`
-              )
-            )
-          }
-        }
-
-        if (
-          !hasLintStagedConfigFile &&
-          !shouldCreateLintStagedConfigFile &&
-          pkg.husky &&
-          typeof pkg.husky.hooks === 'object' &&
-          pkg.husky.hooks !== null &&
-          !pkg['lint-staged']
-        ) {
-          for (const v of Object.values(pkg.husky.hooks)) {
-            if (typeof v === 'string' && v.includes('lint-staged')) {
-              shouldCreateLintStagedConfigFile = true
-              break
             }
           }
         }
@@ -233,28 +201,6 @@ module.exports = async (cliOptions) => {
         return pkg
       }
     })
-
-    if (shouldCreateLintStagedConfigFile) {
-      await updateTextFileAsync({
-        filePath: resolveProjectFile('.lintstagedrc.js'),
-        format: 'text',
-        async content() {
-          return lintStagedCode()
-        }
-      })
-    }
-
     return resultManifest
   }
-}
-
-function lintStagedCode() {
-  return `
-const { acurisEslintPatterns, acurisEslintPath } = require('acuris-eslint/lint-staged')
-
-/** lint-staged configuration */
-module.exports = {
-  [acurisEslintPatterns]: \`node \${acurisEslintPath} --lint-staged --fix --max-warnings=0\`
-}
-`
 }

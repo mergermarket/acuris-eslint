@@ -140,6 +140,14 @@ function acurisEslintOptions(factory) {
       type: 'string',
       desc: 'Pattern of files to ignore (in addition to those in .eslintignore)'
     })
+    .opt({
+      option: 'ignore-unknown-extensions',
+      key: 'ignoreUnknownExtensions',
+      type: 'boolean',
+      value: false,
+      desc:
+        'If a full filename is passed to acuris-eslint, it will be processed also if the extension is invalid. With this option enabled, unknown extensions will be ignored instead.'
+    })
     .grp('Fixing problems')
     .opt({ option: 'fix', value: false, desc: 'Automatically fix problems' })
     .opt({

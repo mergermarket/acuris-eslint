@@ -18,15 +18,9 @@ if (options.cwd) {
 }
 
 const { eslintRequire, eslintTryRequire, getEslintVersion, assertEslintVersion } = require('../core/node-modules')
+const { startPrettierService } = require('./lib/eslint-prettier/prettier-service')
 
 const { version: packageVersion } = require('../package.json')
-
-if (options.debug) {
-  const eslintDebug = eslintTryRequire('debug')
-  if (eslintDebug) {
-    eslintDebug.enable('eslint:*,-eslint:code-path')
-  }
-}
 
 const chalk = require('chalk')
 
@@ -70,23 +64,21 @@ if (!cliOptions) {
 }
 
 async function eslint() {
-  let stopFsCache
-  let endEslintPrettier
-  let endEslintPrettierPromise
-  let endIterateFileSpeedup
+  let prettierFixPromise
+  let endMonkeyPatch
   let results
   let ESLint
   let engine
 
   try {
-    stopFsCache = require('./lib/fs-cache').startFsCache().stop
+    if (options.debug) {
+      const eslintDebug = eslintTryRequire('debug')
+      if (eslintDebug) {
+        eslintDebug.enable('eslint:*,-eslint:code-path')
+      }
+    }
 
-    const prettierService = require('./lib/eslint-prettier/prettier-service')
-
-    endIterateFileSpeedup = prettierService.startIterateFileSpeedup()
-    endEslintPrettier = fix && prettierService.startEslintPrettier()
-
-    assertEslintVersion()
+    endMonkeyPatch = monkeyPatchEslint()
 
     ESLint = eslintRequire('./lib/eslint/eslint.js').ESLint
 
@@ -96,14 +88,7 @@ async function eslint() {
       ? await engine.lintText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
       : await engine.lintFiles(cliOptions.list)
   } finally {
-    stopFsCache()
-    if (endIterateFileSpeedup) {
-      endIterateFileSpeedup()
-    }
-    if (endEslintPrettier) {
-      endEslintPrettierPromise = endEslintPrettier()
-      endEslintPrettier = null
-    }
+    prettierFixPromise = endMonkeyPatch().prettierFixPromise
   }
 
   if (fix) {
@@ -119,17 +104,17 @@ async function eslint() {
     )
   }
 
+  const prettierResult = await prettierFixPromise
+  if (prettierResult) {
+    fixedFiles += prettierResult.prettified
+    results.push(...prettierResult.errors)
+  }
+
   if (options.quiet) {
     // Quiet mode enabled - filtering out warnings
     results = ESLint.getErrorResults(results)
   } else {
     results = filterOutEslintWarnings(results)
-  }
-
-  const prettierResult = await endEslintPrettierPromise
-  if (prettierResult) {
-    fixedFiles += prettierResult.prettified
-    results.push(...prettierResult.errors)
   }
 
   if (await printEslintResults(engine, results, options.format, options.outputFile)) {
@@ -280,4 +265,87 @@ function filterOutEslintWarnings(results) {
     }
   }
   return filtered || results
+}
+
+function monkeyPatchEslint() {
+  const fsCache = require('./lib/fs-cache')
+  const stopFsCache = fsCache.startFsCache().stop
+  assertEslintVersion()
+  stopFsCache()
+
+  const fileEnumeratorProto = eslintRequire('./lib/cli-engine/file-enumerator.js').FileEnumerator.prototype
+
+  const old_isIgnoredFile = fileEnumeratorProto._isIgnoredFile
+  const oldIterateFiles = fileEnumeratorProto.iterateFiles
+  const oldIsTargetPath = fileEnumeratorProto.isTargetPath
+
+  fileEnumeratorProto.iterateFiles = iterateFiles
+
+  if (options.lintStaged || options.ignoreUnknownExtensions) {
+    fileEnumeratorProto._isIgnoredFile = _isIgnoredFile
+  }
+
+  const prettierService = fix && startPrettierService({ debug: options.debug })
+
+  if (prettierService) {
+    // Monkey patch eslint FileEnumerator to pass ignored files to prettier
+    fileEnumeratorProto.isTargetPath = isTargetPath
+  }
+
+  const end = () => {
+    if (fileEnumeratorProto.iterateFiles === iterateFiles) {
+      fileEnumeratorProto.iterateFiles = oldIterateFiles
+    }
+    if (fileEnumeratorProto._isIgnoredFile === _isIgnoredFile) {
+      fileEnumeratorProto._isIgnoredFile = old_isIgnoredFile
+    }
+    if (fileEnumeratorProto.isTargetPath === isTargetPath) {
+      fileEnumeratorProto.isTargetPath = oldIsTargetPath
+    }
+    return {
+      prettierFixPromise: prettierService && prettierService.end()
+    }
+  }
+
+  function isTargetPath(filepath, providedConfig) {
+    const result = oldIsTargetPath.call(this, filepath, providedConfig)
+    if (
+      !result &&
+      providedConfig &&
+      path.isAbsolute(filepath) &&
+      !old_isIgnoredFile.call(this, filepath, { ...providedConfig, dotfiles: true, direct: false })
+    ) {
+      prettierService.prettify(filepath)
+    }
+    return result
+  }
+
+  function* iterateFiles(patternOrPatterns) {
+    const buffer = []
+    let count = 0
+    for (const item of oldIterateFiles.call(this, patternOrPatterns)) {
+      if (item.ignored) {
+        continue // Avoid "File ignored because of a matching ignore pattern" warning.
+      }
+
+      if (count < 54) {
+        buffer.push(item)
+        ++count
+      } else {
+        yield* buffer
+        buffer.length = 0
+        count = 0
+      }
+    }
+    yield* buffer
+  }
+
+  function _isIgnoredFile(filePath, { config, dotfiles, direct }) {
+    return (
+      old_isIgnoredFile.call(this, filePath, { config, dotfiles, direct }) ||
+      !oldIsTargetPath.call(this, filePath, config)
+    )
+  }
+
+  return end
 }

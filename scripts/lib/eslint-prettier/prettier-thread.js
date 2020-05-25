@@ -1,4 +1,4 @@
-const { parentPort } = require('worker_threads')
+const { parentPort, workerData, threadId } = require('worker_threads')
 const { stat, readFile, writeFile } = require('fs').promises
 
 require('../../../core/node-modules')
@@ -17,6 +17,10 @@ const errors = []
 let inProgress = 0
 let onReleased = null
 
+const debug = !!workerData.debug
+if (debug) {
+  console.debug(`prettier thread ${threadId} started`)
+}
 if (prettier) {
   parentPort.on('message', handleMessage)
 } else {
@@ -50,6 +54,9 @@ async function doEnd() {
   parentPort.postMessage({ prettified, errors })
   parentPort.off('message', handleMessage)
   parentPort.unref()
+  if (debug) {
+    console.debug(`prettier thread ${threadId} terminated`)
+  }
 }
 
 async function prettifyFile(filePath) {
@@ -92,6 +99,10 @@ async function prettifyFile(filePath) {
       }
     } catch (_error) {
       return
+    }
+
+    if (debug) {
+      console.debug(`>>> prettier ${filePath}`)
     }
 
     const formatted = prettier.format(source, options)
