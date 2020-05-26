@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict'
 
+const environment = require('../core/environment')
+
 module.exports = {
   printLogo,
   printAcurisEslintHelp,
@@ -52,7 +54,7 @@ function printLogo(reason) {
 }
 
 function canPrintUtf8Logo() {
-  if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
+  if (environment.isCI || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
     return false
   }
 

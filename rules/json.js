@@ -2,12 +2,12 @@
 
 const eslintSupport = require('../core/eslint-support')
 
-if (eslintSupport.hasEslintPluginJson) {
+if (eslintSupport.hasEslintPluginJson && eslintSupport.projectConfig.jsonExtensions.length) {
   module.exports = {
     overrides: [
       {
-        files: '*.json',
-        plugins: ['json'],
+        files: eslintSupport.projectConfig.filePatterns.json,
+        plugins: eslintSupport.projectConfig.jsonExtensions,
         rules: {
           'json/*': [2, { allowComments: true }]
         }

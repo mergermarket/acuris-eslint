@@ -1,10 +1,10 @@
-# <@acuris/eslint-config>
+# @acuris/eslint-config
 
 @acuris/eslint-config
 
 Shared Acuris eslint configuration and code quality tooling.
 
-# initialize your project
+## initialize your project
 
 The simplest and preferred way to initialise your project is to run in your project folder this command:
 
@@ -16,15 +16,15 @@ This will start an interactive initialisation script that will setup everything 
 
 ## if you install new packages after initializing a project (for example, jest or typescript), you may want to run `acuris-eslint --init` again to add additional dependencies.
 
-# update @acuris/eslint-config
+## update @acuris/eslint-config
 
 Once installed, you can update to the latest version (including dependencies) executing
 
 ```sh
-acuris-eslint --update
+acuris-eslint --init
 ```
 
-# lint your entire project
+## lint your entire project
 
 You can lint your entire project running
 
@@ -52,7 +52,7 @@ acuris-eslint --help
 
 Note: If PATH does not resolve node binaries in node_modules/.bin, you can prepend all commands with `npx`.
 
-# project configuration
+## project configuration
 
 You can add `acuris-eslint` in package.json root to pass additional options.
 
@@ -140,12 +140,16 @@ You can add `acuris-eslint` in package.json root to pass additional options.
       * Additional node_modules paths to use when resolving eslint plugins or configurations.
       */
     nodeResolvePaths: string[] | { [path: string]: boolean },
-
-    /**
-     * Additional extensions to use when running acuris-eslint command.
-     * Useful, for example, when adding a new plugin that manages a new file type.
-     */
-    extensions: string[] | { [extension: string]: boolean }
   }
 }
 ```
+
+## Changelog
+
+- v.0.1.1
+  - acuris-eslint now supports prettify all supported files, not only JS and TS. Uses thread workers to use free CPUs for prettify.
+  - load extensions by overrides
+  - add supports for .files, now they get linted
+  - options --lint-staged and --ignore-unknown-extensions will skip file with extensions not supported when processing a list of files.
+  - eslint 7.0.0, typesript 3.9
+  - performance improvements and asynchronous write during fixing

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 const { name, version } = require('../package.json')
+const environment = require('../core/environment')
 const path = require('path')
 const fs = require('fs')
 
-if ('CI' in process.env || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
+if (environment.isCI || process.env.ACURIS_ESLINT_RUN_ASYNC === 'Y') {
   console.log(`\n- ${name} v${version}\n`)
 } else {
   require('./acuris-eslint-help').printLogo('postinstall')

@@ -3,21 +3,24 @@
 /* eslint-disable global-require */
 
 const os = require('os')
-const path = require('path')
+const { dirname, resolve: pathResolve } = require('path')
 const { existsSync } = require('fs')
+const environment = require('./environment')
 
-const baseExtensions = new Set(['.js', '._js', '.jsx', '.mjs', '.cjs', '.es', '.es6', '.assetgen'])
+const { isArray, from: arrayFrom } = Array
 
 module.exports = class ProjectConfig {
   constructor() {
     this.projectPath = ''
 
+    this.cwd = process.cwd()
     this.eslintrc = ''
     this.eslintCache = true
     this.eslintCacheLocation = '.eslintcache'
     this.eslintOutputFormat = 'stylish'
     this.reactVersion = ''
     this.tsConfigPath = ''
+    this.isCI = environment.isCI
 
     /** Used when running acuris-eslint --fix */
     this.fixWithPrettier = false
@@ -28,13 +31,11 @@ module.exports = class ProjectConfig {
     /** @type {Set<string>} */
     this.nodeResolvePaths = new Set()
 
-    /** @type {Map<string, boolean>} */
-    this.extensions = new Map()
-
     this.filePatterns = {
       prettier: [],
       js: ['*.js', '*._js', '*.cjs'],
       mjs: ['*.mjs', '*.es', '*.es6', '*.jsx'],
+      json: ['*.json'],
       typescript: ['*.ts', '*.tsx'],
       typescriptDefinition: ['*.d.ts'],
       bin: ['**/bin/**/*', '**/.bin/**/*'],
@@ -78,18 +79,23 @@ module.exports = class ProjectConfig {
         '**/.mocharc.*'
       ]
     }
+  }
 
-    for (const extension of baseExtensions) {
-      this.addExtension(extension)
-    }
+  update() {
+    const filePatterns = this.filePatterns
+    this.jsExtensions = extensionsFromPatterns(filePatterns.js, filePatterns.mjs)
+    this.tsExtensions = extensionsFromPatterns(filePatterns.ts, filePatterns.typescriptDefinition)
+    this.jsonExtensions = extensionsFromPatterns(filePatterns.json)
   }
 
   add(cfg) {
     if (typeof cfg.cwd === 'string') {
-      this.cwd = path.resolve(cfg.cwd)
+      this.cwd = pathResolve(cfg.cwd)
+    } else if (cfg.cwd === null) {
+      this.cwd = process.cwd()
     }
 
-    if (typeof cfg.eslintrc === 'string') {
+    if (typeof cfg.eslintrc === 'string' || cfg.eslintrc === null) {
       this.eslintrc = cfg.eslintrc
     }
 
@@ -97,108 +103,46 @@ module.exports = class ProjectConfig {
       this.eslintCache = toBoolean(cfg.eslintCache)
     }
 
-    if (typeof cfg.eslintCacheLocation === 'string') {
-      this.eslintCacheLocation = cfg.eslintCacheLocation
+    if (cfg.isCI !== undefined) {
+      this.isCI = cfg.isCI !== null ? toBoolean(cfg.isCI) : environment.isc
     }
 
-    if (typeof cfg.eslintOutputFormat === 'string') {
-      this.eslintOutputFormat = cfg.eslintOutputFormat
+    if (typeof cfg.eslintCacheLocation === 'string' || cfg.eslintCacheLocation === null) {
+      this.eslintCacheLocation = cfg.eslintCacheLocation || ''
     }
 
-    if (typeof cfg.reactVersion === 'string') {
+    if (typeof cfg.eslintOutputFormat === 'string' || cfg.eslintOutputFormat === null) {
+      this.eslintOutputFormat = cfg.eslintOutputFormat || ''
+    }
+
+    if (typeof cfg.reactVersion === 'string' || cfg.reactVersion === null) {
       this.reactVersion = cfg.reactVersion
     }
 
-    if (typeof cfg.tsConfigPath === 'string') {
-      this.tsConfigPath = cfg.tsConfigPath
+    if (typeof cfg.tsConfigPath === 'string' || cfg.tsConfigPath === null) {
+      this.tsConfigPath = cfg.tsConfigPath || ''
     }
 
     updateSetFromConfig(this.ignoredPackages, cfg.ignoredPackages)
     updateSetFromConfig(this.ignoredPackages, cfg['ignored-packages'])
     updateSetFromConfig(this.nodeResolvePaths, cfg.nodeResolvePaths)
     updateSetFromConfig(this.nodeResolvePaths, cfg['node-resolve-paths'])
-    updateExtensionsFromConfig(this.extensions, cfg.extensions)
 
     updateFilePatterns(this.filePatterns, cfg['file-patterns'])
     updateFilePatterns(this.filePatterns, cfg.filePatterns)
-  }
-
-  addPrettier() {
-    const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
-    const prettier = prettierInterface.tryGetPrettier()
-    const patterns = new Set(this.filePatterns.prettier)
-
-    const allPatterns = new Set()
-    for (const ps of Object.values(this.filePatterns)) {
-      for (const p of ps) {
-        allPatterns.add(p)
-      }
-    }
-    for (const ext of this.extensions.keys()) {
-      allPatterns.add(`*${ext}`)
-    }
-
-    if (prettier) {
-      const supportInfo = prettier.getSupportInfo()
-      for (const language of supportInfo.languages) {
-        if (language.extensions) {
-          for (const extension of language.extensions) {
-            if (this.addExtension(extension)) {
-              const pattern = `*${extension}`
-              if (!allPatterns.has(pattern)) {
-                patterns.add(pattern)
-              }
-            }
-          }
-        }
-        if (language.filenames) {
-          for (const filename of language.filenames) {
-            const ext = path.extname(filename)
-            if (!baseExtensions.has(ext)) {
-              patterns.add(filename)
-              if (filename.startsWith('.')) {
-                this.addExtension(filename)
-              }
-            }
-          }
-        }
-      }
-      if (patterns.size > 0) {
-        this.filePatterns.prettier = Array.from(patterns)
-        this.fixWithPrettier = true
-      }
-    }
-  }
-
-  extensionsToArray() {
-    const result = []
-    for (const [k, v] of this.extensions) {
-      if (v) {
-        result.push(k)
-      }
-    }
-    return result
-  }
-
-  addExtension(extension) {
-    if (this.extensions.has(extension)) {
-      return false
-    }
-    this.extensions.set(extension, true)
-    return true
   }
 
   load(directory = process.cwd()) {
     const home = os.homedir()
     const configs = []
     while (directory !== home && directory !== '/') {
-      const packageJson = path.resolve(directory, 'package.json')
+      const packageJson = pathResolve(directory, 'package.json')
       if (existsSync(packageJson)) {
         let pkg
         try {
           pkg = require(packageJson)
         } catch (_error) {}
-        if (typeof pkg === 'object' && pkg !== null && !Array.isArray(pkg)) {
+        if (typeof pkg === 'object' && pkg !== null && !isArray(pkg)) {
           if (!this.projectPath) {
             this.projectPath = directory
           }
@@ -208,7 +152,7 @@ module.exports = class ProjectConfig {
           }
         }
       }
-      const parent = path.dirname(directory)
+      const parent = dirname(directory)
       if (parent.length >= directory.length) {
         break
       }
@@ -219,19 +163,15 @@ module.exports = class ProjectConfig {
       this.add(configs[i])
     }
 
+    this.update()
     return this
   }
 
   toJSON() {
-    const extentionsObj = {}
-    for (const [k, v] of this.extensions) {
-      extentionsObj[k] = v
-    }
     return {
       ...this,
-      ignoredPackages: Array.from(this.ignoredPackages),
-      nodeResolvePaths: Array.from(this.nodeResolvePaths),
-      extensions: extentionsObj
+      ignoredPackages: arrayFrom(this.ignoredPackages),
+      nodeResolvePaths: arrayFrom(this.nodeResolvePaths)
     }
   }
 
@@ -242,13 +182,13 @@ module.exports = class ProjectConfig {
   }
 
   static set projectConfig(value) {
-    Object.defineProperty(this, 'projectConfig', { value, configurable: true, writable: true, enumerable: true })
+    Reflect.defineProperty(this, 'projectConfig', { value, configurable: true, writable: true, enumerable: true })
   }
 }
 
 function updateSetFromConfig(set, input) {
   if (typeof input === 'object' && input !== null) {
-    if (Array.isArray(input)) {
+    if (isArray(input)) {
       for (const v of input) {
         if (typeof v === 'string' && v.length !== 0) {
           if (v.startsWith('!')) {
@@ -273,44 +213,6 @@ function updateSetFromConfig(set, input) {
   }
 }
 
-function updateExtensionsFromConfig(map, input) {
-  if (typeof input !== 'object' || input === null) {
-    return
-  }
-
-  if (Array.isArray(input)) {
-    for (let v of input) {
-      if (typeof v !== 'string') {
-        continue
-      }
-      v = v.trim()
-      if (v.length === 0) {
-        continue
-      }
-      if (v.startsWith('!')) {
-        v = v.slice(1)
-        if (!v.startsWith('.')) {
-          v = `.${v}`
-        }
-        map.set(v, false)
-      } else {
-        if (!v.startsWith('.')) {
-          v = `.${v}`
-        }
-        map.set(v, true)
-      }
-    }
-    return
-  }
-
-  for (const [k, v] of Object.entries(input)) {
-    const key = k.trim()
-    if (key.length) {
-      map.set(k.startsWith('.') ? key : `.${key}`, toBoolean(v))
-    }
-  }
-}
-
 function toBoolean(x) {
   return x === true || x === 'true' || (typeof x === 'number' && x >= 1)
 }
@@ -321,7 +223,7 @@ function updateFilePatterns(filePatterns, values) {
   }
 
   for (const key of Object.keys(filePatterns)) {
-    if (!Array.isArray(filePatterns[key])) {
+    if (!isArray(filePatterns[key])) {
       continue
     }
 
@@ -332,7 +234,7 @@ function updateFilePatterns(filePatterns, values) {
 
     const set = new Set(filePatterns[key])
 
-    if (Array.isArray(v)) {
+    if (isArray(v)) {
       for (const item of v) {
         if (typeof item === 'string') {
           if (item.startsWith('!')) {
@@ -351,6 +253,24 @@ function updateFilePatterns(filePatterns, values) {
         }
       }
     }
-    filePatterns[key] = Array.from(set)
+    filePatterns[key] = arrayFrom(set)
   }
+}
+
+const extensionPatternRegex = /^\*.[a-zA-Z_-]+$/
+
+function extensionsFromPatterns(...patterns) {
+  const set = new Set()
+  for (const pattern in patterns) {
+    if (isArray(pattern)) {
+      for (const subPattern of pattern) {
+        if (extensionPatternRegex.test(subPattern)) {
+          set.add(subPattern.slice(1))
+        }
+      }
+    } else if (typeof pattern === 'string' && extensionPatternRegex.test(pattern)) {
+      set.add(pattern.slice(1))
+    }
+  }
+  return arrayFrom(set)
 }

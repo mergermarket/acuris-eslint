@@ -2,8 +2,6 @@
 
 const eslintSupport = require('../core/eslint-support')
 
-const typescriptExtensions = ['.ts', '.tsx', '.d.ts']
-
 if (eslintSupport.hasEslintPluginImport) {
   const extensions = getExtensions()
 
@@ -12,7 +10,7 @@ if (eslintSupport.hasEslintPluginImport) {
     'import/extensions': extensions,
     'import/resolver': {
       node: {
-        extensions: ['.cjs', '.mjs', '.js', '.json', '.ts', '.tsx']
+        extensions
       }
     }
   }
@@ -24,7 +22,7 @@ if (eslintSupport.hasEslintPluginImport) {
   if (eslintSupport.hasTypescript) {
     settings['import/parsers'] = {
       ...settings['import/parsers'],
-      '@typescript-eslint/parser': typescriptExtensions
+      '@typescript-eslint/parser': eslintSupport.projectConfig.tsExtensions
     }
   }
 
@@ -57,15 +55,17 @@ if (eslintSupport.hasEslintPluginImport) {
 }
 
 function getExtensions() {
-  const result = new Set(typescriptExtensions)
-
-  for (const ext of ['.cjs', '.js', '.jsx', '.mjs', '.web.js', '.ios.js', '.android.js']) {
-    result.add(ext)
+  const set = new Set()
+  for (const ext of eslintSupport.projectConfig.jsonExtensions) {
+    set.add(ext)
   }
-
-  for (const ext of eslintSupport.extensions) {
-    result.add(ext)
+  for (const ext of eslintSupport.projectConfig.jsExtensions) {
+    set.add(ext)
   }
-
-  return Array.from(result)
+  if (eslintSupport.hasTypescript) {
+    for (const ext of eslintSupport.projectConfig.tsExtensions) {
+      set.add(ext)
+    }
+  }
+  return Array.from(set)
 }
