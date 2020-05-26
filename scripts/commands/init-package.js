@@ -136,7 +136,11 @@ module.exports = async (cliOptions) => {
 
         if (pkg['lint-staged']) {
           // acuris-eslint < 0.0.* was using '*.{js,jsx,json,ts,tsx}' as lint-staged filter. Replace with '*' instead.
-          const legacyLintStaged = pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
+          let legacyLintStaged = pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
+          if (Array.isArray(legacyLintStaged) && legacyLintStaged.length === 1) {
+            legacyLintStaged = legacyLintStaged[0]
+          }
+
           if (typeof legacyLintStaged === 'string' && legacyLintStaged.startsWith('acuris-eslint --lint-staged')) {
             const oldStar = pkg['lint-staged']['*']
             let newStar
