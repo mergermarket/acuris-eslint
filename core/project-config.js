@@ -84,7 +84,7 @@ module.exports = class ProjectConfig {
   update() {
     const filePatterns = this.filePatterns
     this.jsExtensions = extensionsFromPatterns(filePatterns.js, filePatterns.mjs)
-    this.tsExtensions = extensionsFromPatterns(filePatterns.ts, filePatterns.typescriptDefinition)
+    this.tsExtensions = extensionsFromPatterns(filePatterns.typescript, filePatterns.typescriptDefinition)
     this.jsonExtensions = extensionsFromPatterns(filePatterns.json)
   }
 
@@ -257,11 +257,11 @@ function updateFilePatterns(filePatterns, values) {
   }
 }
 
-const extensionPatternRegex = /^\*.[a-zA-Z_-]+$/
+const extensionPatternRegex = /^\*(.[a-zA-Z_-]+)+$/
 
 function extensionsFromPatterns(...patterns) {
   const set = new Set()
-  for (const pattern in patterns) {
+  for (const pattern of patterns) {
     if (isArray(pattern)) {
       for (const subPattern of pattern) {
         if (extensionPatternRegex.test(subPattern)) {

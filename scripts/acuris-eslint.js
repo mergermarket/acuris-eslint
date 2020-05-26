@@ -17,7 +17,13 @@ if (options.cwd) {
   process.chdir(path.resolve(options.cwd))
 }
 
-const { eslintRequire, eslintTryRequire, getEslintVersion, assertEslintVersion } = require('../core/node-modules')
+const {
+  eslintRequire,
+  eslintTryRequire,
+  getEslintVersion,
+  assertEslintVersion,
+  eslintPackageJsonPath
+} = require('../core/node-modules')
 const { startPrettierService } = require('./lib/eslint-prettier/prettier-service')
 
 const { version: packageVersion } = require('../package.json')
@@ -27,6 +33,7 @@ const chalk = require('chalk')
 let _handledErrors
 let timerStarted = null
 let fixedFiles = 0
+let iteratedFiles = 0
 
 process.on('uncaughtException', handleError)
 
@@ -64,7 +71,7 @@ if (!cliOptions) {
 }
 
 async function eslint() {
-  let prettierFixPromise
+  let endIterationPromise
   let endMonkeyPatch
   let results
   let ESLint
@@ -88,7 +95,7 @@ async function eslint() {
       ? await engine.lintText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
       : await engine.lintFiles(cliOptions.list)
   } finally {
-    prettierFixPromise = endMonkeyPatch().prettierFixPromise
+    endIterationPromise = endMonkeyPatch()
   }
 
   if (fix) {
@@ -104,10 +111,10 @@ async function eslint() {
     )
   }
 
-  const prettierResult = await prettierFixPromise
-  if (prettierResult) {
-    fixedFiles += prettierResult.prettified
-    results.push(...prettierResult.errors)
+  const endIterationResult = await endIterationPromise
+  if (endIterationResult) {
+    fixedFiles += endIterationResult.prettified
+    results.push(...endIterationResult.errors)
   }
 
   if (options.quiet) {
@@ -195,7 +202,22 @@ function endTimeLog() {
   if (msg) {
     timerStarted = null
     const exitCode = process.exitCode
-    const args = [msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok')]
+    const args = [msg]
+
+    if (exitCode) {
+      args.push(chalk.redBright(`exit code ${exitCode}`))
+      args.push(chalk.gray(`- ${iteratedFiles} files processed`))
+    } else if (iteratedFiles > 0) {
+      args.push(chalk.greenBright('ok'))
+      args.push(chalk.gray('-'))
+      args.push(chalk.greenBright(iteratedFiles))
+      args.push(chalk.green('file processed'))
+    } else {
+      args.push(chalk.gray('-'))
+      args.push(chalk.yellowBright('0'))
+      args.push(chalk.yellow('file processed'))
+    }
+
     if (fix) {
       if (fixedFiles > 0) {
         args.push(
@@ -227,7 +249,7 @@ function handleError(error) {
   console.error(chalk.redBright('\nOops! Something went wrong! :(\n'))
   if (typeof error.messageTemplate === 'string' && error.messageTemplate.length > 0) {
     try {
-      const eslintPath = path.dirname(require.resolve('eslint/package.json'))
+      const eslintPath = path.dirname(eslintPackageJsonPath())
       const template = eslintRequire('lodash').template(
         fs.readFileSync(path.resolve(eslintPath, `./messages/${error.messageTemplate}.txt`), 'utf-8')
       )
@@ -286,10 +308,15 @@ function monkeyPatchEslint() {
   }
 
   const prettierService = fix && startPrettierService({ debug: options.debug })
-
   if (prettierService) {
     // Monkey patch eslint FileEnumerator to pass ignored files to prettier
     fileEnumeratorProto.isTargetPath = isTargetPath
+  }
+
+  const endAsync = async () => {
+    const result = (prettierService && (await prettierService.end())) || { prettified: 0, errors: [], iteratedFiles }
+    result.iteratedFiles = iterateFiles
+    return result
   }
 
   const end = () => {
@@ -302,9 +329,7 @@ function monkeyPatchEslint() {
     if (fileEnumeratorProto.isTargetPath === isTargetPath) {
       fileEnumeratorProto.isTargetPath = oldIsTargetPath
     }
-    return {
-      prettierFixPromise: prettierService && prettierService.end()
-    }
+    return endAsync()
   }
 
   function isTargetPath(filepath, providedConfig) {
@@ -315,6 +340,7 @@ function monkeyPatchEslint() {
       path.isAbsolute(filepath) &&
       !old_isIgnoredFile.call(this, filepath, { ...providedConfig, dotfiles: true, direct: false })
     ) {
+      ++iteratedFiles
       prettierService.prettify(filepath)
     }
     return result
@@ -329,6 +355,7 @@ function monkeyPatchEslint() {
       }
 
       if (count < 54) {
+        ++iteratedFiles
         buffer.push(item)
         ++count
       } else {

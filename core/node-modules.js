@@ -218,25 +218,57 @@ function getMinimumSupportedEslintVersion() {
 exports.getMinimumSupportedEslintVersion = getMinimumSupportedEslintVersion
 
 let _eslintRequire
+let _eslintPackageJsonPath
+const _eslintRequireCache = new Map()
 
 exports.eslintRequire = eslintRequire
 
 exports.eslintTryRequire = eslintTryRequire
+
+exports.eslintPackageJsonPath = eslintPackageJsonPath
+
+function eslintPackageJsonPath() {
+  if (_eslintPackageJsonPath === undefined) {
+    try {
+      _eslintPackageJsonPath = require.resolve('eslint/package.json')
+    } catch (_) {
+      _eslintPackageJsonPath = ''
+    }
+  }
+  return _eslintPackageJsonPath
+}
 
 /**
  * Requires a module from the point of view of eslint.
  * @param {string} id The module to require.
  */
 function eslintRequire(id) {
-  const r = _eslintRequire || Module.createRequire(require.resolve('eslint/package.json'))
-  return r(id)
+  const found = _eslintRequireCache.get(id)
+  if (found !== undefined) {
+    return found
+  }
+  try {
+    const doRequire = _eslintRequire || Module.createRequire(eslintPackageJsonPath())
+    const result = doRequire(id)
+    _eslintRequireCache.set(id, result)
+    return result
+  } catch (error) {
+    _eslintRequireCache.set(id, undefined)
+    throw error
+  }
 }
 
 function eslintTryRequire(id) {
+  if (_eslintRequireCache.has(id)) {
+    return _eslintRequireCache.get(id)
+  }
   try {
-    const r = _eslintRequire || Module.createRequire(require.resolve('eslint/package.json'))
-    return r(id)
-  } catch (_error) {
+    const doRequire = _eslintRequire || Module.createRequire(eslintPackageJsonPath())
+    const result = doRequire(id)
+    _eslintRequireCache.set(id, result)
+    return result
+  } catch (error) {
+    _eslintRequireCache.set(id, undefined)
     return undefined
   }
 }
@@ -249,9 +281,12 @@ exports.projectConfig = require('./project-config').projectConfig
 reloadNodeResolvePaths()
 
 function reloadNodeResolvePaths() {
+  _eslintRequire = undefined
+  _eslintPackageJsonPath = undefined
   _eslintVersion = undefined
   _resolvePaths.clear()
   _hasLocalPackageCache.clear()
+  _eslintRequireCache.clear()
 
   const _directoryExistsCache = new Map()
 
@@ -281,7 +316,9 @@ function reloadNodeResolvePaths() {
   } catch (_error) {}
 
   for (const p of legacyNodeModulePaths(pathDirname(process.cwd()))) {
-    addNodeResolvePath(p)
+    if (directoryExists(p)) {
+      addNodeResolvePath(p)
+    }
   }
 
   _resolvePaths.add(pathResolve('node_modules'))
@@ -292,12 +329,30 @@ function reloadNodeResolvePaths() {
     }
     let found = _directoryExistsCache.get(directory)
     if (found === undefined) {
+      directory = pathResolve(directory)
+      found = _directoryExistsCache.get(directory)
+    }
+    if (found === undefined) {
       try {
         found = existsSync(directory) && statSync(directory).isDirectory()
       } catch (_error) {
         found = false
       }
-      _directoryExistsCache.set(directory, found)
+      if (found) {
+        for (let current = directory; ; ) {
+          if (_directoryExistsCache.has(current)) {
+            break
+          }
+          _directoryExistsCache.set(current, true)
+          const parent = pathDirname(current)
+          if (!parent || parent.length === current.length) {
+            break
+          }
+          current = parent
+        }
+      } else {
+        _directoryExistsCache.set(directory, found)
+      }
     }
     return found
   }

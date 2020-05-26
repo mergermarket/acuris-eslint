@@ -7,7 +7,7 @@ if (eslintSupport.hasEslintPluginJson && eslintSupport.projectConfig.jsonExtensi
     overrides: [
       {
         files: eslintSupport.projectConfig.filePatterns.json,
-        plugins: eslintSupport.projectConfig.jsonExtensions,
+        plugins: ['json'],
         rules: {
           'json/*': [2, { allowComments: true }]
         }

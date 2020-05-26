@@ -120,10 +120,11 @@ function printVersion() {
 }
 
 function printSysInfo() {
-  const { getEslintVersion } = require('../core/node-modules')
+  const { getEslintVersion, eslintPackageJsonPath } = require('../core/node-modules')
   const eslintSupport = require('../core/eslint-support')
   const manifest = require('../package.json')
   const os = require('os')
+  const path = require('path')
 
   const cpus = os.cpus()
   const env = {
@@ -167,10 +168,17 @@ function printSysInfo() {
     }
   }
 
+  const eslintFilePath = eslintPackageJsonPath()
+  const paths = {
+    'acuris-eslint': path.dirname(__dirname),
+    eslint: eslintFilePath && path.dirname(eslintFilePath)
+  }
+
   const info = {
     versions,
     dependencies,
     env,
+    paths,
     support: eslintSupport
   }
 
