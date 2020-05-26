@@ -6,7 +6,7 @@ const chalk = require('chalk')
 const { emitWarning, emitSection } = require('../lib/notes')
 
 const path = require('path')
-const { resolveProjectFile, findUp, runAsync, fileExists } = require('../lib/fs-utils')
+const { resolveProjectFile, findUp, findFileUp, runAsync, fileExists } = require('../lib/fs-utils')
 const { reloadNodeResolvePaths, hasLocalPackage, projectConfig } = require('../../core/node-modules')
 const { askConfirmation, updateTextFileAsync } = require('../lib/text-utils')
 const {
@@ -101,7 +101,20 @@ module.exports = async (cliOptions) => {
             }
           }
 
-          if (!pkg.husky && !pkg['lint-staged'] && findUp('.git', { directories: true, files: false })) {
+          const hasLintStagedConfig =
+            !!pkg['lint-staged'] ||
+            findFileUp('.lintstagedrc') ||
+            findFileUp('lint-staged.config.js') ||
+            findFileUp('.lintstagedrc.js')
+
+          const hasHuskyConfig =
+            !!pkg.husky ||
+            findFileUp('.huskyrc') ||
+            findFileUp('.huskyrc.json') ||
+            findFileUp('.huskyrc.js') ||
+            findFileUp('husky.config.js')
+
+          if (!hasLintStagedConfig && !hasHuskyConfig && findUp('.git', { directories: true, files: false })) {
             if (
               await askConfirmation(
                 `Can I configure ${chalk.yellowBright('husky')} and ${chalk.yellowBright(
@@ -115,8 +128,30 @@ module.exports = async (cliOptions) => {
                 }
               }
               pkg['lint-staged'] = {
-                '*.{js,jsx,json,ts,tsx}': ['acuris-eslint --lint-staged --fix --max-warnings=0']
+                '*': ['acuris-eslint --lint-staged --fix --max-warnings=0']
               }
+            }
+          }
+        }
+
+        if (pkg['lint-staged']) {
+          // acuris-eslint < 0.0.* was using '*.{js,jsx,json,ts,tsx}' as lint-staged filter. Replace with '*' instead.
+          const legacyLintStaged = pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
+          if (typeof legacyLintStaged === 'string' && legacyLintStaged.startsWith('acuris-eslint --lint-staged')) {
+            const oldStar = pkg['lint-staged']['*']
+            let newStar
+            if (oldStar) {
+              if (Array.isArray(pkg['lint-staged']['*'])) {
+                newStar = [legacyLintStaged, ...oldStar]
+              } else if (typeof oldStar === 'string') {
+                newStar = [legacyLintStaged, oldStar]
+              }
+            } else {
+              newStar = [legacyLintStaged]
+            }
+            if (newStar) {
+              pkg['lint-staged']['*'] = newStar
+              delete pkg['lint-staged']['*.{js,jsx,json,ts,tsx}']
             }
           }
         }

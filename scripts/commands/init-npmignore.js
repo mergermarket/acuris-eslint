@@ -4,7 +4,7 @@ const { resolveAcurisEslintFile, resolveProjectFile } = require('../lib/fs-utils
 const { readTextFile, updateTextFileAsync } = require('../lib/text-utils')
 const IgnoreFile = require('../lib/IgnoreFile')
 
-module.exports = async cliOptions => {
+module.exports = async (cliOptions) => {
   await updateTextFileAsync({
     filePath: resolveProjectFile('.npmignore'),
     askConfirmation: cliOptions && cliOptions.askConfirmation,

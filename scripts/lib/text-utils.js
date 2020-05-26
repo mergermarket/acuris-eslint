@@ -167,6 +167,12 @@ function stringify(obj, format, filename = null) {
 }
 
 function cleanupText(text) {
+  if (typeof text !== 'string') {
+    if (text === undefined || text === null) {
+      return ''
+    }
+    text = Buffer.isBuffer(text) ? text.toString() : JSON.stringify(text, null, 2)
+  }
   if (text.charCodeAt(0) === 0xfeff) {
     text = text.slice(1)
   }

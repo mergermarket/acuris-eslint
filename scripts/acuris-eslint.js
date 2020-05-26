@@ -8,37 +8,33 @@ if (!global.__v8__compile__cache) {
 const path = require('path')
 const fs = require('fs')
 
-let timerStarted = false
-
 const { tryParseAcurisEslintOptions, translateOptionsForCLIEngine } = require('./lib/acuris-eslint-options')
 
 const cliOptions = tryParseAcurisEslintOptions()
 
-const options = (cliOptions && cliOptions.options) || {}
-
+const options = cliOptions.options || {}
 if (options.cwd) {
   process.chdir(path.resolve(options.cwd))
 }
 
 const { eslintRequire, eslintTryRequire, getEslintVersion, assertEslintVersion } = require('../core/node-modules')
+const { startPrettierService } = require('./lib/eslint-prettier/prettier-service')
 
 const { version: packageVersion } = require('../package.json')
-
-if (options.debug) {
-  const eslintDebug = eslintTryRequire('debug')
-  if (eslintDebug) {
-    eslintDebug.enable('eslint:*,-eslint:code-path')
-  }
-}
 
 const chalk = require('chalk')
 
 let _handledErrors
+let timerStarted = null
+let fixedFiles = 0
+
 process.on('uncaughtException', handleError)
 
 if (chalk.level > 0) {
   require('util').inspect.defaultOptions.colors = true
 }
+
+const fix = options.fix && !options.fixDryRun && !options.stdin
 
 if (!cliOptions) {
   if (!process.exitCode) {
@@ -57,58 +53,99 @@ if (!cliOptions) {
     timerStarted = appTitle
   }
 
-  const exitCode = eslint()
-  endTimeLog()
-  if (exitCode && !process.exitCode) {
-    process.exitCode = exitCode
-  }
+  eslint()
+    .then((exitCode) => {
+      endTimeLog()
+      if (exitCode && !process.exitCode) {
+        process.exitCode = exitCode
+      }
+    })
+    .catch(handleError)
 }
 
-function eslint() {
-  const stopFsCache = require('./lib/fs-cache').startFsCache().stop
+async function eslint() {
+  let prettierFixPromise
+  let endMonkeyPatch
+  let results
+  let ESLint
+  let engine
 
-  assertEslintVersion()
-  const { CLIEngine } = eslintRequire('./lib/cli-engine')
-
-  const engine = new CLIEngine(translateOptionsForCLIEngine(cliOptions))
-
-  let report
   try {
-    report = options.stdin
-      ? engine.executeOnText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
-      : engine.executeOnFiles(cliOptions.list)
+    if (options.debug) {
+      const eslintDebug = eslintTryRequire('debug')
+      if (eslintDebug) {
+        eslintDebug.enable('eslint:*,-eslint:code-path')
+      }
+    }
+
+    endMonkeyPatch = monkeyPatchEslint()
+
+    ESLint = eslintRequire('./lib/eslint/eslint.js').ESLint
+
+    engine = new ESLint(translateOptionsForCLIEngine(cliOptions))
+
+    results = options.stdin
+      ? await engine.lintText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
+      : await engine.lintFiles(cliOptions.list)
   } finally {
-    stopFsCache()
+    prettierFixPromise = endMonkeyPatch().prettierFixPromise
   }
 
-  if (options.fix) {
-    // Fix mode enabled - applying fixes
-    CLIEngine.outputFixes(report)
+  if (fix) {
+    const isAbsolute = path.isAbsolute
+    const writeFile = fs.promises.writeFile
+    await Promise.all(
+      results
+        .filter((r) => r && typeof r.output === 'string' && isAbsolute(r.filePath))
+        .map(async (r) => {
+          await writeFile(r.filePath, r.output)
+          ++fixedFiles
+        })
+    )
+  }
+
+  const prettierResult = await prettierFixPromise
+  if (prettierResult) {
+    fixedFiles += prettierResult.prettified
+    results.push(...prettierResult.errors)
   }
 
   if (options.quiet) {
     // Quiet mode enabled - filtering out warnings
-    report.results = CLIEngine.getErrorResults(report.results)
+    results = ESLint.getErrorResults(results)
   } else {
-    filterOutEslintWarnings(report)
+    results = filterOutEslintWarnings(results)
   }
 
-  if (printEslintResults(engine, report.results, options.format, options.outputFile)) {
-    const tooManyWarnings = options.maxWarnings >= 0 && report.warningCount > options.maxWarnings
+  if (await printEslintResults(engine, results, options.format, options.outputFile)) {
+    const status = getResultsStatus(results)
 
-    if (!report.errorCount && tooManyWarnings) {
-      console.error(chalk.redBright(`ESLint found too many warnings (maximum: ${options.maxWarnings}).\n)`))
+    const tooManyWarnings = status === 1
+    if (tooManyWarnings) {
+      console.error(chalk.redBright(`ESLint found too many warnings (maximum: ${options.maxWarnings})\n`))
     }
 
-    return report.errorCount || tooManyWarnings ? 1 : 0
+    return status
   }
   return 2
 }
 
-function printEslintResults(engine, results, format, outputFile) {
+function getResultsStatus(results) {
+  let warningCount = 0
+  for (let i = 0; i < results.length; ++i) {
+    const item = results[i]
+    if (item.errorCount > 0) {
+      return 2
+    }
+    warningCount += item.warningCount || 0
+  }
+  return options.maxWarnings >= 0 && warningCount > options.maxWarnings ? 1 : 0
+}
+
+async function printEslintResults(engine, results, format, outputFile) {
   let formatter
   try {
-    formatter = engine.getFormatter(format)
+    formatter = await engine.loadFormatter(format)
   } catch (error) {
     console.error(chalk.redBright(error))
     return false
@@ -126,7 +163,7 @@ function printEslintResults(engine, results, format, outputFile) {
     }
   })
 
-  const output = formatter(results, rulesMetaProvider)
+  const output = formatter.format(results, rulesMetaProvider)
   if (!output) {
     return true
   }
@@ -134,14 +171,14 @@ function printEslintResults(engine, results, format, outputFile) {
   if (outputFile) {
     const filePath = path.resolve(process.cwd(), outputFile)
 
-    if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    if (fs.existsSync(filePath) && (await fs.promises.stat(filePath)).isDirectory()) {
       console.error(chalk.redBright('Cannot write to output file path, it is a directory: %s'), outputFile)
       return false
     }
 
     try {
       require('./lib/fs-utils').mkdirSync(path.dirname(filePath))
-      fs.writeFileSync(filePath, output)
+      await fs.promises.writeFile(filePath, output)
     } catch (ex) {
       console.error(chalk.redBright('There was a problem writing the output file:\n%s'), ex)
       return false
@@ -156,11 +193,19 @@ function printEslintResults(engine, results, format, outputFile) {
 function endTimeLog() {
   const msg = timerStarted
   if (msg) {
-    timerStarted = false
-    setImmediate(() => {
-      const exitCode = process.exitCode
-      console.timeLog(msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok'))
-    })
+    timerStarted = null
+    const exitCode = process.exitCode
+    const args = [msg, exitCode ? chalk.redBright(`exit code ${exitCode}`) : chalk.greenBright('ok')]
+    if (fix) {
+      if (fixedFiles > 0) {
+        args.push(
+          chalk.gray('- ') + chalk.cyanBright(fixedFiles) + chalk.cyan(` file${fixedFiles === 1 ? '' : 's'} fixed`)
+        )
+      } else {
+        args.push(chalk.gray(`- ${fixedFiles} files fixed`))
+      }
+    }
+    console.timeLog(...args)
   }
 }
 
@@ -194,12 +239,11 @@ function handleError(error) {
   console.log()
 }
 
-function filterOutEslintWarnings(report) {
+function filterOutEslintWarnings(results) {
   let filtered = null
-  const results = report.results
   for (let i = 0, len = results.length; i !== len; ++i) {
     const item = results[i]
-    if (report.warningCount > 0 && item.warningCount === 1 && item.errorCount === 0) {
+    if (item.warningCount === 1 && item.errorCount === 0) {
       const messages = item.messages
       if (messages && messages.length === 1) {
         const msg = messages[0]
@@ -209,10 +253,8 @@ function filterOutEslintWarnings(report) {
           text === 'File ignored because of a matching ignore pattern. Use "--no-ignore" to override.' ||
           (typeof text === 'string' && text.startsWith('File ignored by default. '))
         ) {
-          --report.warningCount
           if (filtered === null) {
             filtered = results.slice(0, i)
-            report.results = filtered
           }
           continue
         }
@@ -222,4 +264,88 @@ function filterOutEslintWarnings(report) {
       filtered.push(item)
     }
   }
+  return filtered || results
+}
+
+function monkeyPatchEslint() {
+  const fsCache = require('./lib/fs-cache')
+  const stopFsCache = fsCache.startFsCache().stop
+  assertEslintVersion()
+  stopFsCache()
+
+  const fileEnumeratorProto = eslintRequire('./lib/cli-engine/file-enumerator.js').FileEnumerator.prototype
+
+  const old_isIgnoredFile = fileEnumeratorProto._isIgnoredFile
+  const oldIterateFiles = fileEnumeratorProto.iterateFiles
+  const oldIsTargetPath = fileEnumeratorProto.isTargetPath
+
+  fileEnumeratorProto.iterateFiles = iterateFiles
+
+  if (options.lintStaged || options.ignoreUnknownExtensions) {
+    fileEnumeratorProto._isIgnoredFile = _isIgnoredFile
+  }
+
+  const prettierService = fix && startPrettierService({ debug: options.debug })
+
+  if (prettierService) {
+    // Monkey patch eslint FileEnumerator to pass ignored files to prettier
+    fileEnumeratorProto.isTargetPath = isTargetPath
+  }
+
+  const end = () => {
+    if (fileEnumeratorProto.iterateFiles === iterateFiles) {
+      fileEnumeratorProto.iterateFiles = oldIterateFiles
+    }
+    if (fileEnumeratorProto._isIgnoredFile === _isIgnoredFile) {
+      fileEnumeratorProto._isIgnoredFile = old_isIgnoredFile
+    }
+    if (fileEnumeratorProto.isTargetPath === isTargetPath) {
+      fileEnumeratorProto.isTargetPath = oldIsTargetPath
+    }
+    return {
+      prettierFixPromise: prettierService && prettierService.end()
+    }
+  }
+
+  function isTargetPath(filepath, providedConfig) {
+    const result = oldIsTargetPath.call(this, filepath, providedConfig)
+    if (
+      !result &&
+      providedConfig &&
+      path.isAbsolute(filepath) &&
+      !old_isIgnoredFile.call(this, filepath, { ...providedConfig, dotfiles: true, direct: false })
+    ) {
+      prettierService.prettify(filepath)
+    }
+    return result
+  }
+
+  function* iterateFiles(patternOrPatterns) {
+    const buffer = []
+    let count = 0
+    for (const item of oldIterateFiles.call(this, patternOrPatterns)) {
+      if (item.ignored) {
+        continue // Avoid "File ignored because of a matching ignore pattern" warning.
+      }
+
+      if (count < 54) {
+        buffer.push(item)
+        ++count
+      } else {
+        yield* buffer
+        buffer.length = 0
+        count = 0
+      }
+    }
+    yield* buffer
+  }
+
+  function _isIgnoredFile(filePath, { config, dotfiles, direct }) {
+    return (
+      old_isIgnoredFile.call(this, filePath, { config, dotfiles, direct }) ||
+      !oldIsTargetPath.call(this, filePath, config)
+    )
+  }
+
+  return end
 }

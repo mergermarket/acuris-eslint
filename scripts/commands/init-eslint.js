@@ -108,7 +108,7 @@ async function initEslintrc(packageJsonEslintConfig) {
         content.extends = []
       }
 
-      content.extends = Array.from(new Set(content.extends.filter(x => x)))
+      content.extends = Array.from(new Set(content.extends.filter((x) => x)))
 
       let hasAcurisEslintConfig = false
 
@@ -155,7 +155,7 @@ async function initEslintrc(packageJsonEslintConfig) {
 
   if (eslintConfigUpdateResult && extendsToRemove.length !== 0) {
     emitNote(
-      `Removed ${extendsToRemove.map(x => chalk.yellow(x)).join(',')} from eslint configuration. ${chalk.gray(
+      `Removed ${extendsToRemove.map((x) => chalk.yellow(x)).join(',')} from eslint configuration. ${chalk.gray(
         'Check your package.json to remove unused packages.'
       )}`
     )
@@ -185,7 +185,7 @@ async function removeEslintConfigFromPackageJson({ removeEslintConfig, removeEsl
         }
 
         emitWarning(
-          `Fields ${fieldsToRemove.map(x => chalk.yellowBright(x)).join(',')} removed from  ${chalk.yellowBright(
+          `Fields ${fieldsToRemove.map((x) => chalk.yellowBright(x)).join(',')} removed from  ${chalk.yellowBright(
             'package.json'
           )}. All content was copied in ${chalk.whiteBright('.eslintrc')} and/or ${chalk.whiteBright('.eslintignore')}.`
         )

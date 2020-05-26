@@ -95,7 +95,7 @@ function mergeEslintValidate(target, source) {
   eslintValidateLanguages(target)
   const result = Array.from(map.values())
 
-  if (result.every(x => typeof x === 'string')) {
+  if (result.every((x) => typeof x === 'string')) {
     result.sort()
     // Remove default value
     if (['javascript', 'javascriptreact', 'typescript', 'typescriptreact'].join() === result.join()) {

@@ -6,6 +6,7 @@ const { readTextFile, askConfirmation, updateTextFileAsync } = require('../lib/t
 module.exports = async () => {
   await updateTextFileAsync({
     filePath: resolveProjectFile('.clang-format'),
+    format: 'text',
     async content(previousContent) {
       const content = readTextFile(resolveAcurisEslintFile('.clang-format'))
       if (content !== previousContent) {

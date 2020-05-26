@@ -1,5 +1,20 @@
 # <@acuris/eslint-config>
 
+# dotfiles
+
+!.*.js
+!.*._js
+!.*.jsx
+!.*.mjs
+!.*.cjs
+!.*.es
+!.*.es6
+!.*.assetgen
+!.*.ts
+!.*.tsx
+!.*.json
+!.eslintrc.js
+
 # Dependencies and vendor
 vendor
 typings
@@ -16,8 +31,9 @@ build/Release
 *.min.*
 *-min.*
 
-
 # Cache
+.git
+.eslintcache
 .tmp
 .temp
 .cache

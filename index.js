@@ -2,7 +2,22 @@
 
 const eslintSupport = require('./core/eslint-support')
 
+const defaultEnv = {
+  es2020: true,
+  node: true
+}
+
+const baseConfig = {
+  overrides: [
+    {
+      files: [...eslintSupport.projectConfig.filePatterns.js, ...eslintSupport.projectConfig.filePatterns.mjs],
+      env: defaultEnv
+    }
+  ]
+}
+
 const config = eslintSupport.mergeEslintConfigs(
+  baseConfig,
   eslintSupport.eslintRequire('./conf/eslint-recommended'),
   require('./rules/import'),
   require('./rules/node'),

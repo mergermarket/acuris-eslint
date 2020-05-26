@@ -2,19 +2,19 @@
 
 /* eslint-disable global-require */
 
-assertNodeVersion()
-
 const Module = require('module')
-const path = require('path')
 const os = require('os')
 const { existsSync, statSync } = require('fs')
 
-const { resolve: pathResolve } = path
+const {
+  resolve: pathResolve,
+  dirname: pathDirname,
+  basename: pathBasename,
+  join: pathJoin,
+  sep: pathSep
+} = require('path')
+
 const { from: arrayFrom } = Array
-
-const projectConfig = require('./project-config').projectConfig
-
-exports.projectConfig = projectConfig
 
 // Hides createRequireFromPath deprecation warning when used
 // eslint-disable-next-line node/no-deprecated-api
@@ -61,7 +61,7 @@ function nodeModulePaths(from = process.cwd()) {
   let customAdded = false
   const set = new Set()
   const defaults = legacyNodeModulePaths(from)
-  const cwdNodeModules = _cwdNodeModules || (_cwdNodeModules = path.resolve('node_modules'))
+  const cwdNodeModules = _cwdNodeModules || (_cwdNodeModules = pathResolve('node_modules'))
   for (let i = 0, defaultsLen = defaults.length; i !== defaultsLen; ++i) {
     const value = defaults[i]
     if (!customAdded && value === cwdNodeModules) {
@@ -103,7 +103,7 @@ function getPackageLocalState(id) {
   }
   if (id.startsWith('.')) {
     id = pathResolve(process.cwd(), id)
-  } else if (id.startsWith(path.sep) || id.startsWith('/')) {
+  } else if (id.startsWith(pathSep) || id.startsWith('/')) {
     id = pathResolve(id)
   }
   let result = _hasLocalPackageCache.get(id)
@@ -244,6 +244,8 @@ function eslintTryRequire(id) {
 // Overrides Module._nodeModulePaths so eslint is able to resolve plugin modules in the right places
 Module._nodeModulePaths = nodeModulePaths
 
+exports.projectConfig = require('./project-config').projectConfig
+
 reloadNodeResolvePaths()
 
 function reloadNodeResolvePaths() {
@@ -255,34 +257,34 @@ function reloadNodeResolvePaths() {
 
   // Register additional paths
 
-  for (const nodeResolvePaths of projectConfig.nodeResolvePaths) {
+  for (const nodeResolvePaths of exports.projectConfig.nodeResolvePaths) {
     addNodeResolvePath(nodeResolvePaths)
   }
 
   addNodeResolvePath(process.cwd())
-  addNodeResolvePath(path.dirname(__dirname))
-  addNodeResolvePath(path.dirname(path.dirname(__dirname)))
+  addNodeResolvePath(pathDirname(__dirname))
+  addNodeResolvePath(pathDirname(pathDirname(__dirname)))
 
   let sharedComponentToolsPath
   try {
-    sharedComponentToolsPath = path.dirname(require.resolve('acuris-shared-component-tools/package.json'))
+    sharedComponentToolsPath = pathDirname(require.resolve('acuris-shared-component-tools/package.json'))
   } catch (_error) {}
   if (sharedComponentToolsPath) {
     addNodeResolvePath(sharedComponentToolsPath)
     for (const relative of _resolvePackageNames) {
-      addNodeResolvePath(path.join(sharedComponentToolsPath, 'node_modules', relative))
+      addNodeResolvePath(pathJoin(sharedComponentToolsPath, 'node_modules', relative))
     }
   }
 
   try {
-    addNodeResolvePath(path.dirname(require.resolve('eslint/package.json')))
+    addNodeResolvePath(pathDirname(require.resolve('eslint/package.json')))
   } catch (_error) {}
 
-  for (const p of legacyNodeModulePaths(path.dirname(process.cwd()))) {
+  for (const p of legacyNodeModulePaths(pathDirname(process.cwd()))) {
     addNodeResolvePath(p)
   }
 
-  _resolvePaths.add(path.resolve('node_modules'))
+  _resolvePaths.add(pathResolve('node_modules'))
 
   function directoryExists(directory) {
     if (typeof directory !== 'string' || directory.length === 0) {
@@ -304,19 +306,19 @@ function reloadNodeResolvePaths() {
     if (typeof folder !== 'string' || folder.length === 0) {
       return undefined
     }
-    if (folder.endsWith(path.sep)) {
+    if (folder.endsWith(pathSep)) {
       folder = folder.slice(0, folder.length - 1)
     }
-    if (folder.endsWith(`${path.sep}node_modules`)) {
-      folder = path.dirname(folder)
+    if (folder.endsWith(`${pathSep}node_modules`)) {
+      folder = pathDirname(folder)
     }
 
-    const result = path.basename(folder)
+    const result = pathBasename(folder)
     if (!result || result.startsWith('@')) {
       return undefined
     }
 
-    const parentName = path.basename(path.dirname(folder))
+    const parentName = pathBasename(pathDirname(folder))
     if (parentName && parentName.startsWith('@')) {
       return `${parentName}/${result}`
     }
@@ -329,19 +331,19 @@ function reloadNodeResolvePaths() {
       return
     }
 
-    folder = path.resolve(folder)
+    folder = pathResolve(folder)
 
     if (!folder) {
       return
     }
 
-    let baseName = path.basename(folder)
-    if (baseName.startsWith('@') && baseName.includes('node_modules')) {
-      baseName = path.dirname(baseName)
+    let baseName = pathBasename(folder)
+    if (baseName.startsWith('@') && baseName.indexOf('node_modules') > 0) {
+      baseName = pathDirname(baseName)
     }
 
-    if (path.basename(folder) !== 'node_modules') {
-      folder = path.join(folder, 'node_modules')
+    if (pathBasename(folder) !== 'node_modules') {
+      folder = pathResolve(folder, 'node_modules')
     }
 
     if (_resolvePaths.has(folder)) {
@@ -360,32 +362,21 @@ function reloadNodeResolvePaths() {
       _resolvePaths.add(folder)
     }
 
-    const p = path.dirname(path.dirname(folder))
+    const p = pathDirname(pathDirname(folder))
 
-    const parentNodeModules = path.join(p, 'node_modules')
+    const parentNodeModules = pathResolve(p, 'node_modules')
     if (!_resolvePaths.has(parentNodeModules) && directoryExists(parentNodeModules)) {
       if (isInstalledGlobally || !isGlobalPath(parentNodeModules)) {
         _resolvePaths.add(parentNodeModules)
       }
     }
 
-    const parentParentNodeModules = path.join(path.dirname(p), 'node_modules')
+    const parentParentNodeModules = pathResolve(pathDirname(p), 'node_modules')
     if (!_resolvePaths.has(parentParentNodeModules) && directoryExists(parentParentNodeModules)) {
       if (isInstalledGlobally || !isGlobalPath(parentParentNodeModules)) {
         _resolvePaths.add(parentParentNodeModules)
       }
     }
-  }
-}
-
-function assertNodeVersion() {
-  let nodeVersion = `${process && process.version}`
-  if (nodeVersion.startsWith('v')) {
-    nodeVersion = nodeVersion.slice(1)
-  }
-  const parsed = parseFloat(nodeVersion)
-  if (parsed < 12.12) {
-    throw new Error(`Node 12.12.0 or greater is required. Current version is ${nodeVersion}`)
   }
 }
 

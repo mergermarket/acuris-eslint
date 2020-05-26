@@ -12,14 +12,14 @@ describe('eslint', function () {
       fork(require.resolve('../scripts/acuris-eslint'), [__filename], {
         stdio: 'inherit'
       })
-        .on('close', code => {
+        .on('close', (code) => {
           if (code !== 0) {
             reject(new Error(`acuris-eslint failed with error code${code}`))
           } else {
             resolve()
           }
         })
-        .on('error', error => {
+        .on('error', (error) => {
           reject(error || new Error())
         })
     })

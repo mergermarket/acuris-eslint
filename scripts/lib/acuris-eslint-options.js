@@ -68,6 +68,8 @@ function parseAcurisEslintOptions(args) {
     options.ignorePath = undefined
   }
 
+  options.projectConfig = projectConfig
+
   return result
 }
 
@@ -137,6 +139,14 @@ function acurisEslintOptions(factory) {
       key: 'ignorePattern',
       type: 'string',
       desc: 'Pattern of files to ignore (in addition to those in .eslintignore)'
+    })
+    .opt({
+      option: 'ignore-unknown-extensions',
+      key: 'ignoreUnknownExtensions',
+      type: 'boolean',
+      value: false,
+      desc:
+        'If a full filename is passed to acuris-eslint, it will be processed also if the extension is invalid. With this option enabled, unknown extensions will be ignored instead.'
     })
     .grp('Fixing problems')
     .opt({ option: 'fix', value: false, desc: 'Automatically fix problems' })
@@ -234,25 +244,26 @@ function acurisEslintOptions(factory) {
 }
 
 function translateOptionsForCLIEngine(cliOptions) {
-  const eslintSupport = require('../../core/eslint-support')
   const options = cliOptions.options
   const cwd = options.cwd || process.cwd()
-  return {
+  const result = {
     useEslintrc: true,
     allowInlineConfig: true,
+    baseConfig: require('../../index.js'),
     errorOnUnmatchedPattern: false,
-    extensions: eslintSupport.extensions,
     ignore: options.ignore,
-    ignorePattern: options.ignorePattern,
     ignorePath: options.ignorePath,
-    configFile: options.config,
     rulePaths: options.rulePaths,
     cache: options.cache,
-    cacheFile: options.cacheFile && path.resolve(cwd, options.cacheFile),
-    cacheLocation: options.cacheLocation && path.resolve(cwd, options.cacheLocation),
+    cacheLocation:
+      (options.cacheLocation && path.resolve(cwd, options.cacheLocation)) ||
+      (options.cacheFile && path.resolve(cwd, options.cacheFile)),
     fix: options.fix || options.fixDryRun,
-    reportUnusedDisableDirectives: options.reportUnusedDisableDirectives,
+    reportUnusedDisableDirectives: options.reportUnusedDisableDirectives || 'off',
     resolvePluginsRelativeTo: options.resolvePluginsRelativeTo
+
+    // TODO: options.ignorePattern - Please use the 'overrideConfig.ignorePatterns' option instead
+    // TODO: configFile: options.config - Please use the 'overrideConfigFile' option instead.
 
     //parser: undefined,
     //envs: undefined,
@@ -262,4 +273,6 @@ function translateOptionsForCLIEngine(cliOptions) {
     //parserOptions: undefined,
     //fixTypes: undefined,
   }
+
+  return result
 }

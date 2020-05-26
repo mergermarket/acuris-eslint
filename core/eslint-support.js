@@ -5,7 +5,7 @@
 
 const { eslintRequire, hasLocalPackage, hasPackage, projectConfig } = require('./node-modules')
 const fs = require('fs')
-const path = require('path')
+const { resolve: pathResolve, dirname: pathDirname } = require('path')
 
 const { isArray } = Array
 const { assign: objectAssign, keys: objectKeys } = Object
@@ -15,7 +15,7 @@ const defaultReactVersion = '16.13.1'
 exports.projectConfig = projectConfig
 
 /** Is running in a continous integration server? */
-exports.isCI = 'CI' in process.env
+exports.isCI = projectConfig.isCI
 
 /** @type {string} The react version supported by the project */
 exports.reactVersion = projectConfig.reactVersion || getReactVersion()
@@ -51,17 +51,6 @@ exports.hasEslintPluginChaiExpect = hasLocalPackage('eslint-plugin-chai-expect')
 exports.hasEslintPluginPromise = hasLocalPackage('eslint-plugin-promise')
 
 exports.hasEslintPluginJson = hasLocalPackage('eslint-plugin-json')
-
-if (this.hasTypescript) {
-  projectConfig.addExtension('.ts')
-  projectConfig.addExtension('.tsx')
-}
-
-if (this.hasEslintPluginJson) {
-  projectConfig.addExtension('.json')
-}
-
-exports.extensions = projectConfig.extensionsToArray()
 
 /**
  * Merges multiple eslint configurations together or clones the given one.
@@ -180,13 +169,11 @@ function findFileUp(filename) {
   let result
   let p = process.cwd()
   for (;;) {
-    const resolvedPath = path.resolve(p, filename)
-    try {
-      if (fs.statSync(resolvedPath).isFile()) {
-        return resolvedPath
-      }
-    } catch (_error) {}
-    const parent = path.dirname(p) || ''
+    const resolvedPath = pathResolve(p, filename)
+    if (fs.existsSync(resolvedPath)) {
+      return resolvedPath
+    }
+    const parent = pathDirname(p) || ''
     if (parent.length === p.length) {
       break
     }

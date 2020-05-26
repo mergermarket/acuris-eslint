@@ -4,11 +4,6 @@ const ProjectConfig = require('../../core/project-config')
 describe('core/project-config', () => {
   it('allows loading multiple configs', () => {
     const pc = new ProjectConfig()
-    pc.extensions.set('.q1', false)
-    pc.extensions.set('.q2', true)
-    pc.addExtension('.q1')
-    pc.addExtension('.q3')
-    pc.addExtension('.q4')
     pc.ignoredPackages.add('bbb')
     pc.ignoredPackages.add('ccc')
     pc.nodeResolvePaths.add('yyy')
@@ -37,7 +32,6 @@ describe('core/project-config', () => {
       tsConfigPath: 'www',
       ignoredPackages: ['aaa', '!bbb', 'ccc', 'ddd'],
       nodeResolvePaths: ['xxx', '!yyy'],
-      extensions: ['a', '!q1', '.b', '!.q4', 'z'],
       filePatterns: {
         bin: { '-b3-': true, '-b2-': false },
         dist: { '-d3-': 0, '-d4-': 1 },
@@ -76,25 +70,11 @@ describe('core/project-config', () => {
     expect(pc.nodeResolvePaths.has('yyy')).to.equal(false)
     expect(pc.nodeResolvePaths.has('!yyy')).to.equal(false)
 
-    pc.addExtension('.q2')
-
-    let a = pc.extensionsToArray()
-    expect(a).to.contain('.a')
-    expect(a).to.contain('.b')
-    expect(a).to.not.contain('.q1')
-    expect(a).to.contain('.q2')
-    expect(a).to.contain('.q3')
-    expect(a).to.not.contain('.q4')
-    expect(a).to.not.contain('.x')
-    expect(a).to.not.contain('.y')
-    expect(a).to.contain('.z')
-
     pc.add({
       eslintrc: 'hello1',
       eslintCache: true,
       ignoredPackages: { ccc: true, ddd: false },
-      nodeResolvePaths: { zzz: true, www: false },
-      extensions: { x: true, '.y': true, z: false }
+      nodeResolvePaths: { zzz: true, www: false }
     })
 
     expect(pc.eslintrc).to.equal('hello1')
@@ -104,16 +84,5 @@ describe('core/project-config', () => {
     expect(pc.ignoredPackages.has('bbb')).to.equal(false)
     expect(pc.ignoredPackages.has('ccc')).to.equal(true)
     expect(pc.ignoredPackages.has('ddd')).to.equal(false)
-
-    a = pc.extensionsToArray()
-    expect(a).to.contain('.a')
-    expect(a).to.contain('.b')
-    expect(a).to.not.contain('.q1')
-    expect(a).to.contain('.q2')
-    expect(a).to.contain('.q3')
-    expect(a).to.not.contain('.q4')
-    expect(a).to.contain('.x')
-    expect(a).to.contain('.y')
-    expect(a).to.not.contain('.z')
   })
 })

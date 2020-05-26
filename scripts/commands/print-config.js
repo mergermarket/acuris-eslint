@@ -3,7 +3,7 @@ const { eslintRequire } = require('../../core/node-modules')
 const { directoryExists } = require('../lib/fs-utils')
 const { translateOptionsForCLIEngine } = require('../lib/acuris-eslint-options')
 
-module.exports = cliOptions => {
+module.exports = (cliOptions) => {
   const filePath = path.resolve(cliOptions.command.value)
 
   let resolved

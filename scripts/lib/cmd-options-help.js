@@ -58,7 +58,7 @@ function createCmdOptionsHelp(programName = getProgramName()) {
     result.push(`${chalk.whiteBright(programName)} ${chalk.cyanBright('--<command>')} ${chalk.gray('[arguments]')}`)
     result.push(`  ${chalk.cyan('executes the given command')}`, '')
     result.push(`${chalk.greenBright(name)}:`, '')
-    const g = groups.find(t => t.name === name)
+    const g = groups.find((t) => t.name === name)
     if (g) {
       for (const o of g.options) {
         if (!o) {
