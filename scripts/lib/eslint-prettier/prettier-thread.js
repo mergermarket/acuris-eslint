@@ -1,5 +1,12 @@
+'use strict'
+
 const { parentPort, workerData, threadId } = require('worker_threads')
-const { stat, readFile, writeFile } = require('fs').promises
+const fs = require('fs')
+const { resolve: pathResolve, dirname: pathDirname, relative: pathRelative } = require('path')
+const { homedir: osHomeDir } = require('os')
+const ignore = require('ignore')
+
+const { stat: fsStatAsync, readFile: fsReadFileAsync, writeFile: fsWriteFileAsync } = fs.promises
 
 require('../../../core/node-modules')
 
@@ -59,11 +66,78 @@ async function doEnd() {
   }
 }
 
+const _ignoreFileCache = new Map()
+let _osHomeDir
+let _defaultIgnoreFile
+
+function getOsHomeDir() {
+  return _osHomeDir || (_osHomeDir = osHomeDir() || '/')
+}
+
+async function loadIgnoreFileAsync(found, dir) {
+  let text = ''
+  try {
+    text = await fsReadFileAsync(pathResolve(dir, '.prettierignore'), 'utf8')
+    if (text.charCodeAt(0) === 0xfeff) {
+      text = text.slice(1)
+    }
+    text = text.replace(/[\r\n]/gm, '\n')
+  } catch (_error) {}
+
+  const content = text.split('\n').filter((x) => x && x.charCodeAt(0) !== 35)
+
+  let result
+  if (found && content.length === 0) {
+    result = found
+  } else {
+    result = ignore({ ignorecase: false })
+    result.directory = dir
+    if (found) {
+      result.add(found)
+    }
+    result.add(content)
+  }
+
+  _ignoreFileCache.set(dir, result)
+  return result
+}
+
+async function buildIgnoreFileAsync(dir, recursive) {
+  let found = _ignoreFileCache.get(dir)
+  if (found !== undefined) {
+    return found
+  }
+
+  if (recursive) {
+    const parentDir = pathDirname(dir)
+    if (parentDir && parentDir !== getOsHomeDir() && parentDir.length !== dir.length) {
+      found = await getIgnoreFileAsync(parentDir, true)
+    } else {
+      if (!_defaultIgnoreFile) {
+        _defaultIgnoreFile = loadIgnoreFileAsync(null, pathResolve(__dirname, '../../..'))
+      }
+      found = await _defaultIgnoreFile
+      found.directory = '/'
+    }
+  }
+
+  return loadIgnoreFileAsync(found, dir)
+}
+
+function getIgnoreFileAsync(dir, recursive) {
+  let result = _ignoreFileCache.get(dir)
+  if (result === undefined) {
+    result = buildIgnoreFileAsync(dir, recursive)
+    _ignoreFileCache.set(dir, result)
+  }
+  return result
+}
+
 async function prettifyFile(filePath) {
   let options
   try {
     try {
-      const info = await stat(filePath)
+      const info = await fsStatAsync(filePath)
       if (info.isSymbolicLink() || !info.isFile() || info.size > MAX_FILE_SIZE_IN_BYTES) {
         return
       }
@@ -71,31 +145,27 @@ async function prettifyFile(filePath) {
       return
     }
 
+    const ignorer = await getIgnoreFileAsync(pathDirname(filePath), true)
+    const relativePath = pathRelative(ignorer.directory, filePath)
+
     let source
     try {
-      const info = await prettier.getFileInfo(filePath, { resolveConfig: true })
-      if (!info || info.ignored) {
+      if (ignorer.test(relativePath).ignored) {
+        if (debug) {
+          console.debug(`>>> prettier ${filePath} ignored`)
+        }
         return
       }
 
-      const resolvedConfigPromise = prettier.resolveConfig(filePath)
+      const resolvedConfigPromise = prettier.resolveConfig(filePath, { useCache: true, editorconfig: true })
 
-      source = await readFile(filePath, 'utf8')
+      source = await fsReadFileAsync(filePath, 'utf8')
 
       options = {
-        useCache: true,
         filepath: filePath,
         prettierDefaultConfig,
-        ...(await resolvedConfigPromise)
-      }
-
-      if (info.inferredParser) {
-        if (!options.parser) {
-          options.parser = info.inferredParser
-        }
-        if (!options.inferredParser) {
-          options.inferredParser = info.inferredParser
-        }
+        ...(await resolvedConfigPromise),
+        useCache: true
       }
     } catch (_error) {
       return
@@ -107,11 +177,16 @@ async function prettifyFile(filePath) {
 
     const formatted = prettier.format(source, options)
     if (formatted !== source) {
-      await writeFile(filePath, formatted)
+      await fsWriteFileAsync(filePath, formatted)
       ++prettified
     }
   } catch (e) {
     const error = e instanceof Error ? e : new Error()
+
+    const errorMessage = `${e.message}`
+    if (errorMessage.startsWith('Multi-line single-quoted string needs to be sufficiently indented')) {
+      return // Yaml parsing error that can be ignored.
+    }
 
     // Prettier's message contains a codeframe style preview of the
     // invalid code and the line/column at which the error occured.

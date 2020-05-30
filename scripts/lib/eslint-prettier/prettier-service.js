@@ -1,3 +1,5 @@
+'use strict'
+
 const { Worker, SHARE_ENV } = require('worker_threads')
 const { basename, extname } = require('path')
 const os = require('os')

@@ -2,7 +2,9 @@
 'use strict'
 
 if (!global.__v8__compile__cache) {
-  require('v8-compile-cache')
+  try {
+    require('v8-compile-cache')
+  } catch (_) {}
 }
 
 const path = require('path')
@@ -259,6 +261,18 @@ function handleError(error) {
   }
   console.error(error.showStack === undefined || error.showStack === true ? error : `${error}`)
   console.log()
+  if (error.code === 'MODULE_NOT_FOUND') {
+    let moduleError = `${error.message}` || ''
+    moduleError = moduleError.split('\n')[0] || 'Module not found'
+
+    console.error(
+      chalk.red('- acuris-eslint:'),
+      chalk.redBright(`${moduleError},`),
+      chalk.redBright(`did you run ${chalk.yellowBright('npm install')}?`)
+    )
+    console.error()
+    process.exit(3)
+  }
 }
 
 function filterOutEslintWarnings(results) {

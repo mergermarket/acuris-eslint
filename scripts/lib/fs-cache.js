@@ -23,17 +23,22 @@ function startFsCache() {
 
   const pathResolve = path.resolve
 
-  const PACKAGE_JSON = 'package.json'
+  fs.statSync = statSync
+  fs.readFileSync = readFileSync
 
-  fs.statSync = function statSync(p, options) {
+  return {
+    stop
+  }
+
+  function statSync(p, options) {
     if (typeof p === 'string' && options === undefined) {
       return cachedStatSync(p)
     }
     return fsStatSync(p, options)
   }
 
-  fs.readFileSync = function readFileSync(p, options) {
-    if (typeof p === 'string' && p.indexOf(PACKAGE_JSON, p.length - PACKAGE_JSON.length) !== -1) {
+  function readFileSync(p, options) {
+    if (typeof p === 'string' && p.indexOf('package.json', p.length - 12) !== -1) {
       const content = cachedReadUtf8Sync(p)
       const enc = (typeof options === 'object' && options !== null && options.encoding) || options
       if (enc === 'utf8' || enc === 'utf-8' || enc === 'UTF8' || enc === 'UTF-8') {
@@ -44,13 +49,13 @@ function startFsCache() {
     return fsReadFileSync(p, options)
   }
 
-  return {
-    stop
-  }
-
   function stop() {
-    fs.statSync = fsStatSync
-    fs.readFileSync = fsReadFileSync
+    if (fs.statSync === fsStatSync) {
+      fs.statSync = statSync
+    }
+    if (fs.readFileSync === readFileSync) {
+      fs.readFileSync = fsReadFileSync
+    }
   }
 
   function cachedStatSync(p) {

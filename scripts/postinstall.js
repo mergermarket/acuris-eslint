@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict'
 
 const { name, version } = require('../package.json')
 const environment = require('../core/environment')
