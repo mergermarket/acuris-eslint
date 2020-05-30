@@ -1,51 +1,80 @@
 #!/usr/bin/env node
 'use strict'
 
+const path = require('path')
+const Module = require('module')
+const manifest = require('../package.json')
+
+if (!Module.createRequire || Number.parseFloat(process.versions) < 12) {
+  throw new Error(
+    ['Node version ', process.version, ' is incompatible with acuris-eslint. Install a newer node version.'].join()
+  )
+} else {
+  const fn = loadBestVersion()
+  if (typeof fn === 'function') {
+    fn(process.argv)
+  }
+}
+
 try {
   require('v8-compile-cache')
   global.__v8__compile__cache = true
 } catch (_error) {}
 
-const fs = require('fs')
-const os = require('os')
-const path = require('path')
+function loadBestVersion() {
+  const cwd = process.cwd()
 
-const cwd = process.cwd() || ''
-const initCwd = process.env.INIT_CWD || ''
+  const runningPackagePath = path.dirname(__dirname)
+  if (runningPackagePath === cwd) {
+    return require('../scripts/acuris-eslint.js')
+  }
 
-const resolved =
-  searchFile(cwd, 'node_modules/@acuris/acuris-eslint/scripts/acuris-eslint.js') ||
-  searchFile(cwd !== initCwd && initCwd, 'node_modules/@acuris/acuris-eslint/scripts/acuris-eslint.js') ||
-  (cwd.endsWith('acuris-eslint') && searchFile(cwd, 'scripts/acuris-eslint.js')) ||
-  resolveFile('../scripts/acuris-eslint.js') ||
-  '@acuris/eslint-config/scripts/acuris-eslint.js'
+  let bestManifest = manifest
+  let bestRequire
 
-const fn = require(resolved)
-if (typeof fn === 'function') {
-  fn(process.argv)
+  const env = process.env
+  const pathResolve = path.resolve
+  const options = new Set([cwd, env.INIT_CWD, env.OLDPWD].filter(Boolean).map((x) => pathResolve(x)))
+  for (const option of options) {
+    tryRequire(Module.createRequire(pathResolve(option, 'x')))
+  }
+  tryRequire(require)
+
+  if (bestRequire) {
+    return bestRequire('@acuris/acuris-eslint/scripts/acuris-eslint.js')
+  }
+
+  return require('../scripts/acuris-eslint.js')
+
+  function tryRequire(doRequire) {
+    try {
+      const pkg = doRequire('@acuris/eslint-config/package.json')
+      if (semverCompare(pkg.version, bestManifest.version) > 0 && pkg.name === bestManifest.name) {
+        bestManifest = pkg
+        bestRequire = doRequire
+      }
+    } catch (_) {}
+  }
 }
 
-function searchFile(dir, name) {
-  if (!dir) {
-    return ''
-  }
-  for (;;) {
-    const resolvedPath = path.resolve(dir, name)
-    if (fs.existsSync(resolvedPath)) {
-      return resolvedPath
+function semverCompare(a, b) {
+  const pa = a.split('.')
+  const pb = b.split('.')
+  for (let i = 0; i < 3; i++) {
+    const na = parseInt(pa[i])
+    const nb = parseInt(pb[i])
+    if (na > nb) {
+      return 1
     }
-    const parent = path.dirname(dir) || ''
-    if (parent.length === dir.length || parent === os.homedir()) {
-      break
+    if (nb > na) {
+      return -1
     }
-    dir = parent
+    if (!isNaN(na) && isNaN(nb)) {
+      return 1
+    }
+    if (isNaN(na) && !isNaN(nb)) {
+      return -1
+    }
   }
-  return ''
-}
-
-function resolveFile(id) {
-  try {
-    return require.resolve(id)
-  } catch (_error) {}
-  return ''
+  return pa.length - pb.length
 }
