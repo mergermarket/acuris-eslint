@@ -296,7 +296,13 @@ function reloadNodeResolvePaths() {
     addNodeResolvePath(nodeResolvePaths)
   }
 
-  addNodeResolvePath(process.cwd())
+  const cwd = process.cwd()
+
+  const env = process.env
+  const options = new Set([cwd, env.INIT_CWD, env.OLDPWD].filter(Boolean).map((x) => pathResolve(x)))
+
+  addNodeResolvePath(options)
+
   addNodeResolvePath(pathDirname(__dirname))
   addNodeResolvePath(pathDirname(pathDirname(__dirname)))
 
@@ -315,8 +321,8 @@ function reloadNodeResolvePaths() {
     addNodeResolvePath(pathDirname(require.resolve('eslint/package.json')))
   } catch (_error) {}
 
-  for (const p of legacyNodeModulePaths(pathDirname(process.cwd()))) {
-    if (directoryExists(p)) {
+  for (const p of legacyNodeModulePaths(cwd)) {
+    if (!_resolvePaths.has(p) && directoryExists(p)) {
       addNodeResolvePath(p)
     }
   }

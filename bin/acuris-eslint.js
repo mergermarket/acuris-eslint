@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 'use strict'
 
+if (!global.__v8__compile__cache) {
+  try {
+    require('v8-compile-cache')
+    global.__v8__compile__cache = true
+  } catch (_) {}
+}
+
 const path = require('path')
 const Module = require('module')
 const manifest = require('../package.json')
@@ -16,11 +23,6 @@ if (!Module.createRequire || Number.parseFloat(process.versions) < 12) {
   }
 }
 
-try {
-  require('v8-compile-cache')
-  global.__v8__compile__cache = true
-} catch (_error) {}
-
 function loadBestVersion() {
   const cwd = process.cwd()
 
@@ -34,22 +36,24 @@ function loadBestVersion() {
 
   const env = process.env
   const pathResolve = path.resolve
-  const options = new Set([cwd, env.INIT_CWD, env.OLDPWD].filter(Boolean).map((x) => pathResolve(x)))
+  const options = new Set(
+    [env.INIT_CWD, env.OLDPWD, cwd].filter((x) => typeof x === 'string' && x.length !== 0).map((x) => pathResolve(x))
+  )
   for (const option of options) {
-    tryRequire(Module.createRequire(pathResolve(option, 'x')))
+    tryPath(Module.createRequire(pathResolve(option, 'x')))
   }
-  tryRequire(require)
+  tryPath(require)
 
   if (bestRequire) {
-    return bestRequire('@acuris/acuris-eslint/scripts/acuris-eslint.js')
+    return bestRequire('@acuris/eslint-config/scripts/acuris-eslint.js')
   }
 
   return require('../scripts/acuris-eslint.js')
 
-  function tryRequire(doRequire) {
+  function tryPath(doRequire) {
     try {
       const pkg = doRequire('@acuris/eslint-config/package.json')
-      if (semverCompare(pkg.version, bestManifest.version) > 0 && pkg.name === bestManifest.name) {
+      if (pkg.name === '@acuris/eslint-config' && semverCompare(pkg.version, bestManifest.version) >= 0) {
         bestManifest = pkg
         bestRequire = doRequire
       }

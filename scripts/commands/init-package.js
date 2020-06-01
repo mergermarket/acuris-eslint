@@ -48,6 +48,9 @@ module.exports = async (cliOptions) => {
         await runAsync('npm', ['install'])
       }
 
+      if (require.cache) {
+        delete require.cache[packageJsonPath]
+      }
       reloadNodeResolvePaths()
       require('eslint-plugin-quick-prettier/prettier-interface').reloadPrettier()
 

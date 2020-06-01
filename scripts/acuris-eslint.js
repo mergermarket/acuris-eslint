@@ -4,6 +4,7 @@
 if (!global.__v8__compile__cache) {
   try {
     require('v8-compile-cache')
+    global.__v8__compile__cache = true
   } catch (_) {}
 }
 
@@ -57,7 +58,11 @@ if (!cliOptions) {
   )}`
 
   if (cliOptions.canLog) {
-    console.info(appTitle)
+    if (fix) {
+      console.info(appTitle, chalk.cyan('--fix'))
+    } else {
+      console.info(appTitle)
+    }
     console.time(appTitle)
     timerStarted = appTitle
   }
@@ -91,10 +96,12 @@ async function eslint() {
 
     ESLint = eslintRequire('./lib/eslint/eslint.js').ESLint
 
-    engine = new ESLint(translateOptionsForCLIEngine(cliOptions))
+    const translatedOptions = translateOptionsForCLIEngine(cliOptions)
+
+    engine = new ESLint(translatedOptions)
 
     results = options.stdin
-      ? await engine.lintText(fs.readFileSync(0, 'utf8'), options.stdinFilename, false)
+      ? await engine.lintText(await fs.promises.readFile(0, 'utf8'), options.stdinFilename, false)
       : await engine.lintFiles(cliOptions.list)
   } finally {
     endIterationPromise = endMonkeyPatch()

@@ -93,6 +93,10 @@ if (eslintSupport.hasTypescript) {
     // This gives false positives
     '@typescript-eslint/unbound-method': 0,
 
+    // These two rules could break some lazy use of any
+    '@typescript-eslint/no-unsafe-member-access': 0,
+    '@typescript-eslint/no-unsafe-assignment': 0,
+
     '@typescript-eslint/prefer-includes': 0,
     '@typescript-eslint/adjacent-overload-signatures': 1,
     '@typescript-eslint/array-type': 1,
