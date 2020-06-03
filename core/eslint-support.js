@@ -44,9 +44,11 @@ exports.hasEslintPluginJsxA11y = hasLocalPackage('eslint-plugin-jsx-a11y')
 exports.hasEslintPluginJest =
   hasLocalPackage('eslint-plugin-jest') && (hasPackage('jest') || fs.existsSync('jest.config.js'))
 
-exports.hasEslintPluginMocha = hasLocalPackage('eslint-plugin-mocha') && hasLocalPackage('mocha')
+exports.hasEslintPluginMocha =
+  hasLocalPackage('eslint-plugin-mocha') && (hasLocalPackage('mocha') || !hasPackage('jest'))
 
-exports.hasEslintPluginChaiExpect = hasLocalPackage('eslint-plugin-chai-expect') && hasLocalPackage('chai')
+exports.hasEslintPluginChaiExpect =
+  hasLocalPackage('eslint-plugin-chai-expect') && (hasLocalPackage('chai') || !hasPackage('jest'))
 
 exports.hasEslintPluginPromise = hasLocalPackage('eslint-plugin-promise')
 
