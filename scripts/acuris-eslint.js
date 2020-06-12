@@ -79,21 +79,21 @@ if (!cliOptions) {
 
 async function eslint() {
   let endIterationPromise
-  let endMonkeyPatch
   let results
   let ESLint
   let engine
 
-  try {
-    if (options.debug) {
+  if (options.debug) {
+    try {
       const eslintDebug = eslintTryRequire('debug')
-      if (eslintDebug) {
+      if (eslintDebug && eslintDebug.enable) {
         eslintDebug.enable('eslint:*,-eslint:code-path')
       }
-    }
+    } catch (_) {}
+  }
 
-    endMonkeyPatch = monkeyPatchEslint()
-
+  const endMonkeyPatch = monkeyPatchEslint()
+  try {
     ESLint = eslintRequire('./lib/eslint/eslint.js').ESLint
 
     const translatedOptions = translateOptionsForCLIEngine(cliOptions)
@@ -104,7 +104,7 @@ async function eslint() {
       ? await engine.lintText(await fs.promises.readFile(0, 'utf8'), options.stdinFilename, false)
       : await engine.lintFiles(cliOptions.list)
   } finally {
-    endIterationPromise = endMonkeyPatch()
+    endIterationPromise = endMonkeyPatch && endMonkeyPatch()
   }
 
   if (fix) {
