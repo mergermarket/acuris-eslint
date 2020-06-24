@@ -41,6 +41,7 @@ module.exports = class ProjectConfig {
       bin: ['**/bin/**/*', '**/.bin/**/*'],
       server: ['**/server/**/*', '**/dev-server/**/*'],
       dist: ['**/dist/**/*', '**/out/**/*', '**/_dist/**/*', '**/_out/**/*', '**/.dist/**/*', '**/.out/**/*'],
+      distWasm: ['**/wasm/**/*', '**/emscripten/**/*'],
       scripts: [
         '**/dev-server/**/*',
         '**/scripts/**/*',

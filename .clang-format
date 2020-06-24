@@ -13,7 +13,6 @@ AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AlignOperands: false
 AlignTrailingComments: false
-Standard: Latest
 PointerAlignment: Middle
 BinPackArguments: true
 MaxEmptyLinesToKeep: 1
