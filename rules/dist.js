@@ -8,6 +8,7 @@ const distEnv = {
 }
 
 const distRules = {
+  'no-console': 0,
   'no-empty': 0,
   'no-shadow': 0,
   'global-require': 0,

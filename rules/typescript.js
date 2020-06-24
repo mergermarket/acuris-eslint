@@ -34,7 +34,6 @@ if (eslintSupport.hasTypescript) {
   }
 
   Object.assign(baseRules, pluginConfigRecommended, {
-    '@typescript-eslint/explicit-module-boundary-types': 0,
     '@typescript-eslint/quotes': 0,
     '@typescript-eslint/brace-style': 'off',
     '@typescript-eslint/func-call-spacing': 'off',
@@ -86,6 +85,12 @@ if (eslintSupport.hasTypescript) {
       'import/no-named-as-default-member': 0,
       'import/no-duplicates': 0
     }),
+
+    // These rules are a bit too strict
+    '@typescript-eslint/explicit-module-boundary-types': 0,
+    '@typescript-eslint/restrict-template-expressions': 0,
+    '@typescript-eslint/no-unsafe-call': 0,
+    '@typescript-eslint/no-unsafe-return': 0,
 
     // TODO: this would be a useful thing, but at the moment is buggy with overloads.
     'no-dupe-class-members': 0,
