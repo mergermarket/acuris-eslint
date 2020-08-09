@@ -1,6 +1,6 @@
 {
   "name": "@acuris/eslint-config",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "private": false,
   "description": "Acuris eslint shareable configuration",
   "keywords": [
