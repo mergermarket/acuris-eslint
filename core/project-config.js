@@ -45,6 +45,7 @@ module.exports = class ProjectConfig {
       scripts: [
         '**/dev-server/**/*',
         '**/scripts/**/*',
+        '**/dev/**/*',
         '**/bin/**/*',
         '**/.bin/**/*',
         '**/build/**/*',
