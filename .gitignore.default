@@ -48,6 +48,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # Cache and lockfiles
+.clangd
 .cache
 .fuse_hidden*
 .fusebox

@@ -134,7 +134,8 @@ if (eslintSupport.hasTypescript) {
     '@typescript-eslint/type-annotation-spacing': 1,
     '@typescript-eslint/triple-slash-reference': 0,
     '@typescript-eslint/consistent-type-definitions': 0,
-    '@typescript-eslint/no-implied-eval': 0
+    '@typescript-eslint/no-implied-eval': 0,
+    '@typescript-eslint/require-await': 0
   }
 
   if (eslintSupport.hasEslintPluginReact) {

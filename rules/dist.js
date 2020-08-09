@@ -17,7 +17,12 @@ const distRules = {
   'no-sequences': 0,
   'no-prototype-builtins': 0,
   'no-multi-assign': 0,
-  'no-void': 0
+  'no-void': 0,
+  'no-cond-assign': 0,
+  'prefer-rest-params': 0,
+  'no-redeclare': 0,
+  'no-var': 0,
+  'import/export': 0
 }
 
 if (eslintSupport.hasEslintPluginNode) {
