@@ -20,13 +20,7 @@ if (options.cwd) {
   process.chdir(path.resolve(options.cwd))
 }
 
-const {
-  eslintRequire,
-  eslintTryRequire,
-  getEslintVersion,
-  assertEslintVersion,
-  eslintPackageJsonPath
-} = require('../core/node-modules')
+const { eslintRequire, eslintTryRequire, getEslintVersion, eslintPackageJsonPath } = require('../core/node-modules')
 const { startPrettierService } = require('./lib/eslint-prettier/prettier-service')
 
 const { version: packageVersion } = require('../package.json')
@@ -313,7 +307,6 @@ function filterOutEslintWarnings(results) {
 function monkeyPatchEslint() {
   const fsCache = require('./lib/fs-cache')
   const stopFsCache = fsCache.startFsCache().stop
-  assertEslintVersion()
   stopFsCache()
 
   const fileEnumeratorProto = eslintRequire('./lib/cli-engine/file-enumerator.js').FileEnumerator.prototype

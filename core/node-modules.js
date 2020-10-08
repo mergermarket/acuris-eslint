@@ -190,33 +190,6 @@ function getEslintVersion() {
 
 exports.getEslintVersion = getEslintVersion
 
-exports.assertEslintVersion = assertEslintVersion
-
-let _minimumSupportedEslintVersion
-
-function getMinimumSupportedEslintVersion() {
-  if (!_minimumSupportedEslintVersion) {
-    const pkg = require('../package.json')
-    const peerDependencies = pkg.peerDependencies
-    const devDependencies = pkg.devDependencies
-    _minimumSupportedEslintVersion =
-      (peerDependencies && peerDependencies.eslint) || (devDependencies && devDependencies.eslint) || '6.1.0'
-    if (
-      _minimumSupportedEslintVersion.startsWith('>') ||
-      _minimumSupportedEslintVersion.startsWith('~') ||
-      _minimumSupportedEslintVersion.startsWith('^')
-    ) {
-      _minimumSupportedEslintVersion = _minimumSupportedEslintVersion.slice(1)
-    }
-    if (_minimumSupportedEslintVersion.startsWith('=')) {
-      _minimumSupportedEslintVersion = _minimumSupportedEslintVersion.slice(1)
-    }
-  }
-  return _minimumSupportedEslintVersion
-}
-
-exports.getMinimumSupportedEslintVersion = getMinimumSupportedEslintVersion
-
 let _eslintRequire
 let _eslintPackageJsonPath
 const _eslintRequireCache = new Map()
@@ -438,16 +411,6 @@ function reloadNodeResolvePaths() {
         _resolvePaths.add(parentParentNodeModules)
       }
     }
-  }
-}
-
-function assertEslintVersion() {
-  const minVersion = getMinimumSupportedEslintVersion()
-  const version = getEslintVersion()
-  if (parseFloat(version) < parseFloat(minVersion)) {
-    const err = new Error(`eslint version ${version} not supported. Minimum supported version is ${minVersion}.`)
-    err.showStack = false
-    throw err
   }
 }
 
