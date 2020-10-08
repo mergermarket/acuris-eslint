@@ -37,6 +37,8 @@ function startPrettierService(options = { debug: false }) {
     }
   }
 
+  prettierExtensions.delete('.frag')
+
   const end = async () => {
     const msgs = await Promise.all(workers.map((w) => w.end()))
 
