@@ -205,8 +205,6 @@ const formattingRules = {
   'yield-star-spacing': 'off',
   'indent-legacy': 'off',
   'no-spaced-func': 'off',
-
-  'quick-prettier/prettier': [1, { 'prettify-package-json': true, rules: quickPrettierRules }],
   curly: 1,
   'max-len': [0, 120],
   'prefer-arrow-callback': [1, { allowNamedFunctions: true, allowUnboundThis: true }],
@@ -240,7 +238,8 @@ const formattingRules = {
       flatTernaryExpressions: false,
       ignoredNodes: ['JSXElement', 'JSXElement *']
     }
-  ]
+  ],
+  'quick-prettier/prettier': [1, { 'prettify-package-json': true, rules: quickPrettierRules }]
 }
 
 module.exports = {

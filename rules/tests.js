@@ -47,8 +47,7 @@ if (eslintSupport.hasEslintPluginJest) {
       'jest/prefer-to-be-null': 1,
       'jest/prefer-to-be-undefined': 1,
       'jest/prefer-to-contain': 1,
-      'jest/prefer-to-have-length': 1,
-      'jestno-jasmine-globals': 0
+      'jest/prefer-to-have-length': 1
     }
   })
 }
