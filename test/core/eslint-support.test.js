@@ -12,7 +12,7 @@ describe('core/eslint-support', () => {
       hasEslintPluginNode: true,
       hasEslintPluginReact: true,
       hasEslintPluginJsxA11y: true,
-      hasEslintPluginJest: false,
+      hasEslintPluginJest: true,
       hasEslintPluginMocha: true,
       hasEslintPluginChaiExpect: true,
       hasEslintPluginPromise: true,

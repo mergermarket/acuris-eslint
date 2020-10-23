@@ -27,7 +27,7 @@ if (eslintSupport.hasEslintPluginJest) {
     plugins: ['jest'],
     env,
     rules: {
-      'jest/expect-expect': 'warn',
+      'jest/expect-expect': 0,
       'jest/no-commented-out-tests': 'warn',
       'jest/no-disabled-tests': 1,
       'jest/no-export': 'error',
