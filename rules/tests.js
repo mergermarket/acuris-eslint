@@ -37,7 +37,7 @@ if (eslintSupport.hasEslintPluginJest) {
       'jest/no-mocks-import': 'error',
       'jest/no-jasmine-globals': 'warn',
       'jest/no-standalone-expect': 'error',
-      'jest/no-test-callback': 1,
+      'jest/no-done-callback': 1,
       'jest/no-test-prefixes': 0,
       'jest/no-try-expect': 'error',
       'jest/valid-describe': 'error',
