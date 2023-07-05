@@ -5,7 +5,6 @@
     "allowUnreachableCode": true,
     "allowUnusedLabels": true,
     "alwaysStrict": true,
-    "charset": "utf8",
     "emitDecoratorMetadata": false,
     "esModuleInterop": true,
     "experimentalDecorators": true,
