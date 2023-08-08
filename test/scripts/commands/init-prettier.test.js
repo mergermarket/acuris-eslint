@@ -77,9 +77,6 @@ describe('commands/init-prettier', () => {
     const finalPatterns = [...new IgnoreFile(fs.readFileSync('.prettierignore', 'utf8')).patterns].sort()
     const expectedPatterns = [...new IgnoreFile(prettierIgnoreDefaultContent).patterns, 'xxxx.js', 'yyyy.js'].sort()
 
-    console.log('finalPatterns...', finalPatterns)
-    console.log('expectedPatterns...', expectedPatterns)
-    
     expect(finalPatterns).to.deep.equal(expectedPatterns)
   })
 })
