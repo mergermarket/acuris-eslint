@@ -60,7 +60,7 @@ function assertNodeVersion() {
     nodeVersion = nodeVersion.slice(1)
   }
   const parsed = parseFloat(nodeVersion)
-  if (parsed < 12.12) {
-    throw new Error(`Node 12.12.0 or greater is required. Current version is ${nodeVersion}`)
+  if (parsed < 16.15) {
+    throw new Error(`Node 16.15.0 or greater is required. Current version is ${nodeVersion}`)
   }
 }
