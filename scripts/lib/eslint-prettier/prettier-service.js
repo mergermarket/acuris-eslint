@@ -1,16 +1,16 @@
 'use strict'
 
-const { Worker, SHARE_ENV } = require('worker_threads')
-const { basename, extname } = require('path')
+const {Worker, SHARE_ENV} = require('worker_threads')
+const {basename, extname} = require('path')
 const os = require('os')
 
 module.exports = {
   startPrettierService
 }
 
-function startPrettierService(options = { debug: false }) {
+function startPrettierService(options = {debug: false}) {
   /** @type {typeof import('prettier')} */
-  const prettier = require('eslint-plugin-quick-prettier/prettier-interface').tryGetPrettier()
+  const prettier = require('eslint-plugin-prettier/prettier-interface').tryGetPrettier()
   if (!prettier) {
     return null
   }
@@ -100,18 +100,18 @@ function startPrettierThread(options) {
 
   function prettify(name) {
     if (worker) {
-      worker.postMessage({ type: 'prettify', name })
+      worker.postMessage({type: 'prettify', name})
     }
   }
 
   function end() {
     if (worker) {
       try {
-        worker.postMessage({ type: 'ending' })
+        worker.postMessage({type: 'ending'})
       } catch (_) {}
     }
     return promise
   }
 
-  return { prettify, end }
+  return {prettify, end}
 }

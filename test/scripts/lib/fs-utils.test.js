@@ -1,6 +1,6 @@
 const packageJson = require('../../../package.json')
-const { getRepositoryFromGitConfig } = require('../../../scripts/lib/fs-utils')
-const { expect } = require('chai')
+const {getRepositoryFromGitConfig} = require('../../../scripts/lib/fs-utils')
+const {expect} = require('chai')
 
 describe('fs-utils', () => {
   describe('getRepositoryFromGitConfig', () => {

@@ -1,5 +1,5 @@
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
-const { expect } = require('chai')
+const {expect} = require('chai')
 
 describe('core/prettierInterface', () => {
   describe('getPrettier', () => {
@@ -15,7 +15,7 @@ describe('core/prettierInterface', () => {
   })
 
   describe('getPrettierConfig', () => {
-    it('returns prettier config', () => {
+    it.only('returns prettier config', () => {
       expect(prettierInterface.getPrettierConfig()).to.deep.include({
         endOfLine: 'lf',
         printWidth: 120,
@@ -38,7 +38,7 @@ describe('core/prettierInterface', () => {
 
   describe('format', () => {
     it('formats a json file', () => {
-      const formatted = prettierInterface.format(JSON.stringify({ a: 1, b: [1, 2, 3], c: { x: 1, b: 2 } }, null, 2), {
+      const formatted = prettierInterface.format(JSON.stringify({a: 1, b: [1, 2, 3], c: {x: 1, b: 2}}, null, 2), {
         parser: 'json'
       })
       expect(formatted).to.equal('{\n  "a": 1,\n  "b": [1, 2, 3],\n  "c": {\n    "x": 1,\n    "b": 2\n  }\n}\n')

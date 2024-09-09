@@ -1,8 +1,8 @@
 'use strict'
 
-const { jsonEqual, sortPackageJson } = require('eslint-plugin-quick-prettier/json-utils')
+const {jsonEqual, sortPackageJson} = require('eslint-plugin-quick-prettier/json-utils')
 const prettierInterface = require('eslint-plugin-quick-prettier/prettier-interface')
-const { mkdirSync } = require('./fs-utils')
+const {mkdirSync} = require('./fs-utils')
 const CJSON = require('comment-json')
 const fs = require('fs')
 const path = require('path')
@@ -48,7 +48,7 @@ function parse(source, format, filename) {
       if (source.length === 0) {
         return undefined
       }
-      source = prettierInterface.format(source, { ignoreErrors: true, parser: format || 'json' })
+      source = prettierInterface.format(source, {ignoreErrors: true, parser: format || 'json'})
       if (format === 'json-stringify') {
         try {
           return JSON.parse(source)
@@ -65,7 +65,7 @@ function parse(source, format, filename) {
     }
 
     if (format && format !== 'text') {
-      return prettierInterface.format(source, { ignoreErrors: true, parser: format })
+      return prettierInterface.format(source, {ignoreErrors: true, parser: format})
     }
 
     return source
@@ -154,7 +154,7 @@ function stringify(obj, format, filename = null) {
     }
 
     if (format !== 'text') {
-      result = prettierInterface.format(result, { ignoreErrors: true, parser: format })
+      result = prettierInterface.format(result, {ignoreErrors: true, parser: format})
     }
 
     return cleanupText(result)
@@ -219,13 +219,13 @@ function prettifyFile(filename, format = '', source = null) {
 
     const prettier = prettierInterface.tryGetPrettier()
     if (prettier && format !== 'text' && path.basename(filename) !== 'package.json') {
-      formatted = cleanupText(prettierInterface.format(formatted, { ignoreErrors: true, parser: format }))
+      formatted = cleanupText(prettierInterface.format(formatted, {ignoreErrors: true, parser: format}))
     } else {
       formatted = stringify(parse(source, format, filename), format, filename)
     }
 
     if (source !== formatted) {
-      fs.writeFileSync(filename, formatted, { encoding: 'utf8' })
+      fs.writeFileSync(filename, formatted, {encoding: 'utf8'})
       return true
     }
   } catch (error) {
@@ -317,7 +317,7 @@ async function updateTextFileAsync({
     try {
       mkdirSync(path.dirname(targetPath))
 
-      fs.writeFileSync(targetPath, stringify(content, format, targetPath), { encoding: 'utf8' })
+      fs.writeFileSync(targetPath, stringify(content, format, targetPath), {encoding: 'utf8'})
 
       if (!exists) {
         console.log(` ${chalk.green('+')} ${path.relative(basePath, targetPath)} ${chalk.greenBright('created')}.`)

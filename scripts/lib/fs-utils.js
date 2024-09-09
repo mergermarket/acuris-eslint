@@ -2,7 +2,7 @@
 
 require('../../core/node-modules')
 
-const { spawn } = require('child_process')
+const {spawn} = require('child_process')
 const path = require('path')
 const fs = require('fs')
 
@@ -126,11 +126,11 @@ function directoryExists(filePath) {
 
 exports.directoryExists = directoryExists
 
-function findUp(filename, { directories = true, files = true, cwd = process.cwd() }) {
+function findUp(filename, {directories = true, files = true, cwd = process.cwd()}) {
   let result
   cwd = path.resolve(cwd)
   let p = cwd
-  for (;;) {
+  for (; ;) {
     const resolvedPath = path.resolve(p, filename)
     if (files && !directories) {
       if (fileExists(resolvedPath)) {
@@ -155,7 +155,7 @@ function findUp(filename, { directories = true, files = true, cwd = process.cwd(
 exports.findUp = findUp
 
 function findFileUp(filename) {
-  return findUp(filename, { directories: false, files: false })
+  return findUp(filename, {directories: false, files: false})
 }
 
 exports.findFileUp = findFileUp
@@ -163,7 +163,9 @@ exports.findFileUp = findFileUp
 function getRepositoryFromGitConfig(cwd = process.cwd()) {
   let gitConfig
   try {
-    const found = findUp('.git/config', { files: true, directories: false, cwd })
+    const options = {files: true, directories: false, cwd}
+    const found = findUp('.git/config', options)
+      || findUp('../.bare/config', options)
     gitConfig = found && fs.readFileSync(found, 'utf8').split('\n')
   } catch (_error) {}
   if (gitConfig) {
